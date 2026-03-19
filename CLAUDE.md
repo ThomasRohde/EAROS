@@ -147,7 +147,8 @@ EAROS/
 │   ├── EAROS_Standard_v2.docx       Word version
 │   └── schemas/
 │       ├── rubric.schema.json    JSON Schema for all rubric/profile/overlay YAML files
-│       └── evaluation.schema.json JSON Schema for evaluation record output files
+│       ├── evaluation.schema.json JSON Schema for evaluation record output files
+│       └── artifact.schema.json  JSON Schema for architecture artifact documents (NEW)
 │
 ├── core/
 │   └── core-meta-rubric.yaml    The universal foundation (EAROS-CORE-002)
@@ -167,13 +168,10 @@ EAROS/
 │
 ├── templates/
 │   ├── new-profile.template.yaml   Scaffold for new profiles
-│   ├── evaluation-record.template.yaml  Blank evaluation record
-│   └── reference-architecture/
-│       └── Reference_Architecture_Template_v2.docx   Word template for RA authors
+│   └── evaluation-record.template.yaml  Blank evaluation record
 │
 ├── tools/scoring-sheets/
-│   ├── EAROS_Scoring_Sheet_v2.xlsx         General-purpose manual scoring
-│   └── EAROS_RefArch_Scoring_Sheet.xlsx    Reference architecture scoring
+│   └── EAROS_Scoring_Sheet_v2.xlsx         General-purpose manual scoring
 │
 ├── examples/
 │   └── example-solution-architecture.evaluation.yaml   Worked evaluation record
@@ -274,9 +272,21 @@ Overlays use `kind: overlay` and `artifact_type: any`. Their `scoring.method` is
 
 ### Schema Validation
 
-All YAML files must validate against `standard/schemas/rubric.schema.json`. Required top-level fields: `rubric_id`, `version`, `kind`, `title`, `artifact_type`, `dimensions`, `scoring`, `outputs`.
+Three JSON Schemas live in `standard/schemas/`:
 
-Evaluation records must validate against `standard/schemas/evaluation.schema.json`.
+| Schema | Validates | Kind discriminator |
+|--------|-----------|--------------------|
+| `rubric.schema.json` | Core rubrics, profiles, overlays | `kind: core_rubric`, `profile`, `overlay` |
+| `evaluation.schema.json` | Evaluation records | `kind: evaluation` |
+| `artifact.schema.json` | Architecture artifact documents | `kind: artifact` |
+
+**Derivation chain:** Rubric → Artifact Schema → Template. The `artifact.schema.json` is derived directly from the `required_evidence` fields of the core meta-rubric and profiles. Each section in the artifact schema maps to the evidence a rubric criterion requires. When a profile adds criteria with new `required_evidence`, the corresponding artifact schema should be updated to add those sections. This chain means a well-completed artifact document will satisfy the evidence requirements for its rubric criteria.
+
+Rubric YAML files must validate against `rubric.schema.json`. Required top-level fields: `rubric_id`, `version`, `kind`, `title`, `artifact_type`, `dimensions`, `scoring`, `outputs`.
+
+Evaluation records must validate against `evaluation.schema.json`.
+
+Artifact documents must validate against `artifact.schema.json`.
 
 ---
 
@@ -365,7 +375,7 @@ Overlays are additive — they cannot remove or weaken gates from the base rubri
 ### Human Mode
 
 1. Identify artifact type → select core + matching profile + applicable overlays
-2. Open `tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx` (or `EAROS_RefArch_Scoring_Sheet.xlsx` for reference architectures)
+2. Open `tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx`
 3. Score each criterion 0–4 using the `scoring_guide` level descriptors
 4. Record the evidence: quote or reference for each score (observed / inferred / external)
 5. Check gates — any critical gate failure → Reject immediately; do not compute average
@@ -477,9 +487,7 @@ The `rubric_locked: true` flag in `agent_evaluation` means an agent must not mod
 - Dimension weights are tuned: implementation actionability (RA-D4) and views (RA-D1) weighted at 1.2 to reflect their importance; reusability/evolution (RA-D6) at 0.8 as secondary
 - Calibration pack is specified explicitly: 1 strong, 1 weak, 1 ambiguous, 1 golden-path artifact
 
-**Paired with a Word template:** `templates/reference-architecture/Reference_Architecture_Template_v2.docx` is a structured author-facing template that aligns section-by-section with the rubric criteria. This pattern — rubric + author template — should be replicated for each new profile.
-
-**Scoring sheet:** `tools/scoring-sheets/EAROS_RefArch_Scoring_Sheet.xlsx` is the corresponding human-mode scoring tool. When creating a new profile, a corresponding scoring sheet should eventually be created.
+**Paired with an artifact schema:** `standard/schemas/artifact.schema.json` is derived from the rubric's `required_evidence` fields and defines the structure of a compliant reference architecture document. This pattern — rubric + artifact schema — should be replicated for each new profile. The artifact schema is usable by JSON Forms to render an artifact creation form in the editor.
 
 **Illustrative decision tree pattern** (from RA-VIEW-01):
 ```
@@ -559,13 +567,14 @@ node bin.js manifest check       # Verify manifest matches filesystem; exits non
 | Task | Where to start |
 |------|---------------|
 | Understand the full standard | `standard/EAROS.md` |
-| Score a reference architecture | `earos-assess` skill or `tools/scoring-sheets/EAROS_RefArch_Scoring_Sheet.xlsx` |
+| Score a reference architecture | `earos-assess` skill or `tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx` |
 | Score any other artifact | `earos-assess` skill or `tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx` |
 | Create a new rubric (profile, overlay, or core) | `earos-create` skill |
 | Get YAML authoring help for an existing rubric design | `earos-profile-author` skill or `templates/new-profile.template.yaml` + `docs/profile-authoring-guide.md` |
 | See a worked evaluation | `examples/example-solution-architecture.evaluation.yaml` |
 | Validate a rubric YAML | `earos-validate` skill or `standard/schemas/rubric.schema.json` |
 | Validate an evaluation record | `standard/schemas/evaluation.schema.json` |
+| Validate an artifact document | `standard/schemas/artifact.schema.json` |
 | Calibrate | `earos-calibrate` skill or `calibration/gold-set/` |
 | Generate an executive report | `earos-report` skill |
 | Regenerate the manifest | `node tools/editor/bin.js manifest` |

@@ -64,7 +64,8 @@ EAROS/
 │   ├── EAROS_Standard_v2.docx       Word version of the standard
 │   └── schemas/
 │       ├── rubric.schema.json    JSON Schema for rubric/profile/overlay files
-│       └── evaluation.schema.json JSON Schema for evaluation record files
+│       ├── evaluation.schema.json JSON Schema for evaluation record files
+│       └── artifact.schema.json  JSON Schema for architecture artifact documents
 │
 ├── core/
 │   └── core-meta-rubric.yaml    Universal rubric — applies to all artifacts
@@ -83,15 +84,11 @@ EAROS/
 │
 ├── templates/                       Blank templates for assessors and authors
 │   ├── new-profile.template.yaml   Scaffold for creating a new profile
-│   ├── evaluation-record.template.yaml  Blank evaluation record
-│   └── reference-architecture/
-│       └── Reference_Architecture_Template_v2.docx
+│   └── evaluation-record.template.yaml  Blank evaluation record
 │
 ├── tools/
 │   └── scoring-sheets/             Excel-based tools for manual assessment
-│       ├── EAROS_Scoring_Sheet_v2.xlsx
-│       ├── EAROS_Scoring_Sheet.xlsx
-│       └── EAROS_RefArch_Scoring_Sheet.xlsx
+│       └── EAROS_Scoring_Sheet_v2.xlsx
 │
 ├── examples/
 │   └── example-solution-architecture.evaluation.yaml  Worked evaluation
@@ -135,7 +132,7 @@ EAROS/
    - Always start with [`core/core-meta-rubric.yaml`](core/core-meta-rubric.yaml)
    - Add the matching profile from [`profiles/`](profiles/)
    - Add any applicable overlays from [`overlays/`](overlays/)
-3. **Open the scoring sheet** in [`tools/scoring-sheets/`](tools/scoring-sheets/) — `EAROS_Scoring_Sheet_v2.xlsx` for most artifacts, `EAROS_RefArch_Scoring_Sheet.xlsx` for reference architectures.
+3. **Open the scoring sheet** in [`tools/scoring-sheets/`](tools/scoring-sheets/) — `EAROS_Scoring_Sheet_v2.xlsx`.
 4. **Score each criterion** on the 0–4 scale using the level descriptors. Record the evidence for each score.
 5. **Check the gates** — any criterion marked as a gate failure overrides the aggregate score.
 6. **Determine the status:**

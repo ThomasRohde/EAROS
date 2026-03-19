@@ -58,19 +58,15 @@ schemas:
     validates: [core_rubric, profile, overlay]
   - path: standard/schemas/evaluation.schema.json
     validates: [evaluation]
+  - path: standard/schemas/artifact.schema.json
+    validates: [artifact]
 
 templates:
   - path: templates/new-profile.template.yaml
     purpose: scaffold for new profiles
   - path: templates/evaluation-record.template.yaml
     purpose: blank evaluation record
-  - path: templates/reference-architecture/Reference_Architecture_Template_v2.docx
-    purpose: author template for reference architectures
 
 scoring_tools:
   - path: tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx
-    purpose: general-purpose manual scoring (current)
-  - path: tools/scoring-sheets/EAROS_Scoring_Sheet.xlsx
-    purpose: general-purpose manual scoring (legacy)
-  - path: tools/scoring-sheets/EAROS_RefArch_Scoring_Sheet.xlsx
-    purpose: reference architecture scoring
+    purpose: general-purpose manual scoring
