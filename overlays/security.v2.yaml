@@ -1,0 +1,92 @@
+rubric_id: EAROS-OVR-SEC-001
+version: 2.0.0
+kind: overlay
+title: Security Overlay
+status: approved
+artifact_type: any
+purpose:
+  - security_assurance
+  - control_alignment_review
+stakeholders:
+  - security
+  - risk
+  - architecture_board
+dimensions:
+  - id: SEC1
+    name: Threat, control, and ownership treatment
+    description: >
+      Security concerns that are absent from the architecture document will be absent from
+      the architecture. This dimension checks whether the artifact treats security as a
+      first-class design concern — with identified threats, mapped controls, and named
+      ownership — rather than delegating security to delivery as an afterthought.
+    criteria:
+      - id: SEC-01
+        question: Does the artifact show material threats, required controls, and control ownership at a level suitable for the review?
+        description: >
+          A security overlay is applied when an artifact touches authentication, authorization,
+          personal data, privileged access, external integrations, or sensitive processing.
+          The criterion checks whether the artifact identifies material threats, maps required
+          controls to design elements, and assigns ownership — the three minimum elements
+          for a reviewable security treatment. Designs that assert compliance without
+          demonstrating it cannot be approved at governance level.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: critical
+          failure_effect: Reject or escalate when mandatory controls are unaddressed
+        required_evidence:
+          - threat view or risk list
+          - control mapping to design elements
+          - ownership assignments
+        scoring_guide:
+          "0": No material security treatment anywhere in the artifact
+          "1": Security assertions only (e.g. 'the system will be secure') with no specifics
+          "2": Partial threat or control view — some threats identified or some controls mapped but ownership absent
+          "3": Material controls and their owners addressed for key threat areas
+          "4": Threats, controls, residual risk, exceptions, and ownership are all explicit and decision-useful
+        anti_patterns:
+          - Security delegated to delivery without any design response
+          - No exception handling for non-compliant elements
+          - Security section absent from artifact touching personal data
+          - Controls copied from a policy document without mapping to this design
+        examples:
+          good:
+            - >
+              "Threat: Unauthorized access to customer PII. Control: Role-based access control,
+              OAuth 2.0/OIDC, audit logging to SIEM. Owner: Security Architecture. Residual risk:
+              Medium — pending MFA enforcement (planned Q3). Exception: Legacy admin portal —
+              temporary exemption granted by CISO 2026-01-15, expires 2026-07-15."
+          bad:
+            - >
+              "Security will be handled according to enterprise security standards. The delivery
+              team will ensure security requirements are met. [No threats identified, no controls
+              mapped to this design, no ownership]"
+        decision_tree: >
+          IF no security section and no security-related content THEN score 0.
+          IF security mentioned only as assertion or intention THEN score 1.
+          IF partial threat or control view exists but material gaps remain THEN score 2.
+          IF material controls addressed with owners for key threat areas THEN score 3.
+          IF threats, controls, residual risk, exceptions, and ownership are all explicit THEN score 4.
+        remediation_hints:
+          - Map controls explicitly to architecture decisions and components
+          - Record residual risk, exception approvals, and named owners
+          - Produce a threat model or risk register, even if lightweight
+          - Distinguish between controls in the design vs. controls in the platform/infrastructure
+
+scoring:
+  scale: 0-4 ordinal plus N/A
+  method: append_to_base_rubric
+  thresholds:
+    critical_security_failure: Escalate or reject according to control policy when SEC-01 < 2 or gate fails
+
+outputs:
+  require_evidence_refs: true
+  require_confidence: true
+  require_actions: true
+  require_evidence_class: true
+  require_evidence_anchors: true
+  formats:
+    - yaml
+    - json
+    - markdown-report

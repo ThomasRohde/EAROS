@@ -1,0 +1,50 @@
+# Office temporary files
+~$*.xlsx
+~$*.xls
+~$*.docx
+~$*.doc
+~$*.pptx
+~$*.ppt
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python (if tooling is added)
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+
+# Node (if tooling is added)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.npm/
+
+# Local calibration outputs (results are committed when finalised)
+calibration/results/*.tmp
+calibration/results/*.draft.*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example

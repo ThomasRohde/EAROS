@@ -1,0 +1,154 @@
+rubric_id: EAROS-OVR-REG-001
+version: 2.0.0
+kind: overlay
+title: Regulatory Compliance Overlay
+status: draft
+artifact_type: any
+purpose:
+  - regulatory_compliance_review
+  - governance_assurance_review
+stakeholders:
+  - compliance
+  - legal
+  - risk
+  - architecture_board
+dimensions:
+  - id: REG1
+    name: Regulatory identification
+    description: >
+      Regulatory compliance begins with identifying which rules apply. An artifact operating
+      in a regulated domain that does not name the applicable regulations cannot be reviewed
+      for compliance — the reviewer has no baseline to measure against. Applicability
+      assessment is a precondition for all downstream compliance evidence.
+    weight: 1.0
+    criteria:
+      - id: REG-ID-01
+        question: Are applicable regulations and compliance requirements explicitly identified?
+        description: >
+          Different regulations apply differently depending on jurisdiction, data type, business
+          activity, and customer segment. An artifact that asserts general regulatory compliance
+          without naming specific regulations, jurisdictions, and applicability rationale provides
+          no basis for governance review. Applicability assessment must be explicit and specific
+          to this artifact's scope.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: critical
+          failure_effect: reject when regulatory applicability cannot be determined
+        required_evidence:
+          - named regulation references (e.g. GDPR, DORA, PSD2)
+          - applicability assessment for each regulation
+          - jurisdiction identification
+        scoring_guide:
+          "0": No regulatory consideration — regulations not mentioned or assessed
+          "1": Vague mention of compliance — 'we will comply with applicable regulations' with no specifics
+          "2": Some regulations named but no applicability assessment — which rules apply and why is unclear
+          "3": Material regulations identified with applicability rationale — specific to this context
+          "4": Complete regulatory mapping with jurisdictional analysis and formal applicability assessment for all relevant regulations
+        anti_patterns:
+          - Compliance assumed without identifying which regulations apply
+          - No jurisdiction specified for data protection regulations
+          - Generic regulatory references without applicability assessment for this specific solution
+        examples:
+          good:
+            - >
+              "Applicable regulations: GDPR (EU) — applies because solution processes EU citizen
+              personal data. PSD2 (EU) — applies because solution initiates payment transactions.
+              DORA (EU) — applies because this is a critical ICT system at a regulated financial
+              entity (classification: Tier 1 critical function). UK GDPR — applies for UK data
+              subjects post-Brexit. Assessed and not applicable: CCPA — no California customers
+              in current scope."
+          bad:
+            - >
+              "The solution will comply with all relevant data protection and financial services
+              regulations. [No specific regulations named, no jurisdiction, no applicability
+              assessment]"
+        decision_tree: >
+          IF no regulatory consideration anywhere THEN score 0.
+          IF compliance mentioned generically without naming specific regulations THEN score 1.
+          IF some regulations named but no applicability assessment THEN score 2.
+          IF material regulations named with applicability rationale for this specific context THEN score 3.
+          IF complete regulatory mapping with jurisdiction analysis and formal applicability assessment THEN score 4.
+        remediation_hints:
+          - List all regulations by jurisdiction and assess applicability with rationale for each
+          - Identify regulations reviewed and found not applicable — document the rationale
+          - Perform a formal applicability assessment if none exists
+
+  - id: REG2
+    name: Compliance evidence
+    description: >
+      Identifying regulations is necessary but insufficient. The artifact must demonstrate
+      how the design satisfies each applicable regulation through specific design controls,
+      audit mechanisms, and documented exceptions with owners and remediation timelines.
+      Compliance by assertion is not compliance.
+    weight: 1.0
+    criteria:
+      - id: REG-EV-01
+        question: Is compliance with identified regulations demonstrated with evidence?
+        description: >
+          Compliance must be demonstrated through specific design controls that can be inspected
+          and verified — not asserted through generic statements. Each applicable regulation
+          requires a mapping to architectural elements that implement the relevant controls.
+          Exceptions must be logged with owner, approval, and remediation plan. Without this,
+          governance boards cannot discharge their compliance oversight responsibility.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: critical
+          failure_effect: reject when compliance evidence is absent for mandatory regulations
+        required_evidence:
+          - regulation-to-control mappings (which design elements satisfy which rules)
+          - compliance statements with specific evidence references
+          - audit trail references
+        scoring_guide:
+          "0": No compliance evidence — regulations identified but no design controls shown
+          "1": Compliance asserted without evidence — 'the system is GDPR compliant'
+          "2": Partial evidence for some regulations — key regulations have partial control mappings
+          "3": Evidence provided for most material regulations — control mappings with design references
+          "4": Complete evidence trail with control-to-regulation mapping, exception log with owners, and verification approach
+        anti_patterns:
+          - Compliance by assertion only — 'we comply with X' without showing how
+          - No exception log for items that do not yet comply
+          - Control mappings exist in a separate document not referenced by this artifact
+        examples:
+          good:
+            - >
+              "GDPR Article 17 (Right to Erasure): implemented via async deletion event propagated
+              to all downstream stores (Section 5.2, see data flow diagram step 8). DORA Article 8
+              (ICT risk management): risk assessment in Section 7; incident classification in
+              Section 8. PSD2 SCA: Strong Customer Authentication via FIDO2 hardware key (Section
+              4.1). Exception: DORA RTS on threat-led penetration testing — not yet completed;
+              planned Q3 2026, Owner: CISO, approved by Risk Committee 2026-01-15."
+          bad:
+            - >
+              "The solution is GDPR and PSD2 compliant. [No control mappings, no design
+              references, no exceptions]"
+        decision_tree: >
+          IF no compliance evidence beyond identifying regulations THEN score 0.
+          IF compliance asserted without showing how design meets requirements THEN score 1.
+          IF evidence provided for some regulations but material regulations have gaps THEN score 2.
+          IF evidence provided for most material regulations with control-to-design mappings THEN score 3.
+          IF complete evidence trail with control mapping, exception log, owners, and verification approach THEN score 4.
+        remediation_hints:
+          - Map each regulation to specific design controls using a compliance matrix
+          - Record exceptions with approver, approval date, and remediation timeline
+          - Reference specific sections and design elements, not generic compliance statements
+
+scoring:
+  scale: 0-4 ordinal plus N/A
+  method: append_to_base_rubric
+  thresholds:
+    critical_regulatory_failure: Reject or escalate when mandatory regulations are unaddressed
+
+outputs:
+  require_evidence_refs: true
+  require_confidence: true
+  require_actions: true
+  require_evidence_class: true
+  require_evidence_anchors: true
+  formats:
+    - yaml
+    - json
+    - markdown-report

@@ -1,0 +1,426 @@
+rubric_id: EAROS-REFARCH-001
+version: 2.0.0
+kind: profile
+title: Reference Architecture Profile
+status: draft
+effective_date: "2026-03-18"
+next_review_date: "2026-09-18"
+owner: enterprise-architecture
+artifact_type: reference_architecture
+inherits:
+  - EAROS-CORE-002
+design_method: pattern_library
+
+purpose:
+  - blueprint_review
+  - golden_path_review
+  - platform_standard_review
+  - reuse_assessment
+
+stakeholders:
+  - architecture_board
+  - platform_team
+  - domain_architect
+  - development_team
+  - operations
+  - security
+  - compliance
+
+viewpoints:
+  - context
+  - functional
+  - deployment
+  - data_flow
+  - security
+  - operational
+
+# This profile adds 9 criteria across 6 dimensions specific to reference architectures.
+# Combined with the 10 core meta-rubric criteria, this gives 19 criteria for a full assessment.
+
+dimensions:
+  - id: RA-D1
+    name: Architecture views and completeness
+    description: Does the reference architecture provide the necessary views for its audience, covering structure, behaviour, deployment, and data flow?
+    weight: 1.2
+    criteria:
+      - id: RA-VIEW-01
+        question: Does the reference architecture include context, functional, deployment, and data flow views?
+        description: >
+          A reference architecture must show how the system relates to its environment (context),
+          how it is structurally decomposed (functional/container), how it is deployed (infrastructure),
+          and how data moves through it (runtime scenarios). Missing views leave critical gaps
+          that prevent teams from implementing the architecture correctly.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: major
+          failure_effect: Cannot pass if score < 2
+        required_evidence:
+          - context diagram (C4 Level 1 or equivalent)
+          - container/functional diagram (C4 Level 2 or equivalent)
+          - deployment diagram showing infrastructure topology
+          - data flow narrative with numbered steps
+        scoring_guide:
+          "0": Single diagram only, or no architectural views
+          "1": Two views present but incomplete or inconsistent
+          "2": Three views present, data flow narrative exists but is partial
+          "3": All four views present with adequate detail
+          "4": All four views present, consistent, with security view and cross-references between views
+        anti_patterns:
+          - Single box-and-arrow diagram presented as complete architecture
+          - Deployment view missing entirely
+          - No data flow narrative (diagram without numbered walkthrough)
+          - Views at inconsistent abstraction levels
+        examples:
+          good:
+            - "Section 3 provides C4 context diagram. Section 5 shows container decomposition with technology annotations. Section 7 shows Kubernetes deployment topology across 3 AZs. Section 6 walks through the order processing flow in 8 numbered steps."
+          bad:
+            - "See architecture diagram on page 3 [single diagram showing all components with no narrative]."
+        decision_tree: >
+          Count distinct views: IF < 2 THEN score 0-1. IF 2-3 views THEN score 2.
+          IF 4+ views AND data flow narrative exists THEN score 3.
+          IF all views are cross-referenced AND security view included THEN score 4.
+        remediation_hints:
+          - Add missing views using C4 model levels
+          - Add numbered data flow walkthrough
+          - Add deployment topology diagram
+
+      - id: RA-VIEW-02
+        question: Are architecture diagrams machine-readable or accompanied by structured element catalogs?
+        description: >
+          For automated assessment and ongoing governance, diagrams should be stored in
+          machine-readable formats (Structurizr DSL, PlantUML, Mermaid, ArchiMate exchange format)
+          or at minimum accompanied by a structured element catalog listing all components,
+          their responsibilities, technologies, and relationships.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - diagram source files (DSL, PlantUML, Mermaid) OR element catalog
+          - technology annotations on components
+          - relationship descriptions
+        scoring_guide:
+          "0": Image-only diagrams with no structured metadata
+          "1": Diagrams with informal text descriptions
+          "2": Structured element catalog accompanies diagrams
+          "3": Diagram-as-code (Structurizr/PlantUML/Mermaid) used for main views
+          "4": Full architecture-as-code with model as single source of truth, all views generated from model
+        anti_patterns:
+          - PowerPoint or Visio diagrams with no structured metadata
+          - Diagrams without element names or technology labels
+        remediation_hints:
+          - Add structured element catalog table (name, type, technology, responsibility)
+          - Migrate key diagrams to diagram-as-code format
+
+  - id: RA-D2
+    name: Prescriptiveness and decision guidance
+    description: Does the reference architecture provide clear, opinionated guidance while documenting the decisions and trade-offs behind those opinions?
+    weight: 1.0
+    criteria:
+      - id: RA-DEC-01
+        question: Are key architecture decisions documented with context, options considered, and rationale?
+        description: >
+          A reference architecture embodies a set of architectural decisions. These must be
+          explicit so that implementers understand not just what to build but why these choices
+          were made. Without decision rationale, teams cannot judge whether the reference
+          architecture applies to their specific context.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: major
+          failure_effect: Cannot pass above conditional_pass when score < 2
+        required_evidence:
+          - architecture decision records (ADRs) or equivalent
+          - alternatives considered
+          - trade-off analysis
+          - conditions under which decisions should be revisited
+        scoring_guide:
+          "0": No decisions documented
+          "1": Technology choices listed without rationale
+          "2": Key decisions have rationale but alternatives not discussed
+          "3": Decisions documented in ADR format with alternatives and trade-offs
+          "4": Full ADRs with context, options, consequences, trade-offs, and revisit triggers
+        anti_patterns:
+          - Technology choices presented as self-evident
+          - Only the chosen option documented
+          - No discussion of when the reference architecture does NOT apply
+        examples:
+          good:
+            - "ADR-001: Use event-driven architecture for inter-service communication. Context: Services need loose coupling for independent deployment. Options: (A) Synchronous REST, (B) Async messaging, (C) Event sourcing. Decision: Option C. Trade-off: Increased complexity in exchange for auditability and decoupling. Revisit if: throughput exceeds 50K events/sec or team lacks event sourcing experience."
+          bad:
+            - "We use Kafka for messaging."
+        remediation_hints:
+          - Add ADR section using MADR template
+          - Document at least 5 key decisions with alternatives
+
+      - id: RA-DEC-02
+        question: Does the reference architecture clearly define what is fixed, what is configurable, and where teams have discretion?
+        description: >
+          Reference architectures sit on a prescriptiveness spectrum. The most useful ones
+          make explicit which elements are mandatory (must use), recommended (should use),
+          optional (may use), and which are decision points where teams must make their
+          own choices based on context.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - classification of components as mandatory/recommended/optional
+          - documented extension points
+          - decision framework for variant selection
+        scoring_guide:
+          "0": No distinction between fixed and flexible elements
+          "1": Some elements marked as mandatory
+          "2": Mandatory and optional elements distinguished
+          "3": Clear three-level classification (mandatory/recommended/optional) with rationale
+          "4": Full customisation framework with decision trees for when to deviate
+        anti_patterns:
+          - Everything presented as mandatory with no flexibility
+          - Everything presented as optional with no guidance
+          - No discussion of when the reference architecture does not apply
+        remediation_hints:
+          - Add classification table (component, mandate level, rationale)
+          - Document extension points and variation rules
+
+  - id: RA-D3
+    name: Operational readiness
+    description: Does the reference architecture address how the solution is operated, monitored, scaled, and recovered in production?
+    weight: 1.0
+    criteria:
+      - id: RA-OPS-01
+        question: Does the reference architecture include monitoring, alerting, scaling, and disaster recovery guidance?
+        description: >
+          A reference architecture that only describes the build-time structure without
+          addressing operational concerns leaves teams to figure out production readiness
+          on their own, undermining the purpose of having a standard blueprint.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: major
+          failure_effect: Cannot pass above conditional_pass when score < 2
+        required_evidence:
+          - monitoring strategy (metrics, dashboards, alerting rules)
+          - scaling policies (auto-scaling triggers, capacity planning)
+          - disaster recovery plan (RTO, RPO, failover procedures)
+          - SLO definitions
+        scoring_guide:
+          "0": No operational guidance
+          "1": Vague mention of monitoring or scaling
+          "2": Monitoring and scaling described in principle, SLOs mentioned
+          "3": Concrete monitoring dashboards, scaling policies, SLOs, basic DR
+          "4": Full operational model with dashboard templates, alerting rules, auto-scaling configs, tested DR runbooks, and SLO definitions with error budgets
+        anti_patterns:
+          - Architecture focuses only on build-time, no run-time guidance
+          - Monitoring mentioned as future work
+          - No SLO or SLA definitions
+        examples:
+          good:
+            - "SLOs: Availability 99.95%, P99 latency < 200ms, error rate < 0.1%. Monitoring: Prometheus metrics exposed on /metrics, Grafana dashboard template in /ops/dashboards/. Alerting: PagerDuty integration with escalation policy. Auto-scaling: HPA targeting 70% CPU, min 3 / max 20 pods per service."
+          bad:
+            - "Monitoring should be implemented. Consider using CloudWatch."
+        remediation_hints:
+          - Add operational model section
+          - Define SLOs with measurable targets
+          - Include dashboard/alerting templates
+
+  - id: RA-D4
+    name: Implementation actionability
+    description: Does the reference architecture provide concrete implementation artefacts that enable teams to get started quickly?
+    weight: 1.2
+    criteria:
+      - id: RA-IMP-01
+        question: Does the reference architecture include infrastructure-as-code templates, API specifications, or starter kits?
+        description: >
+          The hallmark of a modern reference architecture is that it is deployable, not just
+          describable. Teams should be able to instantiate the architecture from templates
+          rather than rebuilding from scratch. This is the golden path principle applied
+          to reference architectures.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - infrastructure-as-code templates (Terraform, CDK, Bicep, CloudFormation)
+          - API specifications (OpenAPI, AsyncAPI)
+          - CI/CD pipeline templates
+          - starter kit or scaffold template
+        scoring_guide:
+          "0": No implementation artefacts
+          "1": Code snippets or partial examples only
+          "2": Some IaC templates or API specs provided
+          "3": Complete IaC templates, API specs, and CI/CD pipeline templates
+          "4": Full golden path including scaffold template, IaC, API specs, CI/CD, observability config, and working sample application
+        anti_patterns:
+          - Architecture described only in documents with no runnable artefacts
+          - Outdated code samples that no longer compile
+          - IaC templates that don't match the architecture diagrams
+        examples:
+          good:
+            - "Repository structure: /infra (Terraform modules), /api (OpenAPI specs), /pipeline (GitHub Actions), /scaffold (Backstage template), /sample-app (working reference implementation), /ops (Grafana dashboards, alerting rules)."
+          bad:
+            - "See code examples in appendix A [3-year-old Java snippets using deprecated libraries]."
+        remediation_hints:
+          - Add IaC templates matching the deployment view
+          - Add OpenAPI specs for service interfaces
+          - Create a scaffold template for new services
+
+      - id: RA-IMP-02
+        question: Does the reference architecture include a clear getting-started guide or golden path for new adopters?
+        description: >
+          Following Spotify's golden path principle, the reference architecture should
+          dramatically reduce the time to first deployment. A new team should be able
+          to go from zero to running service in hours, not weeks.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - step-by-step getting started guide
+          - estimated time to first deployment
+          - prerequisites checklist
+          - troubleshooting section
+        scoring_guide:
+          "0": No getting started guide
+          "1": Informal setup notes
+          "2": Step-by-step guide but untested or incomplete
+          "3": Tested getting started guide with prerequisites and estimated time
+          "4": Fully automated onboarding (Backstage template or equivalent) with <1 hour to first deployment
+        anti_patterns:
+          - Getting started requires tribal knowledge
+          - Setup takes more than a day
+          - Guide assumes context that new team members don't have
+        remediation_hints:
+          - Write a step-by-step getting started guide
+          - Test the guide with a team unfamiliar with the architecture
+          - Create a scaffold template or Backstage integration
+
+  - id: RA-D5
+    name: Quality attribute specification
+    description: Are quality attributes explicitly defined with measurable targets and validation strategies?
+    weight: 1.0
+    criteria:
+      - id: RA-QA-01
+        question: Are quality attributes defined with measurable acceptance criteria and validation approaches?
+        description: >
+          Quality attributes (availability, latency, throughput, security posture) must be
+          stated as concrete, measurable targets — not vague aspirations. Each should include
+          how it will be validated (load testing, chaos engineering, penetration testing).
+          This enables both human reviewers and AI agents to objectively assess compliance.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: major
+          failure_effect: Cannot pass above conditional_pass when score < 2
+        required_evidence:
+          - quality attribute list with measurable targets
+          - quality scenarios (TOGAF format or equivalent)
+          - validation strategy for each attribute
+          - fitness functions or automated tests
+        scoring_guide:
+          "0": No quality attributes defined
+          "1": Quality attributes mentioned informally (e.g. 'the system should be fast')
+          "2": Quality attributes stated with some measurable targets but incomplete coverage
+          "3": All material quality attributes have measurable targets and validation approaches
+          "4": Full quality model with measurable targets, automated fitness functions, quality scenarios, and continuous validation in CI/CD
+        anti_patterns:
+          - Quality attributes described as adjectives rather than metrics
+          - No latency, throughput, or availability targets
+          - No validation strategy
+        examples:
+          good:
+            - "Availability: 99.95% measured monthly (synthetic probes every 30s). Latency: P99 < 200ms (validated by load test with 10K concurrent users). Security: SOC 2 Type II compliant (annual audit). Throughput: 5000 TPS sustained (validated by performance test in staging)."
+          bad:
+            - "The system should be highly available, performant, and secure."
+        decision_tree: >
+          IF no quality attribute section THEN score 0.
+          IF quality attributes are adjectives without numbers THEN score 1.
+          IF measurable targets exist for some attributes THEN score 2.
+          IF all material attributes have targets AND validation approaches THEN score 3.
+          IF automated fitness functions exist THEN score 4.
+        remediation_hints:
+          - Replace adjective-based requirements with measurable targets
+          - Add validation strategy for each quality attribute
+          - Implement fitness functions for critical attributes
+
+  - id: RA-D6
+    name: Reusability and evolution
+    description: Is the reference architecture designed for reuse across teams and evolution over time?
+    weight: 0.8
+    criteria:
+      - id: RA-REU-01
+        question: Is the reference architecture version-controlled with a clear evolution roadmap?
+        description: >
+          Reference architectures must evolve as technology, business needs, and security
+          requirements change. A reference architecture without versioning and an evolution
+          plan will become stale and eventually harmful as teams implement outdated patterns.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - version number and change log
+          - evolution roadmap or backlog
+          - deprecation strategy for superseded patterns
+          - feedback mechanism for adopting teams
+        scoring_guide:
+          "0": No versioning or change management
+          "1": Version number exists but no change history
+          "2": Versioned with change log but no evolution plan
+          "3": Versioned, change log, known limitations documented, basic evolution plan
+          "4": Full lifecycle management with roadmap, deprecation strategy, feedback loop, and migration guidance for breaking changes
+        anti_patterns:
+          - Static document with no version or last-updated date
+          - Major changes made without migration guidance
+          - No way for adopting teams to report issues
+        remediation_hints:
+          - Add version number and change log
+          - Document known limitations and planned improvements
+          - Create a feedback channel for adopting teams
+
+scoring:
+  scale: 0-4 ordinal plus N/A
+  agent_scale: 0-3 ordinal plus N/A (optional collapse for pure agent evaluation)
+  method: gates_first_then_weighted_average
+  thresholds:
+    pass: No critical gate failure, overall >= 3.2, no dimension < 2.0
+    conditional_pass: No critical gate failure, overall 2.4-3.19 or one weak dimension
+    rework_required: Overall < 2.4 or repeated weak dimensions
+    reject: Critical gate failure or mandatory control breach
+    not_reviewable: Evidence insufficient for core gate criteria
+  na_policy: Exclude N/A criteria from denominator; evaluator must justify N/A
+  confidence_policy: Confidence reported separately, must not modify score
+
+outputs:
+  require_evidence_refs: true
+  require_confidence: true
+  require_actions: true
+  require_evidence_class: true
+  require_evidence_anchors: true
+  formats:
+    - yaml
+    - json
+    - markdown-report
+    - xlsx
+
+calibration:
+  required_before_production: true
+  minimum_examples: 3
+  recommended_reviewers:
+    - 2 human reviewers (1 platform architect, 1 domain architect)
+    - 1 evaluator agent
+    - 1 challenger agent
+  calibration_artifacts:
+    - 1 strong reference architecture (well-established, production-proven)
+    - 1 weak reference architecture (diagram-only, no decisions, no operational guidance)
+    - 1 ambiguous reference architecture (good structure but outdated technology choices)
+    - 1 golden-path reference architecture (fully automated, with scaffold templates)
+
+change_log:
+  - version: "2.0.0"
+    date: "2026-03-18"
+    author: "Thomas Rohde"
+    changes:
+      - Initial reference architecture profile for EAROS v2.0
+      - 9 criteria across 6 dimensions (19 total when combined with the 10 core criteria)
+      - Designed using pattern_library method
+      - Incorporates golden path, diagram-as-code, and operational readiness research

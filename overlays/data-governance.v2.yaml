@@ -1,0 +1,94 @@
+rubric_id: EAROS-OVR-DATA-001
+version: 2.0.0
+kind: overlay
+title: Data Governance Overlay
+status: approved
+artifact_type: any
+purpose:
+  - data_assurance_review
+  - information_architecture_review
+stakeholders:
+  - data_architect
+  - data_governance
+  - risk
+  - privacy
+dimensions:
+  - id: DAT1
+    name: Information treatment and accountability
+    description: >
+      Data flows through architectures like electricity through circuits — present everywhere
+      but invisible unless explicitly documented. This dimension checks whether the artifact
+      treats information as a first-class design concern with explicit ownership, lifecycle
+      treatment, and privacy or quality implications. Data without accountability is a
+      governance liability.
+    criteria:
+      - id: DAT-01
+        question: Does the artifact define key information objects, accountability, lifecycle concerns, and material data quality or privacy implications?
+        description: >
+          Data governance requires more than listing data entities in passing. The artifact must
+          define who owns each key information object, how it flows through the system, how long
+          it lives, and what privacy or quality risks it carries. Without this, data architecture
+          decisions are made implicitly, often incorrectly, and cannot be verified at review time.
+          This criterion applies whenever the artifact describes data flows, storage, retention,
+          or classification.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - key information objects named and described
+          - ownership assignments
+          - lifecycle view (create, store, use, archive, delete)
+          - quality or privacy considerations
+        scoring_guide:
+          "0": No material data treatment anywhere in the artifact
+          "1": Data mentioned only in passing (e.g. 'stores user data in a database')
+          "2": Some data objects defined but ownership and lifecycle are absent or superficial
+          "3": Most material information concerns covered with ownership and some lifecycle treatment
+          "4": Complete information accountability including ownership, classification, lifecycle, retention policy, privacy implications, and quality thresholds
+        anti_patterns:
+          - Data flows shown in diagrams without ownership at each hop
+          - No lifecycle or retention treatment for personal or financial data
+          - Classification missing from information objects
+          - Privacy implications absent for PII-touching designs
+        examples:
+          good:
+            - >
+              "Key information objects: CustomerProfile (owner: Customer Domain, classification:
+              PII/Confidential, retention: account lifetime + 7 years, GDPR lawful basis: contract,
+              quality threshold: < 0.1% field error rate). TransactionRecord (owner: Payments Domain,
+              classification: Financial/Sensitive, retention: 10 years, quality threshold: < 0.01%
+              error rate). Data flows: Section 4 diagram shows numbered steps with ownership at
+              each hop."
+          bad:
+            - >
+              "The system stores customer data and transaction records in a PostgreSQL database.
+              [No ownership, no classification, no lifecycle, no privacy treatment]"
+        decision_tree: >
+          IF no data treatment at all THEN score 0.
+          IF data mentioned but only incidentally THEN score 1.
+          IF some data objects defined but ownership and lifecycle absent THEN score 2.
+          IF most material data concerns covered with ownership and some lifecycle treatment THEN score 3.
+          IF complete information accountability including ownership, classification, lifecycle,
+          retention, privacy, and quality requirements THEN score 4.
+        remediation_hints:
+          - Add an information object table with owner, classification, retention policy
+          - Map data flows with ownership at each hop
+          - Address GDPR lawful basis and right-to-erasure implications for PII
+          - Define data quality thresholds for critical information objects
+
+scoring:
+  scale: 0-4 ordinal plus N/A
+  method: append_to_base_rubric
+  thresholds:
+    escalation: Escalate when material regulated data is present and DAT-01 < 3
+
+outputs:
+  require_evidence_refs: true
+  require_confidence: true
+  require_actions: true
+  require_evidence_class: true
+  require_evidence_anchors: true
+  formats:
+    - yaml
+    - json
+    - markdown-report

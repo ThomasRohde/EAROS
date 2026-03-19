@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(py -3 --version)",
+      "Bash(pip install:*)",
+      "Bash(py -3 -m pip install pyyaml jsonschema -q)",
+      "Bash(py -3 -c \"import yaml; print\\(''yaml ok''\\)\")",
+      "Bash(py -3 tools/validate.py)",
+      "Bash(for skill:*)",
+      "Bash(do)",
+      "Bash(echo \"=== $skill ===\")",
+      "Read(//c/Users/thoma/Projects/EAROS/.claude/skills/**)",
+      "Bash(done)",
+      "Bash(for dir:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/thoma/Projects/EAROS/.claude/skills/$dir/**)",
+      "Bash(ls \"C:\\\\Users\\\\thoma\\\\Projects\\\\EAROS\\\\.claude\\\\skills\\\\earos-validate\\\\references\"\" 2>/dev/null || echo \"directory empty or missing \")",
+      "Bash(git status:*)",
+      "Bash(python3 write_fix_patterns.py)",
+      "Bash(rm write_fix_patterns.py)",
+      "Bash(python write_fix_patterns.py)",
+      "Bash(node -e \"const p = require\\(''./package.json''\\); console.log\\(JSON.stringify\\(p.dependencies,null,2\\)\\)\")",
+      "Bash(find . -name package.json -not -path */node_modules/*)",
+      "Bash(node -e \"require\\(''pptxgenjs''\\); console.log\\(''pptxgenjs available''\\)\")",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(node -e \":*)",
+      "Bash(for f:*)",
+      "Bash(__NEW_LINE_4f01ab09f525cac0__ unzip:*)",
+      "Bash(__NEW_LINE_48b218b2005fcd44__ unzip:*)",
+      "Bash(unzip -p presentations/EAROS_v2_Part1_Overview.pptx ppt/slides/slide1.xml)",
+      "Bash(sed 's/<[^>]*>//g')",
+      "Bash(node generate-presentations.js)"
+    ]
+  }
+}

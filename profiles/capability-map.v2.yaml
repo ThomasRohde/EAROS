@@ -1,0 +1,223 @@
+rubric_id: EAROS-CAP-001
+version: 2.0.0
+kind: profile
+title: Capability Map Profile
+status: approved
+artifact_type: capability_map
+inherits:
+  - EAROS-CORE-002
+design_method: viewpoint_centred
+purpose:
+  - strategy_alignment_review
+  - operating_model_review
+  - investment_planning_review
+stakeholders:
+  - enterprise_architect
+  - business_architect
+  - strategy
+  - portfolio
+  - finance
+viewpoints:
+  - capability
+  - ownership
+  - heatmap
+  - target-state
+
+dimensions:
+  - id: CP1
+    name: Decomposition quality
+    description: >
+      A capability map is only as useful as its logical integrity. If capabilities overlap,
+      mix with processes or systems, or jump between abstraction levels, the map cannot
+      support consistent portfolio decisions or comparative analysis over time. Decomposition
+      quality is the foundation that all other uses depend on.
+    weight: 1.0
+    criteria:
+      - id: CAP-01
+        question: Is the capability decomposition stable, non-overlapping, and expressed at a coherent level of abstraction?
+        description: >
+          Business capabilities describe what an organization does, independent of how it does
+          it. When capabilities are confused with processes ('Perform KYC'), organisational
+          units ('Finance Department'), or systems ('SAP'), the map loses its strategic value
+          and cannot be compared year-over-year. Decomposition must be non-overlapping: each
+          business function belongs in exactly one capability, and the definitions must make
+          that boundary clear.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: major
+          failure_effect: Cannot pass above conditional_pass
+        required_evidence:
+          - level definitions (what distinguishes L1, L2, L3)
+          - decomposition structure (parent-child hierarchy)
+          - naming conventions (capability names follow consistent style)
+        scoring_guide:
+          "0": Chaotic or heavily overlapping decomposition — structure unusable for analysis
+          "1": Frequent overlap or mixed abstraction levels throughout (e.g. capabilities and processes side by side)
+          "2": Partly coherent — mostly capability-based but with notable inconsistencies or mixed types
+          "3": Mostly stable and coherent decomposition — occasional minor inconsistency
+          "4": Stable, non-overlapping, structurally consistent decomposition with documented definition principles
+        anti_patterns:
+          - Capabilities mixed with processes, systems, or organisational units at the same level
+          - Different abstraction levels side by side without differentiation
+          - Capability boundaries undefined or implicit
+          - Decomposition changes structure every review cycle
+        examples:
+          good:
+            - >
+              "Level 1: Customer Lifecycle Management. Level 2: Customer Acquisition, Customer
+              Onboarding, Customer Retention, Customer Offboarding. Level 3 of Customer
+              Onboarding: Identity Verification, Account Setup, Welcome Journey. Each capability
+              defined with: what it does, what it does NOT include, and example value streams."
+          bad:
+            - >
+              "Level 2 includes: Customer Onboarding, Run KYC Process (process), CRM System
+              (system), Finance Department Approval (org unit). [Mixed abstraction levels]"
+        decision_tree: >
+          IF capabilities overlap significantly or are not distinguishable THEN score 0.
+          IF frequent overlap or mixed types throughout the map THEN score 1.
+          IF partly coherent but notable inconsistencies present THEN score 2.
+          IF mostly stable decomposition with minor inconsistencies THEN score 3.
+          IF stable, non-overlapping, consistent across all levels, and definition principles documented THEN score 4.
+        remediation_hints:
+          - Normalize level definitions — write a one-sentence definition for each capability
+          - Separate capability from implementation: remove system and process names from the map
+          - Assign each item to exactly one parent and review for overlap
+
+  - id: CP2
+    name: Business relevance
+    description: >
+      A capability map without business relevance is an academic exercise. The map's value
+      lies in its ability to inform decisions about investment, operating model design,
+      consolidation, and outsourcing. This requires explicit links between capabilities and
+      business outcomes, ownership, and investment or maturity decisions.
+    weight: 1.0
+    criteria:
+      - id: CAP-02
+        question: Does the map connect capabilities to business outcomes, ownership, and investment or maturity decisions?
+        description: >
+          Capability maps exist to answer business questions: where should we invest? Which
+          capabilities are underdeveloped relative to our strategy? Which are over-invested
+          relative to their strategic value? Without business outcomes, ownership, and
+          maturity or investment heat-maps overlaid, the map is a taxonomy poster, not a
+          decision instrument.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - business outcomes linked to capabilities
+          - ownership assignments (domain or team)
+          - maturity assessment or investment heat-map
+        scoring_guide:
+          "0": No business relevance — capability taxonomy with no connection to decisions
+          "1": Weak narrative connection — business language used but no data or ownership
+          "2": Partial relevance — some capabilities linked to outcomes or owners, but incomplete
+          "3": Clear link to business concerns — ownership and outcome alignment for most capabilities
+          "4": Strong basis for strategy and portfolio decisions — heat-maps, ownership, maturity ratings, and investment cues all present
+        anti_patterns:
+          - Map is a taxonomy poster with no annotations or overlays
+          - No ownership assigned to any capability
+          - Maturity or investment data exists in spreadsheet but not in the map
+        examples:
+          good:
+            - >
+              "Heat-map overlay: Customer Onboarding (maturity: L2, investment priority: HIGH —
+              strategic differentiator for 2026 growth target). Core Banking Processing (maturity:
+              L3, investment priority: LOW — commodity, consider shared service). Owner assignments
+              visible per domain. Map used as input to Q3 2026 portfolio review."
+          bad:
+            - >
+              "The capability map shows the full range of business capabilities organized by
+              domain. [No ownership, no maturity, no business outcome links]"
+        decision_tree: >
+          IF no business context or outcomes linked THEN score 0.
+          IF weak narrative connection without data or ownership THEN score 1.
+          IF some capabilities linked to outcomes or owners but significant gaps THEN score 2.
+          IF clear link to business concerns with ownership for most capabilities THEN score 3.
+          IF heat-maps, ownership, maturity ratings, investment cues, and strategic alignment all present THEN score 4.
+        remediation_hints:
+          - Add ownership to every Level 1 and Level 2 capability
+          - Add a maturity or investment priority overlay
+          - Link the map explicitly to portfolio or strategy decisions
+
+  - id: CP3
+    name: Comparability and stewardship
+    description: >
+      The value of a capability map as a longitudinal decision instrument depends on structural
+      stability. If the decomposition changes significantly each quarter, historical comparisons
+      become meaningless, investment trends cannot be tracked, and teams lose confidence in
+      the map as a reference.
+    weight: 1.0
+    criteria:
+      - id: CAP-03
+        question: Can the capability map be reused over time for comparative analysis without frequent structural rework?
+        description: >
+          Capability maps are used year-over-year for maturity tracking, investment planning,
+          and portfolio analysis. This requires that the structural definitions remain stable
+          enough to support comparison. Changes must be governed with clear policies, and
+          migration paths must be provided so that historical data and heat-maps remain
+          interpretable across versions.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - change control policy or governance process
+          - versioning information
+          - definition stability commitment or review cadence
+        scoring_guide:
+          "0": Not reusable — structure changes without documentation or governance
+          "1": Highly unstable — map frequently reorganised without version control
+          "2": Some comparative reuse possible — versioned but no change policy or ownership
+          "3": Generally comparable over time — versioned with change policy and defined owner
+          "4": Strong stewardship and longitudinal usability — versioning, change control, owner, and migration guidance for breaking changes
+        anti_patterns:
+          - Decomposition structure changes every quarter
+          - No definition owner or change authority
+          - Breaking structural changes made without migration documentation
+        examples:
+          good:
+            - >
+              "Version: 3.0.0. Owner: Business Architecture team. Change policy: structural
+              changes (Level 1/2 additions or moves) require Architecture Board approval; Level 3+
+              additions approved by domain architect. Last review: 2026-02-15. Next review:
+              2026-08-15. Version history in Git. Migration guide provided for v2.x → v3.0
+              capability renames."
+          bad:
+            - >
+              "The capability map is updated as needed. [No versioning, no owner, no policy]"
+        decision_tree: >
+          IF no versioning and structure changes without documentation THEN score 0.
+          IF map frequently reorganised without governance THEN score 1.
+          IF versioned but no change policy or ownership THEN score 2.
+          IF versioned with change policy and defined owner THEN score 3.
+          IF full stewardship including versioning, change control, longitudinal use guidance,
+          and migration documentation for breaking changes THEN score 4.
+        remediation_hints:
+          - Assign a named owner and define the change authority
+          - Version the map and maintain a change log
+          - Define which structural changes require governance approval
+
+scoring:
+  scale: 0-4 ordinal plus N/A
+  method: gates_first_then_weighted_average
+  thresholds:
+    pass: No critical gate failure, overall >= 3.2, and no dimension < 2.0
+    conditional_pass: No critical gate failure and overall 2.4-3.19 or one weak dimension
+    rework_required: Overall < 2.4 or repeated weak dimensions
+    reject: Critical gate failure or mandatory control breach
+    not_reviewable: Evidence insufficient for core gate criteria
+    profile_specific_escalation: Escalate when CAP-01 < 3 for enterprise-wide portfolio use
+  na_policy: Exclude N/A criteria from denominator; evaluator must justify N/A
+  confidence_policy: Confidence reported separately, must not modify score
+
+outputs:
+  require_evidence_refs: true
+  require_confidence: true
+  require_actions: true
+  require_evidence_class: true
+  require_evidence_anchors: true
+  formats:
+    - yaml
+    - json
+    - markdown-report

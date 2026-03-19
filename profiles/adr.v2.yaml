@@ -1,0 +1,225 @@
+rubric_id: EAROS-ADR-001
+version: 2.0.0
+kind: profile
+title: Architecture Decision Record Profile
+status: approved
+artifact_type: architecture_decision_record
+inherits:
+  - EAROS-CORE-002
+design_method: decision_centred
+purpose:
+  - decision_review
+  - decision_quality_review
+  - knowledge_retention_review
+stakeholders:
+  - architect
+  - engineering_lead
+  - maintainers
+  - governance
+viewpoints:
+  - decision
+  - context
+  - consequence
+
+dimensions:
+  - id: AD1
+    name: Decision clarity
+    description: >
+      An ADR that is unclear about what decision was actually made is worse than no ADR —
+      it creates false confidence that a decision was documented while leaving room for
+      misinterpretation. The decision statement is the most critical element of the record.
+    weight: 1.0
+    criteria:
+      - id: ADR-01
+        question: Is the decision stated as a clear, testable, singular decision rather than a vague discussion topic?
+        description: >
+          The core value of an ADR is capturing a specific decision for future reference.
+          Vague language like 'we will investigate microservices' or 'consider adopting
+          event-driven architecture' is a study plan, not a decision. A testable decision
+          can be verified objectively: either the codebase uses Kafka or it does not. A
+          singular decision means one ADR documents one choice; compound ADRs mixing
+          multiple decisions are ambiguous and hard to supersede.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: major
+          failure_effect: Cannot pass above conditional_pass
+        required_evidence:
+          - decision statement
+          - status (accepted/proposed/superseded)
+          - date or trigger context
+        scoring_guide:
+          "0": No decision — document is meeting notes, discussion, or study results only
+          "1": Topic only — subject area identified but no decision reached or stated
+          "2": Partly clear decision — stated but ambiguous, compound, or untestable
+          "3": Clear decision with explicit scope — singular and understandable
+          "4": Clear, bounded, and testable decision — verifiable, scoped, and dated with trigger context
+        anti_patterns:
+          - ADR as meeting notes with multiple unrelated items
+          - Multiple unrelated decisions in one record
+          - Vague outcome language ('we will look into', 'consider using')
+          - Decision scope undefined (which service, which context?)
+        examples:
+          good:
+            - >
+              "Decision: We will use PostgreSQL as the primary datastore for the Order Service,
+              effective Q2 2026. Status: Accepted. This decision applies only to the Order Service
+              domain; other services may choose different stores with separate justification."
+          bad:
+            - >
+              "The team discussed various database options. After reviewing the pros and cons, the
+              team agreed to proceed with the investigation and revisit next sprint. [No decision
+              reached, no scope, no date]"
+        decision_tree: >
+          IF no decision section exists THEN score 0.
+          IF document is meeting notes or discussion summary with no clear decision THEN score 1.
+          IF decision stated but ambiguous, compound, or untestable THEN score 2.
+          IF single, clear decision with stated scope THEN score 3.
+          IF single, clear, bounded, and testable decision with explicit date and trigger context THEN score 4.
+        remediation_hints:
+          - Rewrite the decision in one declarative sentence in the form 'We will use X for Y'
+          - Split compound ADRs into separate records
+          - Add explicit scope (which service, which domain, which timeframe)
+
+  - id: AD2
+    name: Option space and consequences
+    description: >
+      The option space captures the intellectual work behind the decision. Future maintainers
+      must be able to understand why the chosen option was selected and why alternatives were
+      rejected — without needing to reconstruct the original thinking from memory or oral history.
+    weight: 1.0
+    criteria:
+      - id: ADR-02
+        question: Does the ADR capture meaningful alternatives and the consequences of the chosen decision?
+        description: >
+          An ADR that only documents the chosen option is only half an ADR. The value for
+          future readers lies in understanding the rejected alternatives and the consequences
+          of the chosen path — including the negative consequences accepted as an explicit
+          trade-off. Without this, future maintainers cannot judge whether the original
+          decision still applies in a changed context.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - alternatives considered
+          - pros and cons of alternatives
+          - consequences of the chosen option (including negative)
+          - reversibility assessment
+        scoring_guide:
+          "0": No alternatives or consequences documented
+          "1": Superficial mention — 'we considered X but chose Y' with no reasoning
+          "2": Partial treatment — alternatives listed or consequences noted but not both
+          "3": Meaningful alternatives with pros/cons and genuine consequences stated
+          "4": Strong rationale with explicit trade-offs, reversibility conditions, and downstream effects on other decisions
+        anti_patterns:
+          - Only positive consequences documented
+          - Rejected options listed without explanation
+          - No reversibility or exit conditions
+          - Consequences omit known downsides
+        examples:
+          good:
+            - >
+              "Alternatives: (A) MongoDB — rejected: no ACID guarantees for financial data.
+              (B) MySQL — rejected: licensing cost at expected volume exceeds budget. Consequences:
+              PostgreSQL requires managed RDS service (adds £1,200/month opex). Trade-off: higher
+              cost accepted for stronger consistency guarantees. Reversible: yes, with data migration;
+              trigger: if managed PostgreSQL cost exceeds £5,000/month for 2 consecutive quarters."
+          bad:
+            - >
+              "We considered other options but PostgreSQL was the best fit for our needs.
+              [No alternatives named, no consequences, no reversibility]"
+        decision_tree: >
+          IF no alternatives or consequences THEN score 0.
+          IF one-sentence mention of alternatives with no reasoning THEN score 1.
+          IF alternatives listed without meaningful comparison OR consequences superficial THEN score 2.
+          IF meaningful alternatives with pros/cons AND genuine consequences including negatives THEN score 3.
+          IF explicit trade-offs, reversibility conditions, and downstream effects on other decisions THEN score 4.
+        remediation_hints:
+          - Add a named alternatives table with rejection reasoning for each
+          - Document negative consequences alongside positive ones
+          - Define explicit reversibility conditions and triggers
+
+  - id: AD3
+    name: Decision durability and traceability
+    description: >
+      An ADR is an investment in institutional memory. For that investment to pay off, the
+      decision must remain interpretable years later by people who were not in the room.
+      This requires the context that made the decision necessary, the conditions under which
+      it should be revisited, and links to the artifacts and processes it affects.
+    weight: 1.0
+    criteria:
+      - id: ADR-03
+        question: Can a future reader understand why the decision was made and when it should be revisited?
+        description: >
+          Architecture decisions made today will be revisited, challenged, or overridden by
+          teams years from now. An ADR with no review triggers assumes the world is static.
+          Specifying when to revisit — and making the decision interpretable to future readers
+          who lack the original context — turns an ADR from a historical artifact into an
+          active governance tool that signals when the decision has been invalidated.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - business or technical context that motivated the decision
+          - drivers that made this the right choice at the time
+          - review triggers or conditions for revisiting
+          - links to related artifacts or superseded decisions
+        scoring_guide:
+          "0": No durable context — only the decision itself with no surrounding information
+          "1": Weak historical trace — vague context or no review triggers
+          "2": Some future usefulness — context provided but incomplete or generic
+          "3": Mostly durable and traceable — sufficient context for future reader, review triggers defined
+          "4": Durable, traceable, and reviewable — complete context, specific triggers, links to related artifacts, and supersession chain
+        anti_patterns:
+          - Decision depends entirely on oral history for interpretation
+          - No revisit conditions or triggers defined
+          - Context so generic it applies to any decision
+          - Links to superseded decisions or related ADRs absent
+        examples:
+          good:
+            - >
+              "Context: Q1 2026 cost optimization initiative required switching from managed cloud
+              database to self-managed. Business driver: reduce infrastructure spend by 20% (OKR).
+              Review triggers: (1) team size drops below 3 DBAs, (2) managed PostgreSQL pricing
+              drops below self-managed TCO, (3) each major PostgreSQL version upgrade requires
+              assessment. Supersedes: ADR-007 (MySQL selection 2023). Related: RFC-022
+              (infrastructure cost policy), ADR-012 (backup strategy)."
+          bad:
+            - >
+              "This decision was made because the current approach was not working well.
+              [No specific context, no drivers, no review triggers, no links]"
+        decision_tree: >
+          IF no context or durable information beyond the decision itself THEN score 0.
+          IF minimal context with no links or review triggers THEN score 1.
+          IF some context provided but incomplete or generic, or triggers missing THEN score 2.
+          IF sufficient context for future reader AND review triggers defined THEN score 3.
+          IF complete context, specific triggers, links to related artifacts, and supersession chain THEN score 4.
+        remediation_hints:
+          - Add the business or technical context that made this decision necessary
+          - Define at least two specific review triggers
+          - Link to superseded decisions and related ADRs, RFCs, or policy documents
+
+scoring:
+  scale: 0-4 ordinal plus N/A
+  method: gates_first_then_weighted_average
+  thresholds:
+    pass: No critical gate failure, overall >= 3.2, and no dimension < 2.0
+    conditional_pass: No critical gate failure and overall 2.4-3.19 or one weak dimension
+    rework_required: Overall < 2.4 or repeated weak dimensions
+    reject: Critical gate failure or mandatory control breach
+    not_reviewable: Evidence insufficient for core gate criteria
+    profile_specific_escalation: Escalate when ADR-01 < 3 for strategic or cross-team decisions
+  na_policy: Exclude N/A criteria from denominator; evaluator must justify N/A
+  confidence_policy: Confidence reported separately, must not modify score
+
+outputs:
+  require_evidence_refs: true
+  require_confidence: true
+  require_actions: true
+  require_evidence_class: true
+  require_evidence_anchors: true
+  formats:
+    - yaml
+    - json
+    - markdown-report

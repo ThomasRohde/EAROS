@@ -1,0 +1,227 @@
+rubric_id: EAROS-SOL-001
+version: 2.0.0
+kind: profile
+title: Solution Architecture Profile
+status: approved
+artifact_type: solution_architecture
+inherits:
+  - EAROS-CORE-002
+design_method: decision_centred
+purpose:
+  - design_review
+  - architecture_board_review
+  - delivery_readiness_review
+stakeholders:
+  - solution_architect
+  - product_owner
+  - engineering_lead
+  - security
+  - operations
+  - data
+viewpoints:
+  - context
+  - logical
+  - integration
+  - deployment
+  - security
+  - operating_model
+
+dimensions:
+  - id: SD1
+    name: Solution optioning and rationale
+    description: >
+      Does the artifact explain the decision to adopt the proposed solution, including the
+      alternatives that were rejected and the criteria used to choose between them? Architecture
+      decisions without rationale cannot be challenged, improved, or defended.
+    weight: 1.0
+    criteria:
+      - id: SOL-01
+        question: Does the artifact explain the chosen option and the rejected alternatives at a decision-useful level?
+        description: >
+          A solution design that simply presents the chosen option — however technically
+          sophisticated — is an assertion, not an argument. Reviewers, delivery teams, and
+          governance bodies need to understand the decision-making process to provide meaningful
+          oversight. This criterion checks whether the artifact documents a genuine decision,
+          with alternatives considered and selection criteria made explicit.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: major
+          failure_effect: Cannot pass above conditional_pass
+        required_evidence:
+          - option comparison
+          - selection rationale
+          - decision criteria
+        scoring_guide:
+          "0": No alternatives or rationale — solution presented without explanation
+          "1": Choice asserted only — 'we chose X' with no comparison or criteria
+          "2": Alternatives mentioned but weakly compared — lacks criteria or is superficial
+          "3": Clear rationale and meaningful comparison — criteria applied, alternatives evaluated
+          "4": Decision is explicit, evidence-backed, criteria-weighted, and tied to business and quality concerns
+        anti_patterns:
+          - Single option dressed as a comparison with no real alternatives
+          - Cost and risk ignored in option evaluation
+          - Decision made before analysis documented
+        examples:
+          good:
+            - >
+              "Options considered: (A) Buy — vendor package, (B) Build — custom API, (C) Extend —
+              middleware layer. Criteria (weighted): cost (30%), delivery speed (25%), strategic
+              fit (25%), vendor risk (20%). Decision: Option B (Build). Rationale: Only option
+              meeting EU data residency requirements (eliminates A). Option C rejected: integration
+              complexity exceeds 3-year ROI threshold."
+          bad:
+            - >
+              "After reviewing the options, the team decided to build a custom solution.
+              [No alternatives documented, no criteria stated]"
+        decision_tree: >
+          IF no alternatives section exists THEN score 0.
+          IF one alternative mentioned without comparison or criteria THEN score 1.
+          IF multiple alternatives listed but comparison is superficial or criteria unstated THEN score 2.
+          IF meaningful comparison with explicit selection criteria THEN score 3.
+          IF decision is explicit, evidence-backed, criteria-weighted, and tied to business and quality concerns THEN score 4.
+        remediation_hints:
+          - Add an option comparison table with named criteria and scoring
+          - Explicitly state why rejected options were eliminated
+          - Connect the final decision to business drivers and quality attribute requirements
+
+  - id: SD2
+    name: Quality attribute treatment
+    description: >
+      Quality attributes translate business expectations into architectural constraints and
+      mechanisms. Without an explicit mapping from non-functional requirements to design
+      decisions, delivery teams will implement functional requirements correctly but fail
+      on performance, security, resilience, or compliance.
+    weight: 1.0
+    criteria:
+      - id: SOL-02
+        question: Are key quality attributes and non-functional requirements translated into architectural mechanisms or constraints?
+        description: >
+          NFRs that are documented but not used in design are decoration. Each material
+          non-functional requirement — availability target, throughput, latency, security
+          control, data retention — must have a corresponding architectural mechanism or
+          constraint that can be inspected in the design and tested in delivery. Without
+          traceability from NFR to design response, governance cannot verify compliance.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: critical
+          failure_effect: Reject when material NFRs are absent or untraceable
+        required_evidence:
+          - NFR list or quality attribute list
+          - quality attribute scenarios or measurable targets
+          - architectural mechanisms or design responses
+        scoring_guide:
+          "0": No material NFR treatment — quality attributes entirely absent
+          "1": NFRs listed but not used — bullet list with no design response
+          "2": Partial architectural response — some NFRs have mechanisms, material gaps remain
+          "3": Most material NFRs handled in the design — mechanisms named and traceable
+          "4": Quality attribute response is explicit, traceable, measurable, and credible for all material attributes
+        anti_patterns:
+          - Performance, security, or availability mentioned only in prose with no numbers or mechanisms
+          - No resilience mechanism despite high availability claim
+          - NFR section at start of document never referenced again
+        examples:
+          good:
+            - >
+              "NFR: Availability 99.9%. Mechanism: Active-passive failover with automated health
+              checks, 30s switchover. NFR: Data residency EU. Mechanism: All data stores deployed
+              in eu-west-1, cross-region replication disabled, enforced by policy. NFR: Auth
+              response < 100ms. Mechanism: JWT validation at edge with 5-minute cache."
+          bad:
+            - >
+              "The system will be highly available, performant, and secure.
+              [No targets, no mechanisms, no traceability]"
+        decision_tree: >
+          IF no NFR section or quality attribute list exists THEN score 0.
+          IF NFRs listed as bullet points with no design response THEN score 1.
+          IF some NFRs have design responses but material NFRs have no response THEN score 2.
+          IF most material NFRs have named architectural mechanisms THEN score 3.
+          IF all material NFRs are traceable to specific design decisions with measurable targets THEN score 4.
+        remediation_hints:
+          - Add a scenario-to-design-mechanism mapping table
+          - Replace vague adjectives with measurable targets (e.g. '99.9% availability', 'P99 < 200ms')
+          - Ensure each mechanism is identifiable in a diagram or design section
+
+  - id: SD3
+    name: Delivery and operability readiness
+    description: >
+      A solution design that describes what to build but not how to deliver it, operate it,
+      or migrate to it leaves a significant gap between architecture and execution. Implementation
+      dependencies, operational ownership, and migration implications must be addressed
+      to make the artifact actionable for delivery and governance.
+    weight: 1.0
+    criteria:
+      - id: SOL-03
+        question: Does the solution architecture describe implementation dependencies, operational ownership, and migration implications?
+        description: >
+          Many architectures are technically sound but operationally risky because they do not
+          address who runs the system, how it is released, what happens when it fails, or how
+          the organization transitions from the current state. These concerns must be answered
+          in the design — not deferred to delivery — so that governance can assess delivery risk
+          alongside architectural soundness.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - dependency list (team, platform, or technical)
+          - operating model or operational ownership
+          - migration or rollout approach
+        scoring_guide:
+          "0": No delivery or operational treatment — design is build-time only
+          "1": High-level only — 'the platform team will handle operations'
+          "2": Partial readiness view — some operational or delivery concerns addressed
+          "3": Mostly clear implementation and operability path — deployment model, ownership, migration approach present
+          "4": Ready for execution planning — delivery plan, operating model, observability design, migration steps, and rollback approach all present
+        anti_patterns:
+          - Build-time architecture view only with no run-time or operational consideration
+          - No named operational owner for the solution
+          - Migration deferred to 'future project'
+        examples:
+          good:
+            - >
+              "Deployment: Blue-green via GitHub Actions, manual approval gate on production.
+              Owner: Platform Engineering (Jane Smith, delivery lead). Migration: Strangler fig
+              pattern; legacy Payments API deprecated Q4 2026, dual-run period Q3–Q4. Rollback:
+              Feature flag disables new service within 30 seconds. Observability: Prometheus +
+              Grafana, PagerDuty alerts for P99 > 500ms."
+          bad:
+            - >
+              "The delivery team will handle deployment and operations.
+              [No owner named, no migration approach, no operational design]"
+        decision_tree: >
+          IF no delivery or operational concerns addressed THEN score 0.
+          IF only high-level team references without specifics THEN score 1.
+          IF some operational or delivery concerns addressed but material gaps THEN score 2.
+          IF deployment model, operational ownership, and migration approach are clear THEN score 3.
+          IF delivery plan, operating model, observability design, migration steps, and rollback all present THEN score 4.
+        remediation_hints:
+          - Add a named operational owner and team responsibility model
+          - Add migration dependencies and a phased rollout plan
+          - Define observability requirements (metrics, alerts, dashboards)
+
+scoring:
+  scale: 0-4 ordinal plus N/A
+  method: gates_first_then_weighted_average
+  thresholds:
+    pass: No critical gate failure, overall >= 3.2, and no dimension < 2.0
+    conditional_pass: No critical gate failure and overall 2.4-3.19 or one weak dimension
+    rework_required: Overall < 2.4 or repeated weak dimensions
+    reject: Critical gate failure or mandatory control breach
+    not_reviewable: Evidence insufficient for core gate criteria
+    profile_specific_escalation: Escalate to human review when SOL-02 score < 3 for customer-facing or high-risk solutions
+  na_policy: Exclude N/A criteria from denominator; evaluator must justify N/A
+  confidence_policy: Confidence reported separately, must not modify score
+
+outputs:
+  require_evidence_refs: true
+  require_confidence: true
+  require_actions: true
+  require_evidence_class: true
+  require_evidence_anchors: true
+  formats:
+    - yaml
+    - json
+    - markdown-report

@@ -1,0 +1,57 @@
+artifact_id: "[ART-YYYY-NNNN]"
+artifact_type: "[artifact_type]"
+artifact_version: "[version]"
+rubric_id: "[EAROS-XXX-NNN]"
+rubric_version: "[version]"
+profiles_applied:
+  - "[profile_id]"
+overlays_applied:
+  - "[overlay_id]"
+evaluated_by:
+  - role: evaluator
+    actor: "[human | agent]"
+    identity: "[name or model]"
+  - role: challenger
+    actor: "[human | agent]"
+    identity: "[name or model]"
+evaluation_mode: "[human | agent | hybrid]"
+evaluation_date: "YYYY-MM-DD"
+dag_execution:
+  steps_completed:
+    - structural_validation
+    - content_extraction
+    - criterion_scoring
+    - cross_reference_validation
+    - dimension_aggregation
+    - challenge_pass
+    - calibration
+    - status_determination
+  rubric_lock_version: "[version]"
+  calibration_applied: true
+criterion_results:
+  - criterion_id: "[CRIT-ID]"
+    score: 0
+    confidence: low
+    confidence_reason: "[why]"
+    evidence_sufficiency: none
+    evidence_class: observed
+    evidence_refs:
+      - section: "[section name]"
+        page: 0
+        quotation: "[quoted text]"
+    rationale: "[explanation]"
+    evidence_gaps:
+      - "[gap]"
+    recommended_actions:
+      - "[action]"
+dimension_results:
+  - dimension_id: "[DIM-ID]"
+    weighted_score: 0.0
+gate_failures: []
+overall_status: "[pass | conditional_pass | rework_required | reject | not_reviewable]"
+overall_score: 0.0
+confidence: low
+recommended_actions:
+  - "[action]"
+decision_summary: "[summary]"
+challenger_notes: "[findings from challenge pass]"

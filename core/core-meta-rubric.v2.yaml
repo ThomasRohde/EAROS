@@ -1,0 +1,643 @@
+rubric_id: EAROS-CORE-002
+version: 2.0.0
+kind: core_rubric
+title: EAROS Core Meta-Rubric v2.0
+status: draft
+effective_date: "2026-03-18"
+next_review_date: "2026-09-18"
+owner: enterprise-architecture
+artifact_type: architecture_artifact
+purpose:
+  - design_review
+  - governance_review
+  - assurance_review
+  - agent_evaluation
+stakeholders:
+  - architecture_board
+  - domain_architect
+  - delivery_lead
+  - risk
+  - security
+  - operations
+viewpoints:
+  - context
+  - functional
+  - information
+  - integration
+  - deployment
+  - roadmap
+  - decision
+
+dimensions:
+  - id: D1
+    name: Stakeholder and purpose fit
+    description: Does the artifact identify stakeholders, decision intent, and the concerns it must address?
+    weight: 1.0
+    criteria:
+      - id: STK-01
+        question: Does the artifact explicitly identify intended stakeholders, decision purpose, and review context?
+        description: The artifact should make clear who it is for, why it exists, and what decision it supports.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: major
+          failure_effect: Cannot pass above conditional_pass
+        required_evidence:
+          - purpose statement
+          - stakeholder list
+          - decision or usage context
+        scoring_guide:
+          "0": Absent or contradicted
+          "1": Implied only
+          "2": Explicit but incomplete
+          "3": Explicit and mostly complete
+          "4": Explicit, complete, and used consistently
+        anti_patterns:
+          - Generic audience only
+          - No stated decision intent
+        examples:
+          good:
+            - "This document supports the Architecture Board review of the Payments platform migration (Q3 2026). Primary stakeholders: CTO, Head of Payments, Security Architecture."
+          bad:
+            - "Audience: technical stakeholders"
+        decision_tree: "IF no purpose section exists THEN score 0. IF purpose exists but no named stakeholders THEN score 1. IF stakeholders named but no decision context THEN score 2."
+        remediation_hints:
+          - Add a purpose section
+          - Add a stakeholder-concern table
+
+      - id: STK-02
+        question: Are concerns mapped to the views or sections used in the artifact?
+        description: >
+          Views that do not address specific stakeholder concerns waste reviewer time and may
+          miss critical perspectives. This criterion checks whether the artifact's structure
+          is deliberately aligned to the concerns that motivated it. An artifact with many
+          diagrams and no mapping between diagrams and concerns forces reviewers to guess
+          which content is relevant to which decision.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - concern-to-view mapping
+          - section structure
+          - legend or reading guide
+        scoring_guide:
+          "0": No mapping — views exist with no indication of which concern they address
+          "1": Weak implied mapping — structure implies alignment but nothing is explicit
+          "2": Partial mapping — some views mapped to concerns, significant gaps
+          "3": Mostly complete mapping — most views have an explicit concern or audience
+          "4": Clear and consistent mapping — every view mapped to a concern, reading guide present
+        anti_patterns:
+          - Many diagrams with no explanation of purpose or intended audience
+          - Views do not align to the stated stakeholder concerns
+          - Reading guide absent despite complex multi-view artifact
+        examples:
+          good:
+            - >
+              "Reading guide: Section 3 (Context diagram) → CTO, Head of Product (strategic
+              positioning). Section 5 (Deployment view) → Security, Operations (topology and
+              resilience). Section 6 (Data flow) → Data Governance, Privacy (information
+              lifecycle). Section 7 (API contracts) → Engineering Lead (integration constraints)."
+          bad:
+            - >
+              "Contains 8 diagrams with no explanation of which concerns they address or
+              which audience each diagram is for."
+        decision_tree: >
+          IF no views present THEN score 0.
+          IF views exist but no mapping to concerns or audiences THEN score 1.
+          IF concern mapping implicit in section headings but not explicit THEN score 2.
+          IF concerns mapped to most views explicitly THEN score 3.
+          IF every view is explicitly mapped to one or more concerns AND a reading guide is present THEN score 4.
+        remediation_hints:
+          - Add a view inventory table (view, audience, concern addressed)
+          - Explain why each view exists and what decision it supports
+          - Remove views that serve no identifiable concern
+
+  - id: D2
+    name: Scope and boundary clarity
+    description: Does the artifact define what is in scope, out of scope, and the boundaries of the architecture?
+    weight: 1.0
+    criteria:
+      - id: SCP-01
+        question: Does the artifact define scope, boundaries, assumptions, and exclusions?
+        description: >
+          Without a clear scope, reviewers cannot determine what is being assessed, what is
+          out of bounds, or what assumptions underpin the design. Scope ambiguity is the
+          single most common cause of architecture review failure — reviewers challenge the
+          artifact on points that are explicitly out of scope, or miss gaps because the
+          scope was never stated.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: critical
+          failure_effect: not_reviewable when score < 2
+        required_evidence:
+          - scope statement
+          - in/out list
+          - boundary definition
+          - assumptions
+        scoring_guide:
+          "0": No scope or boundary
+          "1": Scope is ambiguous
+          "2": Basic scope exists but is incomplete
+          "3": Scope and boundaries are clear
+          "4": Scope and boundaries are clear, tested, and internally consistent
+        anti_patterns:
+          - Everything is in scope — no explicit exclusions or boundaries
+          - System boundary changes silently between diagrams
+          - Scope statement so broad it provides no constraint
+        examples:
+          good:
+            - >
+              "In scope: Payments service, Notification service, upstream Banking Core API.
+              Out of scope: Authentication (handled by IAM platform — see IAM-2024-001),
+              analytics pipeline, reporting layer. Assumptions: Banking Core API versioned
+              contract stable for 12 months. Boundary: Does not cover the customer mobile app
+              or internal staff portal."
+          bad:
+            - >
+              "This document covers the relevant parts of the payments system.
+              [No explicit boundary, no exclusions, no assumptions]"
+        decision_tree: "IF no scope section THEN score 0. IF scope exists but no exclusions listed THEN max score 2. IF assumptions not stated THEN max score 3."
+        remediation_hints:
+          - Add an explicit in-scope / out-of-scope list with rationale for exclusions
+          - Define the system context boundary using a C4 context diagram or equivalent
+          - List all assumptions with the consequence if each is violated
+
+  - id: D3
+    name: Concern coverage and viewpoint appropriateness
+    description: >
+      The choice of representational style — deployment diagram, sequence diagram, capability
+      map — must be fit for the decision purpose. An artifact that uses deployment diagrams
+      to answer business strategy questions, or sequence diagrams when the audience needs
+      topology, fails to communicate effectively regardless of technical accuracy.
+    weight: 1.0
+    criteria:
+      - id: CVP-01
+        question: Do the selected views and representations fit the stakeholder concerns and review purpose?
+        description: >
+          Views must be selected for their audience, not for their familiarity to the author.
+          A solution architecture that shows only UML class diagrams fails an operations
+          reviewer who needs a deployment view. A reference architecture that only shows
+          deployment topology fails a business reviewer who needs a capability view. This
+          criterion checks fitness-for-purpose, not technical accuracy.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - view inventory
+          - stakeholder concerns
+          - rationale for representations chosen
+        scoring_guide:
+          "0": Views are unfit for the stated purpose or missing entirely
+          "1": Views weakly fit — partially relevant but major concerns have no corresponding view
+          "2": Views cover some concerns — key concerns have views, others do not
+          "3": Views cover most concerns appropriately — level of abstraction matches audience
+          "4": Views are well chosen, explicitly justified, and materially support the decision at hand
+        anti_patterns:
+          - Wrong level of abstraction for the audience (e.g. class diagrams for executive review)
+          - Diagram-first approach with no stated decision intent
+          - Views repeated across multiple formats without purpose differentiation
+        examples:
+          good:
+            - >
+              "Business stakeholders: capability map and context diagram (Sections 2–3).
+              Delivery team: container diagram and sequence diagram for the three critical
+              flows (Sections 4–5). Operations: deployment diagram and SLO definition
+              (Sections 6–7). Security: threat model and control mapping (Section 8)."
+          bad:
+            - >
+              "Twenty UML diagrams with no explanation of which stakeholder need each one
+              addresses, at varying abstraction levels. [No fitness-for-purpose assessment]"
+        decision_tree: >
+          IF views have no evident relation to stated stakeholder concerns THEN score 0.
+          IF views partially address concerns but significant concerns have no view THEN score 1-2.
+          IF views cover most concerns at appropriate abstraction levels THEN score 3.
+          IF view selection is explicitly justified for each concern AND views cross-reference each other THEN score 4.
+        remediation_hints:
+          - Remove decorative views that address no specific stakeholder concern
+          - Add missing stakeholder-focused views (e.g. operational view for operations audience)
+          - State the intended audience and concern for each view
+
+  - id: D4
+    name: Traceability to drivers, requirements, and principles
+    description: >
+      An architecture that cannot be traced to the business drivers that motivated it cannot
+      be objectively assessed, challenged, or evolved. Without traceability, reviewers must
+      accept the architecture on faith rather than evidence — and delivery teams cannot
+      know which design choices are constraints versus preferences.
+    weight: 1.0
+    criteria:
+      - id: TRC-01
+        question: Are business drivers, objectives, principles, or requirements traceably connected to the architecture content?
+        description: >
+          Listing drivers in an introduction section without using them is not traceability.
+          Traceability means each significant architectural decision or structural choice can
+          be linked to the driver, requirement, or principle that necessitated it. This enables
+          reviewers to challenge whether a decision was truly required, and allows future
+          maintainers to understand which constraints are still live.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: major
+          failure_effect: Cannot pass if score < 2
+        required_evidence:
+          - driver list or requirements list
+          - requirements traceability (explicit links from driver to design element)
+          - principle references in design decisions
+        scoring_guide:
+          "0": No traceability — no drivers, requirements, or principles referenced
+          "1": Loose narrative only — drivers mentioned in introduction but not connected to design
+          "2": Partial traceability — some decisions linked to drivers, material gaps remain
+          "3": Clear traceability for most important items — key decisions have explicit driver links
+          "4": Consistent traceability for all decision-relevant items — matrix or explicit markup throughout
+        anti_patterns:
+          - Drivers listed in Section 1 but never referenced in the architecture
+          - Principles cited in a sidebar without effect on design choices
+          - Requirements traceability matrix present but disconnected from actual design decisions
+        examples:
+          good:
+            - >
+              "Business driver: Reduce fraud rate by 30%. → Architecture response: Real-time
+              fraud scoring service added (Section 4.2, Decision D-07). Principle: API-first.
+              → All integrations use REST/OpenAPI (API inventory, Appendix B). Requirement:
+              Data residency EU. → All data stores in eu-west-1, enforced by policy (Section 5.1)."
+          bad:
+            - >
+              "The architecture supports the company strategy and aligns with our principles.
+              [No specific links from drivers to design elements]"
+        decision_tree: >
+          IF no drivers or requirements listed THEN score 0.
+          IF drivers listed but not connected to any design element THEN score 1.
+          IF some design elements trace to drivers but material gaps remain THEN score 2.
+          IF most important drivers trace to architecture decisions THEN score 3.
+          IF all decision-relevant drivers traceable AND traceability consistent throughout THEN score 4.
+        remediation_hints:
+          - Add a traceability matrix linking requirements to design sections
+          - Annotate each key architectural decision with the driver that required it
+          - Remove drivers that have no effect on the architecture (or explain why)
+
+  - id: D5
+    name: Internal consistency and integrity
+    description: >
+      Inconsistencies between views or sections undermine trust and create ambiguity for
+      implementers. A service called 'PaymentProcessor' in one diagram and 'PaymentService'
+      in another suggests the author conflated two different things — or worse, did not
+      notice the divergence. Internal consistency is a necessary condition for a reviewable
+      artifact.
+    weight: 1.0
+    criteria:
+      - id: CON-01
+        question: Are terms, structures, interfaces, and facts consistent across sections and views?
+        description: >
+          Inconsistencies between views or sections undermine trust and create implementation
+          ambiguity. When the same entity has different names, different interfaces, or
+          different responsibilities across diagrams, implementers cannot determine the
+          authoritative definition. This is particularly critical for API contracts, component
+          names, and data entity definitions which will be implemented as code.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - consistent terminology across sections
+          - cross-view agreement on component names, interfaces, and responsibilities
+          - legend or glossary for key terms
+        scoring_guide:
+          "0": Contradictory — direct conflicts between sections that cannot both be correct
+          "1": Frequent inconsistencies — same entity named or specified differently in multiple places
+          "2": Some inconsistencies remain — minor naming or interface mismatches
+          "3": Mostly consistent — terminology and interfaces agree across main views
+          "4": Consistent and actively normalised — glossary present, entities reconciled, cross-references verified
+        anti_patterns:
+          - Different names for the same component or entity in different diagrams
+          - Interface signatures differ between the API contract and the sequence diagram
+          - Technology stack differs between deployment view and implementation notes
+        examples:
+          good:
+            - >
+              "Glossary on page 2 defines 'Payment Service' — used consistently throughout
+              all 12 diagrams. Entity names, API contracts, and deployment configurations
+              all refer to the same 15 named components with matching names."
+          bad:
+            - >
+              "The context diagram shows 'Auth Service' but the deployment diagram references
+              'IAM Component' and the sequence diagram shows 'LoginService'. The API contract
+              shows a different endpoint signature than the sequence diagram."
+        decision_tree: >
+          IF direct contradictions between sections THEN score 0.
+          IF same entity has different names or interfaces in multiple views THEN score 1.
+          IF minor naming inconsistencies only THEN score 2.
+          IF terminology and interfaces consistent across main views THEN score 3.
+          IF glossary present AND entities reconciled AND cross-references verified THEN score 4.
+        remediation_hints:
+          - Create a component/entity glossary and enforce consistent naming throughout
+          - Reconcile interface definitions across all views (API contract, sequence diagram, deployment view)
+          - Assign a single authoritative source for each entity definition
+
+  - id: D6
+    name: Risks, assumptions, constraints, and tradeoffs
+    description: >
+      Architecture is always a set of trade-offs, not a set of optimal choices. An artifact
+      that only presents upsides is describing a fantasy, not a real architecture. Explicitly
+      documenting risks, assumptions, constraints, and trade-offs is what distinguishes a
+      decision-ready architecture from a marketing presentation.
+    weight: 1.0
+    criteria:
+      - id: RAT-01
+        question: Does the artifact identify key risks, assumptions, constraints, and tradeoffs relevant to the decision?
+        description: >
+          Every significant architectural decision involves trade-offs that are accepted, not
+          solved. These trade-offs — complexity vs. simplicity, consistency vs. availability,
+          cost vs. capability — must be made visible so that reviewers can assess whether
+          the trade-offs are acceptable and delivery teams understand the design intent.
+          Assumptions that are buried or unstated become implicit risks.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - risk list with mitigations and owners
+          - stated assumptions
+          - constraints (technical, legal, organisational)
+          - trade-off discussion
+        scoring_guide:
+          "0": Not addressed — risks, assumptions, and trade-offs entirely absent
+          "1": Mentioned superficially — 'there are some risks that will need to be addressed'
+          "2": Partial treatment — risks listed without mitigations, or trade-offs mentioned without analysis
+          "3": Material issues treated — key risks, assumptions, and trade-offs documented with owners
+          "4": Trade-offs and consequences are explicit, evidence-based, and decision-useful — all material risks mitigated or accepted with rationale
+        anti_patterns:
+          - Only upsides presented — risks section omitted or deferred
+          - Risks section says 'TBD' or 'to be assessed'
+          - Trade-offs acknowledged but no design response or acceptance decision
+        examples:
+          good:
+            - >
+              "Risk: Event sourcing adds operational complexity for the team. Mitigation: Team
+              training in Q2. Residual risk: Medium. Owner: Platform Lead. Assumption: Banking
+              Core API remains stable for 12 months — if violated, migration scope increases
+              significantly. Trade-off: Accepted higher operational complexity in exchange for
+              auditability and decoupling (see Decision D-04)."
+          bad:
+            - "Risks: TBD. Assumptions: TBD. [No content]"
+        decision_tree: >
+          IF risks section absent or entirely TBD THEN score 0.
+          IF risks mentioned in passing with no specifics THEN score 1.
+          IF risks listed but no mitigations or owners THEN score 2.
+          IF material risks, assumptions, and trade-offs documented with owners THEN score 3.
+          IF all material risks mitigated or accepted with rationale AND trade-offs explicitly balanced THEN score 4.
+        remediation_hints:
+          - Add a RAID log or risk table with mitigation and owner columns
+          - Record assumptions with the consequence if each assumption is violated
+          - Explicitly state the trade-offs accepted in each key design decision
+
+  - id: D7
+    name: Standards and policy compliance
+    description: >
+      Architecture artifacts in enterprise contexts must demonstrate alignment with applicable
+      standards, policies, and mandatory controls — especially security, data protection,
+      and regulatory requirements. Compliance by assertion (saying 'we comply') is
+      insufficient; the artifact must show how the design meets each relevant control,
+      and must document exceptions with owners and remediation timelines.
+    weight: 1.0
+    criteria:
+      - id: CMP-01
+        question: Does the artifact show alignment to applicable architecture standards, policies, and mandatory controls?
+        description: >
+          Architecture artifacts operate within a governed context. Standards references that
+          appear in a sidebar without effect on design choices do not constitute compliance.
+          Compliance must be demonstrated through explicit control-to-design mappings: which
+          design element satisfies which control, who owns the evidence, and what exceptions
+          have been approved. Without this, governance boards cannot discharge their oversight
+          responsibility.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: critical
+          failure_effect: reject when mandatory control compliance cannot be determined
+        required_evidence:
+          - references to applicable standards or policies
+          - control-to-design mapping
+          - exceptions list with approval and owner
+        scoring_guide:
+          "0": No compliance treatment — standards and controls not referenced
+          "1": Assertions without evidence — 'solution will comply with all standards'
+          "2": Partial compliance view — some controls mapped, material gaps remain
+          "3": Compliance treated for most material controls — mappings present with owners
+          "4": Compliance and exceptions are explicit, evidence-backed, and owned — full control mapping with approved exception log
+        anti_patterns:
+          - Compliant by assumption — no specific standards or controls referenced
+          - Exceptions exist but are not documented or approved
+          - Standards listed without any mapping to design elements
+        examples:
+          good:
+            - >
+              "Enterprise Security Standard ESS-01: satisfied by mutual TLS on all
+              service-to-service calls (Section 5.1). GDPR Article 17 (Right to Erasure):
+              implemented via async delete event to all downstream stores (Section 4.3).
+              Exception: ESS-03 (password complexity) — not applicable for service accounts;
+              exception approved by CISO 2026-02-01, expires 2026-08-01."
+          bad:
+            - >
+              "The solution will comply with all applicable security standards and regulations.
+              [No specific standards named, no control mappings, no exceptions]"
+        decision_tree: >
+          IF no standards or controls referenced THEN score 0.
+          IF standards cited but no mapping to design elements THEN score 1.
+          IF some controls mapped but material compliance gaps THEN score 2.
+          IF most material controls addressed with evidence and owners THEN score 3.
+          IF all controls addressed, exceptions documented with approvals and owners THEN score 4.
+        remediation_hints:
+          - Map each applicable control to the design element that satisfies it
+          - Log exceptions with approver, approval date, and expiry or remediation plan
+          - Remove generic compliance assertions and replace with specific evidence
+
+  - id: D8
+    name: Actionability and implementation relevance
+    description: >
+      Architecture artifacts exist to enable decisions and actions. An artifact that presents
+      information without actionable next steps, named owners, or clear decision outcomes
+      fails its purpose — regardless of how technically sophisticated the content is.
+      Interesting but unusable is a common failure mode for architecture documents.
+    weight: 1.0
+    criteria:
+      - id: ACT-01
+        question: Can delivery and governance teams act on the artifact without major reinterpretation?
+        description: >
+          Architecture artifacts must be decision-ready. Delivery teams should be able to
+          read the document and know what to build. Governance teams should be able to
+          read it and know what they are approving. If either group must significantly
+          reinterpret the document to act on it, the artifact has failed its purpose.
+          Actionability requires explicit decisions, concrete next steps, and named owners.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - decision statement (what is approved or proposed)
+          - next actions with owners
+          - roadmap or governance references
+        scoring_guide:
+          "0": Not actionable — purely descriptive with no decisions or actions
+          "1": Heavily ambiguous — 'next steps to be determined' or 'team will decide'
+          "2": Partly actionable — some decisions made, some actions listed, significant gaps
+          "3": Mostly actionable — key decisions made, most actions owned and sequenced
+          "4": Actionable with clear ownership — all decisions explicit, all actions owned and dated, governance path clear
+        anti_patterns:
+          - Analytically interesting but operationally unusable
+          - No named owner for any action or decision
+          - All decisions deferred to future sessions
+        examples:
+          good:
+            - >
+              "Decision: Approve migration to event-driven architecture. Next actions:
+              (1) Platform team to provision Kafka cluster by 2026-04-01 [Owner: Platform Lead];
+              (2) Payments team to refactor Order Service by 2026-05-15 [Owner: Payments Lead].
+              Review trigger: Architecture Board checkpoint 2026-04-10."
+          bad:
+            - >
+              "Various options are discussed in this document. Further work will be required
+              to determine the path forward. [No decisions, no owners, no concrete next steps]"
+        decision_tree: >
+          IF no decision statements or next steps exist THEN score 0.
+          IF artifact is descriptive only with no actionable output THEN score 1.
+          IF some decisions stated but delivery path unclear or ownership absent THEN score 2.
+          IF most key decisions made with next steps and owners assigned THEN score 3.
+          IF all decisions explicit, all actions owned and dated, governance path clear THEN score 4.
+        remediation_hints:
+          - Add a decisions and actions section at the end of the document
+          - Assign a named owner to every action
+          - State the governance outcome explicitly (approved, conditional, rejected)
+
+  - id: D9
+    name: Artifact maintainability and stewardship
+    description: >
+      Architecture artifacts must be treated as living documents with explicit ownership,
+      not one-time deliverables. An artifact with no owner, no last-updated date, and no
+      change history is an orphan — it may be read but cannot be trusted, evolved, or
+      challenged. Stewardship is the difference between architecture as a governance asset
+      and architecture as a historical curiosity.
+    weight: 1.0
+    criteria:
+      - id: MNT-01
+        question: Does the artifact identify ownership, update expectations, and change history or provenance?
+        description: >
+          Architecture decisions made today will be challenged or superseded by teams years
+          from now. Without ownership and change history, a future maintainer cannot know
+          whether the document is current, who to contact with questions, or what has
+          changed since the last review. A well-stewarded artifact actively supports
+          governance by making its lifecycle state explicit.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - named owner (individual or team)
+          - last updated date or version
+          - change log or provenance
+        scoring_guide:
+          "0": No stewardship information — no owner, no date, no change history
+          "1": Ownership unclear — author named but no ownership, no update date
+          "2": Basic stewardship exists — owner and date present, no change history or review cadence
+          "3": Stewardship and update expectations are clear — owner, version, cadence, and change history present
+          "4": Stewardship, provenance, and lifecycle handling are strong — full change history, review triggers, successor/deprecation plan
+        anti_patterns:
+          - Orphaned artifact — no owner and unknown last update
+          - Author present but no ongoing ownership responsibility defined
+          - No review cadence or supersession plan
+        examples:
+          good:
+            - >
+              "Owner: Enterprise Architecture, Payments Domain. Version: 2.1. Last reviewed:
+              2026-03-01. Next review: 2026-09-01 (trigger: post-migration assessment). Change
+              log: v2.1 updated Kafka cluster spec (2026-02); v2.0 added DR runbook (2026-01);
+              v1.0 initial draft (2025-09)."
+          bad:
+            - >
+              "Created by J. Smith. [No version, no date, no owner, no review information,
+              no change history]"
+        decision_tree: >
+          IF no owner, date, or version present THEN score 0.
+          IF author named but no ongoing ownership or date THEN score 1.
+          IF owner and date present but no change history or review cadence THEN score 2.
+          IF owner, version, cadence, and change history all present THEN score 3.
+          IF full change history, review triggers, and lifecycle management including successor/deprecation plan THEN score 4.
+        remediation_hints:
+          - Assign a named owner with an ongoing stewardship responsibility
+          - Add version number, last-updated date, and next-review date
+          - Create a change log — even one line per version is sufficient to start
+
+scoring:
+  scale: 0-4 ordinal plus N/A
+  agent_scale: 0-3 ordinal plus N/A (optional collapse; must map in metadata)
+  method: gates_first_then_weighted_average
+  thresholds:
+    pass: No critical gate failure, overall >= 3.2, and no dimension < 2.0
+    conditional_pass: No critical gate failure and overall 2.4-3.19 or one weak dimension
+    rework_required: Overall < 2.4 or repeated weak dimensions
+    reject: Critical gate failure or mandatory control breach
+    not_reviewable: Evidence insufficient for core gate criteria
+  na_policy: Exclude N/A criteria from denominator; evaluator must justify N/A in narrative
+  confidence_policy: Confidence is reported separately and must not mathematically modify the score
+  reliability_targets:
+    binary_agreement: "> 95%"
+    ordinal_kappa: "> 0.70 (substantial) for well-defined criteria; > 0.50 (moderate) for subjective"
+    overall_correlation: "Spearman rho > 0.80"
+
+outputs:
+  require_evidence_refs: true
+  require_confidence: true
+  require_actions: true
+  require_evidence_class: true
+  require_evidence_anchors: true
+  formats:
+    - yaml
+    - json
+    - markdown-report
+    - xlsx
+
+agent_evaluation:
+  dag_steps:
+    - structural_validation
+    - content_extraction
+    - criterion_scoring
+    - cross_reference_validation
+    - dimension_aggregation
+    - challenge_pass
+    - calibration
+    - status_determination
+  rubric_locked: true
+  calibration_method: rulers_wasserstein
+
+calibration:
+  required_before_production: true
+  minimum_examples: 3
+  recommended_reviewers:
+    - 2 human reviewers
+    - 1 evaluator agent
+    - 1 challenger agent
+  recalibration_triggers:
+    - profile changes materially
+    - new overlay introduced
+    - agreement drops below targets
+    - new artifact formats appear
+    - agent behaviour changes materially
+    - governance expectations change
+
+change_log:
+  - version: "2.0.0"
+    date: "2026-03-18"
+    author: "Thomas Rohde"
+    changes:
+      - Added Principle 8 (machine-readable artifacts)
+      - Added examples and decision_tree fields to criteria
+      - Added agent_evaluation configuration
+      - Added reliability_targets to scoring
+      - Added evidence_class and evidence_anchors to outputs
+      - Added DAG evaluation steps
+      - Updated from EAROS v1 based on 63-source research programme
+  - version: "1.0.0"
+    date: "2026-03-16"
+    author: "Thomas Rohde"
+    changes:
+      - Initial release

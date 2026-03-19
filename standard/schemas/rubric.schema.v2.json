@@ -1,0 +1,383 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/earos/rubric.schema.v2.json",
+  "title": "EAROS v2.0 Rubric/Profile/Overlay Schema",
+  "type": "object",
+  "required": [
+    "rubric_id",
+    "version",
+    "kind",
+    "title",
+    "artifact_type",
+    "dimensions",
+    "scoring",
+    "outputs"
+  ],
+  "properties": {
+    "rubric_id": {
+      "type": "string",
+      "description": "Unique identifier e.g. EAROS-CORE-002"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "core_rubric",
+        "profile",
+        "overlay"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "candidate",
+        "approved",
+        "deprecated"
+      ]
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_review_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "artifact_type": {
+      "type": "string"
+    },
+    "inherits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Rubric IDs this extends"
+    },
+    "purpose": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stakeholders": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "viewpoints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "applicability": {
+      "type": "object",
+      "description": "Conditions under which this rubric applies"
+    },
+    "design_method": {
+      "type": "string",
+      "enum": [
+        "decision_centred",
+        "viewpoint_centred",
+        "lifecycle_centred",
+        "risk_centred",
+        "pattern_library"
+      ],
+      "description": "v2.0: Which of the five profile design methods was used"
+    },
+    "dimensions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "criteria"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0
+          },
+          "criteria": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "question",
+                "metric_type",
+                "scale",
+                "required_evidence",
+                "scoring_guide"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "question": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "metric_type": {
+                  "type": "string",
+                  "enum": [
+                    "ordinal",
+                    "binary",
+                    "count",
+                    "presence",
+                    "coverage"
+                  ]
+                },
+                "scale": {
+                  "oneOf": [
+                    {
+                      "type": "array"
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "weight": {
+                  "type": "number"
+                },
+                "gate": {
+                  "oneOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "enabled",
+                        "severity"
+                      ],
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "severity": {
+                          "type": "string",
+                          "enum": [
+                            "advisory",
+                            "major",
+                            "critical"
+                          ]
+                        },
+                        "failure_effect": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "required_evidence": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object"
+                      }
+                    ]
+                  }
+                },
+                "scoring_guide": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "anti_patterns": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "remediation_hints": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "examples": {
+                  "type": "object",
+                  "properties": {
+                    "good": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "bad": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "description": "v2.0: Positive and negative examples for AI disambiguation"
+                },
+                "decision_tree": {
+                  "type": "string",
+                  "description": "v2.0: IF/THEN disambiguation logic for AI agents"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "scoring": {
+      "type": "object",
+      "required": [
+        "scale",
+        "method",
+        "thresholds"
+      ],
+      "properties": {
+        "scale": {
+          "type": "string"
+        },
+        "agent_scale": {
+          "type": "string",
+          "description": "v2.0: Optional collapsed scale for pure agent evaluation"
+        },
+        "method": {
+          "type": "string"
+        },
+        "thresholds": {
+          "type": "object"
+        },
+        "na_policy": {
+          "type": "string"
+        },
+        "confidence_policy": {
+          "type": "string"
+        },
+        "reliability_targets": {
+          "type": "object",
+          "description": "v2.0: Inter-rater reliability targets",
+          "properties": {
+            "binary_agreement": {
+              "type": "string"
+            },
+            "ordinal_kappa": {
+              "type": "string"
+            },
+            "overall_correlation": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "required": [
+        "require_evidence_refs",
+        "require_confidence",
+        "require_actions"
+      ],
+      "properties": {
+        "require_evidence_refs": {
+          "type": "boolean"
+        },
+        "require_confidence": {
+          "type": "boolean"
+        },
+        "require_actions": {
+          "type": "boolean"
+        },
+        "require_evidence_class": {
+          "type": "boolean",
+          "description": "v2.0: Require observed/inferred/external classification"
+        },
+        "require_evidence_anchors": {
+          "type": "boolean",
+          "description": "v2.0: RULERS-style citation+quotation"
+        },
+        "formats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "agent_evaluation": {
+      "type": "object",
+      "description": "v2.0: Agent-specific evaluation configuration",
+      "properties": {
+        "dag_steps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rubric_locked": {
+          "type": "boolean"
+        },
+        "rubric_lock_version": {
+          "type": "string"
+        },
+        "calibration_method": {
+          "type": "string",
+          "enum": [
+            "rulers_wasserstein",
+            "llm_rubric_network",
+            "manual"
+          ]
+        }
+      }
+    },
+    "calibration": {
+      "type": "object"
+    },
+    "change_log": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "metadata": {
+      "type": "object"
+    }
+  }
+}

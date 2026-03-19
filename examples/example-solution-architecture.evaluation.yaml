@@ -1,0 +1,127 @@
+evaluation_id: EVAL-SOL-0001
+rubric_id: EAROS-SOL-001
+rubric_version: 1.0.0
+artifact_ref:
+  id: SOL-ART-042
+  title: Payments API Modernization Solution Architecture
+  artifact_type: solution_architecture
+  owner: Payments Domain Architecture
+  uri: repo://architecture/payments/solution-architecture.md
+evaluation_date: '2026-03-16'
+evaluators:
+- name: EA reviewer
+  role: domain architect
+  mode: human
+- name: EAROS evaluator
+  role: rubric-evaluator
+  mode: agent
+- name: EAROS challenger
+  role: rubric-challenger
+  mode: challenge-agent
+status: conditional_pass
+overall_score: 3.0
+gate_failures: []
+criterion_results:
+- criterion_id: STK-01
+  score: 3
+  judgment_type: observed
+  confidence: high
+  evidence_sufficiency: sufficient
+  evidence_refs:
+  - location: Section 1.0 Audience and Purpose
+    excerpt: Architecture board, engineering lead, operations, and security are named.
+  rationale: Stakeholders and decision purpose are explicit, though not all stakeholder
+    concerns are mapped in detail.
+  missing_information:
+  - Concern-to-view matrix
+  recommended_actions:
+  - Add stakeholder-concern-view table
+- criterion_id: SCP-01
+  score: 3
+  judgment_type: observed
+  confidence: high
+  evidence_sufficiency: sufficient
+  evidence_refs:
+  - location: Section 1.2 Scope
+    excerpt: Customer onboarding and payment initiation are in scope; ledger modernization
+      is out of scope.
+  rationale: Scope is clear enough for review.
+  missing_information: []
+  recommended_actions: []
+- criterion_id: TRC-01
+  score: 2
+  judgment_type: mixed
+  confidence: medium
+  evidence_sufficiency: partial
+  evidence_refs:
+  - location: Section 2.1 Drivers
+    excerpt: Availability and time-to-market are listed as drivers.
+  rationale: Drivers are listed but traceability from drivers to architectural decisions
+    is weak.
+  missing_information:
+  - Decision-to-requirement traceability
+  recommended_actions:
+  - Add a design decision traceability table
+- criterion_id: SOL-01
+  score: 3
+  judgment_type: observed
+  confidence: medium
+  evidence_sufficiency: sufficient
+  evidence_refs:
+  - location: Appendix A Option Comparison
+    excerpt: Managed gateway, custom gateway, and phased hybrid were compared.
+  rationale: The optioning is meaningful and decision-relevant.
+  missing_information:
+  - Explicit cost sensitivity assumptions
+  recommended_actions:
+  - Document cost assumptions
+- criterion_id: SOL-02
+  score: 2
+  judgment_type: mixed
+  confidence: medium
+  evidence_sufficiency: partial
+  evidence_refs:
+  - location: Section 3.4 NFRs
+    excerpt: Availability and performance targets are stated.
+  rationale: NFRs are stated, but resilience and failover mechanisms are not described
+    with enough depth.
+  missing_information:
+  - Quality attribute scenarios
+  - Mapping from resilience goals to mechanisms
+  recommended_actions:
+  - Add quality attribute scenario table
+  - Explain failover and degradation behavior
+dimension_results:
+- dimension_id: D1
+  score: 3.0
+  summary: Purpose and audience are clear, but concern mapping needs improvement.
+- dimension_id: D2
+  score: 3.0
+  summary: Scope is reviewable and bounded.
+- dimension_id: D4
+  score: 2.0
+  summary: Traceability is the main weakness.
+- dimension_id: SD1
+  score: 3.0
+  summary: Alternatives and rationale are present.
+- dimension_id: SD2
+  score: 2.0
+  summary: NFR treatment is insufficiently concrete for a strong pass.
+summary:
+  strengths:
+  - Clear review purpose and bounded scope
+  - Meaningful option comparison
+  - Artifact is actionable enough for controlled progression
+  weaknesses:
+  - Weak traceability from drivers to decisions
+  - Insufficiently concrete quality attribute response
+  risks:
+  - Operational resilience may be under-designed
+  - Governance approval may be delayed without stronger NFR evidence
+  next_actions:
+  - Add traceability matrix
+  - Add quality attribute scenario and mechanism mapping
+  - Re-review after revision
+  decision_narrative: The solution architecture is reviewable and directionally sound,
+    but it does not yet provide strong enough evidence on traceability and quality
+    attribute treatment for an unconditional pass.

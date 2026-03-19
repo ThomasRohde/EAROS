@@ -1,0 +1,205 @@
+rubric_id: EAROS-ROAD-001
+version: 2.0.0
+kind: profile
+title: Roadmap Profile
+status: draft
+artifact_type: roadmap
+inherits:
+  - EAROS-CORE-002
+design_method: lifecycle_centred
+
+dimensions:
+  - id: RD1
+    name: Dependency realism
+    description: >
+      Roadmaps without explicit dependencies are wishful thinking. A list of initiatives
+      with target dates but no dependency analysis creates false confidence — when one item
+      slips, downstream items slip too, but the roadmap does not show the cascade. Dependency
+      realism separates an architectural roadmap from a marketing slide.
+    weight: 1.0
+    criteria:
+      - id: RD-DEP-01
+        question: Are dependencies between roadmap items identified and realistic?
+        description: >
+          Dependencies between roadmap items determine the critical path and constrain
+          delivery flexibility. Without explicit dependency analysis, teams cannot identify
+          risks to the overall timeline, stakeholders cannot understand which delays matter
+          most, and the roadmap cannot be used for genuine portfolio prioritization.
+          Dependencies should cover both technical dependencies and team/resource constraints.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate:
+          enabled: true
+          severity: major
+          failure_effect: Cannot pass if score < 2
+        required_evidence:
+          - dependency map or graph linking roadmap items
+          - critical path identification
+        scoring_guide:
+          "0": No dependencies shown — all items appear independent with only dates
+          "1": Dependencies listed but unrealistic or contradictory — dates don't reflect the chain
+          "2": Key dependencies identified — main technical dependencies mapped, critical path implied
+          "3": Dependencies are realistic and mostly complete — critical path explicit, team dependencies included
+          "4": Dependencies are realistic, complete, and risk-assessed — contingency plans for critical path items documented
+        anti_patterns:
+          - Date list presented without any dependency analysis
+          - All items shown as independent in parallel
+          - Dependencies mentioned in narrative but not shown in the roadmap structure
+        examples:
+          good:
+            - >
+              "API Gateway Upgrade (Q2) → depends on: Platform team capacity confirmed (Q1),
+              Security review completion (Q1 scheduled). Blocks: Microservices migration (Q3).
+              Critical path flagged. Risk: if API Gateway upgrade slips >4 weeks, Microservices
+              migration moves to Q4 — identified as highest schedule risk."
+          bad:
+            - >
+              "Q1: Complete infrastructure upgrade. Q2: Migrate to microservices. Q3: Launch
+              new products. [All items listed independently with no dependency links]"
+        decision_tree: >
+          IF no dependencies shown and all items appear independent THEN score 0.
+          IF some dependencies mentioned in narrative but not mapped THEN score 1.
+          IF key dependencies identified but analysis incomplete THEN score 2.
+          IF dependencies realistic and mostly complete with critical path identified THEN score 3.
+          IF all dependencies mapped with risk assessment and contingency for critical path THEN score 4.
+        remediation_hints:
+          - Draw a dependency graph or add predecessor/successor columns to the roadmap table
+          - Mark the critical path explicitly and identify the highest-risk dependency
+          - Add team capacity and shared platform dependencies, not just technical ones
+
+  - id: RD2
+    name: Transition-state clarity
+    description: >
+      The distance between current state and target state is rarely navigable in a single
+      step. Transition states define the viable intermediate architectures that allow the
+      organization to continue operating safely during transformation while the target
+      state is being built incrementally.
+    weight: 1.0
+    criteria:
+      - id: RD-TRN-01
+        question: Are intermediate states between current and target architecture defined?
+        description: >
+          Without defined transition architectures, organizations face a binary choice:
+          remain on the current architecture or jump to the target in a big-bang migration.
+          In practice neither is acceptable — the organization must keep running during
+          transformation. Transition states define the intermediate architectures that are
+          stable enough to run production workloads while transformation continues. Each
+          state must be a valid, deployable architecture — not just a phase label.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - transition architecture diagrams or descriptions
+          - interim state definitions with entry and exit criteria
+        scoring_guide:
+          "0": No transition states — jump directly from current to target with no intermediate
+          "1": Vague phase labels only (e.g. 'Phase 1: Migrate') with no architecture content
+          "2": Some transition states defined — intermediate architectures sketched but incomplete
+          "3": Transition states are clearly defined and sequenced — each state has architecture content
+          "4": Transition states are detailed with entry and exit criteria, risk assessment, and rollback plan
+        anti_patterns:
+          - Jump from current to target with no intermediate architecture
+          - Phase labels without any architecture content
+          - No entry or exit criteria for any transition state
+        examples:
+          good:
+            - >
+              "State 0 (Current): Monolith on-premises, deployed to VMware.
+              State 1 (Q3 2026 — Strangler Fig): New features deployed as cloud microservices;
+              existing monolith unchanged. Entry: monolith API spec complete. Exit: all new
+              features deployed to cloud for 90 days with no critical incidents.
+              State 2 (Q1 2027 — Hybrid): Monolith data synchronised to cloud datastores.
+              State 3 (Target — Q4 2027): Cloud-native microservices, monolith decommissioned."
+          bad:
+            - >
+              "Phase 1: Assessment. Phase 2: Migration. Phase 3: Optimization.
+              [No architecture content, no entry or exit criteria, no intermediate state design]"
+        decision_tree: >
+          IF no current or target state and no transition view THEN score 0.
+          IF vague phase labels with no architecture content THEN score 1.
+          IF some transition states defined but inconsistent or incomplete THEN score 2.
+          IF transition states clearly defined and sequenced with architecture content THEN score 3.
+          IF all transition states have entry/exit criteria, architecture views, and risk assessment THEN score 4.
+        remediation_hints:
+          - Define each transition state as a named, deployable architecture (not just a phase name)
+          - Add entry criteria (what must be true before entering) and exit criteria (what must be true before moving on)
+          - Include a diagram for each transition state
+
+  - id: RD3
+    name: Ownership and measurability
+    description: >
+      Roadmaps without owners and funding linkage are aspirations, not commitments. A roadmap
+      item with no named owner and no budget allocation has no accountability and no realistic
+      chance of delivery. Ownership and measurability convert a wish list into an accountable
+      architecture plan.
+    weight: 1.0
+    criteria:
+      - id: RD-OWN-01
+        question: Do roadmap items have owners, funding linkage, and measurable milestones?
+        description: >
+          Architecture roadmaps frequently fail not because the technical direction is wrong,
+          but because no one owns the delivery. Explicitly naming owners, linking to funding
+          mechanisms, and defining measurable milestones with success criteria converts a
+          direction statement into an accountable governance artifact that can be tracked
+          quarter-over-quarter.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - owner assignments (named individual or accountable team)
+          - funding references (project code, approved budget)
+          - milestone definitions with measurable outcomes
+        scoring_guide:
+          "0": No ownership or milestones — roadmap items have dates only
+          "1": Owners vaguely implied — team referenced without individual accountability
+          "2": Some owners and milestones — partial coverage across roadmap items
+          "3": Most items have owners and milestones — clear accountability for the majority
+          "4": All items owned with named individuals, measurable milestones, funding references, and success criteria
+        anti_patterns:
+          - Roadmap not connected to target state (items floating without strategic anchor)
+          - Generic team references ('Platform team will own') without named accountability
+          - Milestones defined by activity ('complete design') rather than outcome ('system live with 99.9% SLO')
+        examples:
+          good:
+            - >
+              "API Gateway Upgrade: Owner: Jane Smith (Platform Lead). Budget: Project P2026-114
+              (£150K approved). Milestone 1: Technical design complete (2026-03-31). Milestone 2:
+              Non-prod environment live (2026-05-15). Milestone 3: Production cut-over (2026-06-30).
+              Success metric: zero critical P1 incidents for 30 days post-migration."
+          bad:
+            - >
+              "The Platform team will own the infrastructure work. [No individual owner, no
+              funding reference, no measurable milestones or success criteria]"
+        decision_tree: >
+          IF no ownership or milestones anywhere in the roadmap THEN score 0.
+          IF owners implied by team names without individual accountability THEN score 1.
+          IF some items have owners or milestones but significant gaps THEN score 2.
+          IF most items have named owners and measurable milestones THEN score 3.
+          IF all items have named owners, funding references, measurable milestones, and success criteria THEN score 4.
+        remediation_hints:
+          - Name a single accountable owner (individual, not team) for each roadmap item
+          - Link each item to an approved funding source or project code
+          - Replace activity-based milestones with outcome-based ones
+
+scoring:
+  scale: 0-4 ordinal plus N/A
+  method: gates_first_then_weighted_average
+  thresholds:
+    pass: No critical gate failure, overall >= 3.2, and no dimension < 2.0
+    conditional_pass: No critical gate failure and overall 2.4-3.19 or one weak dimension
+    rework_required: Overall < 2.4 or repeated weak dimensions
+    reject: Critical gate failure or mandatory control breach
+    not_reviewable: Evidence insufficient for core gate criteria
+  na_policy: Exclude N/A criteria from denominator; evaluator must justify N/A
+  confidence_policy: Confidence reported separately, must not modify score
+
+outputs:
+  require_evidence_refs: true
+  require_confidence: true
+  require_actions: true
+  require_evidence_class: true
+  require_evidence_anchors: true
+  formats:
+    - yaml
+    - json
+    - markdown-report

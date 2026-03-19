@@ -1,0 +1,65 @@
+rubric_id: EAROS-PROF-XXX
+version: 1.0.0
+kind: profile
+title: "[Artifact Type] Profile"
+status: draft
+effective_date: "YYYY-MM-DD"
+owner: "[Owner]"
+artifact_type: "[artifact_type]"
+inherits:
+  - EAROS-CORE-002
+design_method: "[decision_centred | viewpoint_centred | lifecycle_centred | risk_centred | pattern_library]"
+purpose:
+  - "[purpose]"
+stakeholders:
+  - "[stakeholder]"
+
+dimensions:
+  - id: "[DIM-ID]"
+    name: "[Dimension Name]"
+    description: "[What this dimension evaluates]"
+    weight: 1.0
+    criteria:
+      - id: "[CRIT-ID]"
+        question: "[The question this criterion asks]"
+        description: "[Detailed description]"
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        gate: false
+        required_evidence:
+          - "[evidence type]"
+        scoring_guide:
+          "0": "[Absent description]"
+          "1": "[Weak description]"
+          "2": "[Partial description]"
+          "3": "[Good description]"
+          "4": "[Strong description]"
+        anti_patterns:
+          - "[common failure]"
+        examples:
+          good:
+            - "[Example of strong evidence]"
+          bad:
+            - "[Example of weak evidence]"
+        decision_tree: "[IF/THEN logic for AI disambiguation]"
+        remediation_hints:
+          - "[How to improve]"
+
+scoring:
+  scale: 0-4 ordinal plus N/A
+  method: gates_first_then_weighted_average
+  thresholds:
+    pass: No critical gate failure, overall >= 3.2, and no dimension < 2.0
+    conditional_pass: No critical gate failure and overall 2.4-3.19
+    rework_required: Overall < 2.4
+    reject: Critical gate failure
+
+outputs:
+  require_evidence_refs: true
+  require_confidence: true
+  require_actions: true
+  require_evidence_class: true
+
+calibration:
+  required_before_production: true
+  minimum_examples: 3
