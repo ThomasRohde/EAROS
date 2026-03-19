@@ -39,9 +39,9 @@ Contents:
   templates/             Blank templates for new profiles and evaluations
   evaluations/           Your evaluation records go here
   calibration/           Calibration artifacts and results
-  .claude/skills/        All 10 EAROS skills for Claude Code
+  .agents/skills/        All 10 EAROS skills for any AI coding agent
   earos.manifest.yaml    File inventory (single source of truth)
-  CLAUDE.md              Project guide for Claude
+  AGENTS.md              Project guide for AI agents (agent-agnostic)
 
 Next steps:
 ${cdStep}  earos                  Open the editor
