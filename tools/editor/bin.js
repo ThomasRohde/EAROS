@@ -85,7 +85,7 @@ if (args[0] === 'validate') {
   await validateFile(args[1])
 } else if (args[0] === 'manifest') {
   // Delegate to src/manifest.ts via tsx (devDependency)
-  const manifestTs = resolve(__dirname, 'src/manifest.ts')
+  const manifestTs = resolve(__dirname, 'manifest-cli.ts')
   const tsxBin = resolve(__dirname, 'node_modules/.bin/tsx')
   const result = spawnSync(tsxBin, [manifestTs, ...args.slice(1)], { stdio: 'inherit', shell: true })
   if (result.error) {
