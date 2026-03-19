@@ -1,6 +1,9 @@
 # EAROS — Enterprise Architecture Rubric Operational Standard
 
-**Version 2.0 · March 2026**
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+[![GitHub](https://img.shields.io/badge/GitHub-ThomasRohde%2FEAROS-blue?logo=github)](https://github.com/ThomasRohde/EAROS)
+
+**Version 2.0 · March 2026** · [github.com/ThomasRohde/EAROS](https://github.com/ThomasRohde/EAROS)
 
 EAROS is a structured, extensible framework for evaluating enterprise architecture artifacts. It provides a universal rubric foundation, artifact-specific profiles, and cross-cutting overlays that together enable consistent, evidence-anchored assessment — by human reviewers and AI agents alike.
 
@@ -233,6 +236,12 @@ The `.claude/skills/` directory contains Claude agent skills for working with EA
 | `earos-validate` | Health-check the repository — schema validation, ID uniqueness, cross-reference checks |
 
 Each skill reads the actual YAML rubric files at runtime, so assessments always use the latest rubric version.
+
+---
+
+## Author
+
+Thomas Rohde · [rohde.thomas@gmail.com](mailto:rohde.thomas@gmail.com) · [github.com/ThomasRohde](https://github.com/ThomasRohde)
 
 ---
 
