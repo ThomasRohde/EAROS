@@ -47,7 +47,11 @@
       "Bash(npx tsc:*)",
       "Bash(npx vite:*)",
       "Bash(node bin.js manifest check)",
-      "Bash(ls \"C:\\\\Users\\\\thoma\\\\Projects\\\\EAROS\\\\templates\\\\reference-architecture\"\" 2>/dev/null && ls \"C:UsersthomaProjectsEAROStoolsscoring-sheets\"\")"
+      "Bash(ls \"C:\\\\Users\\\\thoma\\\\Projects\\\\EAROS\\\\templates\\\\reference-architecture\"\" 2>/dev/null && ls \"C:UsersthomaProjectsEAROStoolsscoring-sheets\"\")",
+      "Bash(earos validate:*)",
+      "Bash(node tools/editor/bin.js validate core/core-meta-rubric.yaml)",
+      "Bash(node tools/editor/bin.js --help)",
+      "Bash(timeout 8 node -e \":*)"
     ]
   }
 }

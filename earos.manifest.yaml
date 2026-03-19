@@ -1,25 +1,13 @@
 kind: manifest
 version: 2.0.0
-generated: "2026-03-19"
-
+generated: '2026-03-19'
 core:
   - path: core/core-meta-rubric.yaml
     rubric_id: EAROS-CORE-002
     title: EAROS Core Meta-Rubric v2.0
     artifact_type: architecture_artifact
-    status: approved
-
+    status: draft
 profiles:
-  - path: profiles/solution-architecture.yaml
-    rubric_id: EAROS-SOL-001
-    title: Solution Architecture Profile
-    artifact_type: solution_architecture
-    status: approved
-  - path: profiles/reference-architecture.yaml
-    rubric_id: EAROS-REFARCH-001
-    title: Reference Architecture Profile
-    artifact_type: reference_architecture
-    status: approved
   - path: profiles/adr.yaml
     rubric_id: EAROS-ADR-001
     title: Architecture Decision Record Profile
@@ -30,18 +18,22 @@ profiles:
     title: Capability Map Profile
     artifact_type: capability_map
     status: approved
+  - path: profiles/reference-architecture.yaml
+    rubric_id: EAROS-REFARCH-001
+    title: Reference Architecture Profile
+    artifact_type: reference_architecture
+    status: draft
   - path: profiles/roadmap.yaml
     rubric_id: EAROS-ROAD-001
     title: Roadmap Profile
     artifact_type: roadmap
     status: draft
-
-overlays:
-  - path: overlays/security.yaml
-    rubric_id: EAROS-OVR-SEC-001
-    title: Security Overlay
-    artifact_type: any
+  - path: profiles/solution-architecture.yaml
+    rubric_id: EAROS-SOL-001
+    title: Solution Architecture Profile
+    artifact_type: solution_architecture
     status: approved
+overlays:
   - path: overlays/data-governance.yaml
     rubric_id: EAROS-OVR-DATA-001
     title: Data Governance Overlay
@@ -52,21 +44,31 @@ overlays:
     title: Regulatory Compliance Overlay
     artifact_type: any
     status: draft
-
+  - path: overlays/security.yaml
+    rubric_id: EAROS-OVR-SEC-001
+    title: Security Overlay
+    artifact_type: any
+    status: approved
 schemas:
   - path: standard/schemas/rubric.schema.json
-    validates: [core_rubric, profile, overlay]
+    validates:
+      - core_rubric
+      - profile
+      - overlay
   - path: standard/schemas/evaluation.schema.json
-    validates: [evaluation]
-  - path: standard/schemas/artifact.schema.json
-    validates: [artifact]
-
+    validates:
+      - evaluation
 templates:
   - path: templates/new-profile.template.yaml
     purpose: scaffold for new profiles
   - path: templates/evaluation-record.template.yaml
     purpose: blank evaluation record
-
+  - path: templates/reference-architecture/Reference_Architecture_Template_v2.docx
+    purpose: author template for reference architectures
 scoring_tools:
   - path: tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx
-    purpose: general-purpose manual scoring
+    purpose: general-purpose manual scoring (current)
+  - path: tools/scoring-sheets/EAROS_Scoring_Sheet.xlsx
+    purpose: general-purpose manual scoring (legacy)
+  - path: tools/scoring-sheets/EAROS_RefArch_Scoring_Sheet.xlsx
+    purpose: reference architecture scoring
