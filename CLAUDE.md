@@ -514,7 +514,9 @@ The `.claude/skills/` directory contains Claude agent skills for working with EA
 ├── earos-profile-author/SKILL.md Profile YAML authoring — technical reference for v2 field structure and schema compliance
 ├── earos-calibrate/SKILL.md     Calibration — runs calibration exercises and computes inter-rater reliability
 ├── earos-report/SKILL.md        Reporting — generates executive reports from evaluation records
-└── earos-validate/SKILL.md      Health check — validates all YAML rubrics against schemas and checks consistency
+├── earos-validate/SKILL.md      Health check — validates all YAML rubrics against schemas and checks consistency
+├── earos-remediate/SKILL.md     Remediation planner — generates prioritized improvement plans from evaluation records
+└── earos-artifact-gen/SKILL.md  Artifact generator — interviews architects and produces schema-compliant artifact YAML
 ```
 
 ### When to use which skill
@@ -524,11 +526,13 @@ The `.claude/skills/` directory contains Claude agent skills for working with EA
 | Assess an architecture artifact | `earos-assess` |
 | Challenge or audit an existing evaluation | `earos-review` |
 | Help write an artifact that will pass EAROS | `earos-template-fill` |
+| Create a new architecture artifact through guided interview | `earos-artifact-gen` |
 | Create a new rubric from scratch (profile, overlay, or core) | `earos-create` |
 | Get YAML structure help after criteria are defined | `earos-profile-author` |
 | Calibrate a rubric against gold-standard examples | `earos-calibrate` |
 | Generate an executive report from evaluation(s) | `earos-report` |
 | Check the repo for schema errors and inconsistencies | `earos-validate` |
+| Get a prioritized fix list from an evaluation record | `earos-remediate` |
 
 **Key design principle for all skills:** Every skill instructs Claude to read the actual YAML rubric files at runtime. The skills do not embed rubric content — they load it dynamically. This means skills automatically use the latest rubric version without needing updates.
 
