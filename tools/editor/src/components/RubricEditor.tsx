@@ -394,9 +394,10 @@ function FileInfoBar({
 interface Props {
   manifest: ManifestData | null
   onBack: () => void
+  autoNew?: boolean
 }
 
-export default function RubricEditor({ manifest, onBack }: Props) {
+export default function RubricEditor({ manifest, onBack, autoNew = false }: Props) {
   const [kind, setKind] = useState<Kind>('profile')
   const [data, setData] = useState<object>(INITIAL.profile)
   const [validation, setValidation] = useState<ValidationResult>({ valid: true, errors: [] })
@@ -404,7 +405,7 @@ export default function RubricEditor({ manifest, onBack }: Props) {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [currentFile, setCurrentFile] = useState<string | null>(null)
   const [currentEntry, setCurrentEntry] = useState<ManifestEntry | null>(null)
-  const [newDialogOpen, setNewDialogOpen] = useState(false)
+  const [newDialogOpen, setNewDialogOpen] = useState(autoNew)
   const [dialogKind, setDialogKind] = useState<Kind>('profile')
 
   useEffect(() => {
@@ -583,7 +584,6 @@ export default function RubricEditor({ manifest, onBack }: Props) {
             <FormControlLabel value="core_rubric" control={<Radio />} label="Core Rubric" />
             <FormControlLabel value="profile" control={<Radio />} label="Profile" />
             <FormControlLabel value="overlay" control={<Radio />} label="Overlay" />
-            <FormControlLabel value="evaluation" control={<Radio />} label="Evaluation Record" />
           </RadioGroup>
         </DialogContent>
         <DialogActions>

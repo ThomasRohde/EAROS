@@ -1,0 +1,1295 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://earos.io/schemas/artifact.schema.json",
+  "title": "EAROS Architecture Artifact",
+  "description": "Schema for EAROS-governed architecture artifact documents. Derived from the required_evidence fields of the core meta-rubric (EAROS-CORE-002) and artifact-type profiles. Sections map directly to rubric criteria so that a well-completed document generates the evidence an assessor needs. Derivation chain: Rubric criteria (required_evidence) → this schema (sections) → artifact document → evaluation record.",
+  "type": "object",
+  "required": ["kind", "artifact_type", "metadata", "sections"],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "const": "artifact",
+      "title": "Document kind",
+      "description": "Fixed discriminator value. Always 'artifact' for architecture documents. Distinguishes from 'core_rubric', 'profile', 'overlay', and 'evaluation' file kinds."
+    },
+    "artifact_type": {
+      "type": "string",
+      "enum": ["reference_architecture"],
+      "title": "Artifact type",
+      "description": "The type of architecture artifact this document represents. Determines which EAROS profile applies alongside the core meta-rubric. 'reference_architecture' uses profile EAROS-REFARCH-001."
+    },
+    "metadata": {
+      "type": "object",
+      "title": "Document metadata",
+      "description": "Administrative and identification fields. Maps to evidence required by core criteria STK-01 (purpose, stakeholders, decision_context) and MNT-01 (owner, version, last_updated, change_log). All required fields must be present for a score above 1 on MNT-01.",
+      "required": ["title", "version", "status", "owner", "purpose"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "Title",
+          "description": "Full title of the architecture document. Should identify the system or platform and the nature of the document. Example: 'Payments Platform Reference Architecture v2'."
+        },
+        "version": {
+          "type": "string",
+          "title": "Version",
+          "description": "Semantic version of this artifact (MAJOR.MINOR.PATCH). Increment MAJOR for breaking structural changes, MINOR for new sections or significant content updates, PATCH for corrections and clarifications.",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "examples": ["1.0.0", "2.1.0"]
+        },
+        "status": {
+          "type": "string",
+          "title": "Status",
+          "description": "Lifecycle status: 'draft' (in progress, not yet reviewed), 'candidate' (ready for Architecture Board review), 'approved' (formally accepted), 'deprecated' (superseded by a newer version).",
+          "enum": ["draft", "candidate", "approved", "deprecated"]
+        },
+        "author": {
+          "type": "string",
+          "title": "Author",
+          "description": "Individual who created or last significantly updated this document. This is authorship credit, not ongoing ownership responsibility."
+        },
+        "owner": {
+          "type": "string",
+          "title": "Owner",
+          "description": "Team or individual with ongoing stewardship responsibility for this document. The owner keeps it current, triages feedback from adopting teams, and decides when to deprecate. Evidence for core criterion MNT-01. Example: 'Enterprise Architecture, Payments Domain'."
+        },
+        "effective_date": {
+          "type": "string",
+          "format": "date",
+          "title": "Effective date",
+          "description": "Date from which this version is the active reference. Format: YYYY-MM-DD."
+        },
+        "next_review_date": {
+          "type": "string",
+          "format": "date",
+          "title": "Next review date",
+          "description": "Date by which this document must be reviewed and either reconfirmed or updated. Establishes a review cadence, which is evidence for MNT-01 score ≥ 3. Format: YYYY-MM-DD."
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "date",
+          "title": "Last updated",
+          "description": "Date of the most recent substantive change. Format: YYYY-MM-DD."
+        },
+        "purpose": {
+          "type": "string",
+          "title": "Purpose statement",
+          "description": "One or two sentences stating what this document is for and what decisions it supports. Evidence for core criterion STK-01 (major gate). Example: 'This reference architecture defines the target pattern for all event-driven microservices on the Payments platform. It supports Architecture Board review and serves as the golden path for new service development.'"
+        },
+        "decision_context": {
+          "type": "string",
+          "title": "Decision or usage context",
+          "description": "The governance or project context in which this document is being used — the Architecture Board review it supports, the programme it belongs to, or the migration decision it underpins. Evidence for core criterion STK-01."
+        },
+        "stakeholders": {
+          "type": "array",
+          "title": "Stakeholders",
+          "description": "Named individuals or roles with a significant concern in this architecture. Each entry should identify who the stakeholder is and what concern this document addresses for them. Evidence for core criterion STK-01 (named stakeholder list required for score ≥ 2).",
+          "items": {
+            "type": "object",
+            "title": "Stakeholder",
+            "required": ["role"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name or team",
+                "description": "Individual name or team name (e.g. 'Head of Payments', 'Security Architecture', 'Platform Team')."
+              },
+              "role": {
+                "type": "string",
+                "title": "Role",
+                "description": "Stakeholder's organisational role or relationship to this architecture."
+              },
+              "concerns": {
+                "type": "string",
+                "title": "Concerns addressed",
+                "description": "What this stakeholder needs to understand from this document. Used to justify which views and sections are included. Evidence for core criterion STK-02 (concern-to-view mapping)."
+              }
+            }
+          }
+        },
+        "change_log": {
+          "type": "array",
+          "title": "Change log",
+          "description": "History of substantive changes to this document, most recent first. Provides provenance and supports governance traceability. Evidence for core criterion MNT-01 — a change log with at least one entry is required for MNT-01 score ≥ 3.",
+          "items": {
+            "type": "object",
+            "title": "Change log entry",
+            "required": ["version", "date", "changes"],
+            "properties": {
+              "version": {
+                "type": "string",
+                "title": "Version",
+                "description": "Version number this entry corresponds to."
+              },
+              "date": {
+                "type": "string",
+                "format": "date",
+                "title": "Date",
+                "description": "Date this version was published. Format: YYYY-MM-DD."
+              },
+              "author": {
+                "type": "string",
+                "title": "Author",
+                "description": "Who made the changes."
+              },
+              "changes": {
+                "type": "array",
+                "title": "Changes",
+                "description": "List of substantive changes in this version. Each item should describe what changed and why.",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "sections": {
+      "type": "object",
+      "title": "Document sections",
+      "description": "The substantive content of the architecture document, organised into assessment-aligned sections. Each section maps to one or more EAROS rubric criteria and their required_evidence fields. A section omitted or left empty will result in a lower score on the corresponding criterion.",
+      "required": ["scope"],
+      "properties": {
+        "reading_guide": {
+          "type": "object",
+          "title": "Reading guide",
+          "description": "Maps document sections to stakeholder concerns so readers know which parts address their specific interests. Evidence for core criterion STK-02. Having an explicit section-to-concern mapping is required for STK-02 score ≥ 3.",
+          "properties": {
+            "how_to_use": {
+              "type": "string",
+              "title": "How to use this document",
+              "description": "Brief narrative explaining the document's structure and how different readers should navigate it."
+            },
+            "section_map": {
+              "type": "array",
+              "title": "Section-to-concern mapping",
+              "description": "Explicit table mapping each section to the audience and concern it addresses. A complete mapping with every section covered is evidence for STK-02 score 4.",
+              "items": {
+                "type": "object",
+                "title": "Section mapping entry",
+                "required": ["section", "audience", "concern"],
+                "properties": {
+                  "section": {
+                    "type": "string",
+                    "title": "Section",
+                    "description": "Name or number of the document section."
+                  },
+                  "audience": {
+                    "type": "string",
+                    "title": "Audience",
+                    "description": "Stakeholder role(s) this section is primarily for."
+                  },
+                  "concern": {
+                    "type": "string",
+                    "title": "Concern addressed",
+                    "description": "The specific stakeholder concern this section addresses."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "scope": {
+          "type": "object",
+          "title": "Scope and boundary",
+          "description": "Defines exactly what is and is not covered by this architecture. Without clear scope, the artifact may be rated 'not_reviewable'. Evidence for core criterion SCP-01 (critical gate — score < 2 triggers not_reviewable status).",
+          "required": ["statement"],
+          "properties": {
+            "statement": {
+              "type": "string",
+              "title": "Scope statement",
+              "description": "A concise, unambiguous statement of what this reference architecture covers. Should name specific systems, services, or domains included."
+            },
+            "in_scope": {
+              "type": "array",
+              "title": "In scope",
+              "description": "Explicit list of systems, services, domains, or concerns that this architecture covers.",
+              "items": {
+                "type": "string"
+              }
+            },
+            "out_of_scope": {
+              "type": "array",
+              "title": "Out of scope",
+              "description": "Explicit list of items intentionally excluded, with a brief rationale or reference to where they are addressed. Having explicit exclusions is required for SCP-01 score > 2. Example: 'Authentication — handled by IAM platform, see IAM-2024-001'.",
+              "items": {
+                "type": "string"
+              }
+            },
+            "boundary_definition": {
+              "type": "string",
+              "title": "Boundary definition",
+              "description": "Description of the system context boundary — what is inside this architecture vs. what is external. Can reference or describe the C4 context diagram or equivalent boundary representation."
+            },
+            "assumptions": {
+              "type": "array",
+              "title": "Contextual assumptions",
+              "description": "Assumptions about the environment that define the conditions under which this scope is valid. Each assumption should state the consequence if it is violated. Evidence for SCP-01 score ≥ 3.",
+              "items": {
+                "type": "object",
+                "title": "Assumption",
+                "required": ["assumption"],
+                "properties": {
+                  "assumption": {
+                    "type": "string",
+                    "title": "Assumption",
+                    "description": "The assumption being made. Example: 'Banking Core API versioned contract is stable for 12 months'."
+                  },
+                  "consequence_if_violated": {
+                    "type": "string",
+                    "title": "Consequence if violated",
+                    "description": "What happens to this architecture if the assumption proves false."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "drivers_and_principles": {
+          "type": "object",
+          "title": "Drivers and principles",
+          "description": "Business drivers, requirements, and architecture principles that shaped this design. Evidence for core criterion TRC-01 (major gate). Drivers and principles listed here must be traceable to specific design elements throughout the document — listing them without connecting them to the architecture achieves only a score of 1.",
+          "properties": {
+            "drivers": {
+              "type": "array",
+              "title": "Business drivers",
+              "description": "The business motivations, problems, or opportunities that this architecture addresses. Each driver should have an explicit architecture_response linking it to a design element or decision. Evidence for TRC-01.",
+              "items": {
+                "type": "object",
+                "title": "Driver",
+                "required": ["description"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "title": "Driver ID",
+                    "description": "Short reference ID for traceability (e.g. 'DR-01'). Used by decisions and design elements to reference back to this driver."
+                  },
+                  "description": {
+                    "type": "string",
+                    "title": "Description",
+                    "description": "The business driver, requirement, or opportunity in concrete terms. Example: 'Reduce payment fraud rate by 30% within 12 months'."
+                  },
+                  "architecture_response": {
+                    "type": "string",
+                    "title": "Architecture response",
+                    "description": "How this architecture responds to or satisfies the driver. Reference specific sections, decisions, or components by name. This linkage is the evidence for TRC-01 score ≥ 2."
+                  }
+                }
+              }
+            },
+            "principles": {
+              "type": "array",
+              "title": "Architecture principles",
+              "description": "Enterprise or domain architecture principles that constrain or guide design decisions. Principles cited here should be referenced in the rationale of architecture decisions throughout the document.",
+              "items": {
+                "type": "object",
+                "title": "Principle",
+                "required": ["name"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "title": "Principle ID",
+                    "description": "Reference ID from the enterprise architecture principles catalogue."
+                  },
+                  "name": {
+                    "type": "string",
+                    "title": "Name",
+                    "description": "Short name of the principle. Example: 'API-first', 'Zero-trust networking', 'Platform over bespoke'."
+                  },
+                  "how_applied": {
+                    "type": "string",
+                    "title": "How applied in this architecture",
+                    "description": "How this principle manifests in this architecture. Reference specific design elements or decisions. This is the evidence required by TRC-01 for principles."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "architecture_views": {
+          "type": "object",
+          "title": "Architecture views",
+          "description": "The set of views representing the reference architecture from different perspectives. Evidence for profile criterion RA-VIEW-01 (major gate) and RA-VIEW-02. RA-VIEW-01 score 2 requires three views; score 3 requires all four primary views with a data flow narrative; score 4 requires cross-references between views and a security view.",
+          "properties": {
+            "context": {
+              "type": "object",
+              "title": "Context view",
+              "description": "Shows how the system relates to its environment — external actors, upstream/downstream systems, and the system boundary. Equivalent to C4 Level 1. Required for RA-VIEW-01 score ≥ 2.",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "title": "Description",
+                  "description": "Narrative explaining what this view shows and the key relationships with external systems and actors. Should identify who initiates interactions and what data flows at the boundary."
+                },
+                "diagram_source": {
+                  "type": "string",
+                  "title": "Diagram source",
+                  "description": "Diagram source code or image content. Preferred formats for RA-VIEW-02 scoring: Structurizr DSL, PlantUML, Mermaid, or ArchiMate exchange format. Image-only scores lower on RA-VIEW-02."
+                },
+                "source_type": {
+                  "type": "string",
+                  "title": "Source type",
+                  "description": "Format of the diagram source. 'structurizr', 'plantuml', or 'mermaid' enable diagram-as-code scoring for RA-VIEW-02.",
+                  "enum": ["structurizr", "plantuml", "mermaid", "archimate", "image", "visio"]
+                }
+              }
+            },
+            "functional": {
+              "type": "object",
+              "title": "Functional / container view",
+              "description": "Shows the major structural components (containers, services, or modules) of the architecture and their relationships. Equivalent to C4 Level 2. Required for RA-VIEW-01 score ≥ 2.",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "title": "Description",
+                  "description": "Narrative describing the structural decomposition and the responsibilities of each major component. Technology annotations should be visible."
+                },
+                "diagram_source": {
+                  "type": "string",
+                  "title": "Diagram source",
+                  "description": "Diagram source code. Preferred: Structurizr DSL, PlantUML, or Mermaid."
+                },
+                "source_type": {
+                  "type": "string",
+                  "title": "Source type",
+                  "enum": ["structurizr", "plantuml", "mermaid", "archimate", "image", "visio"]
+                }
+              }
+            },
+            "deployment": {
+              "type": "object",
+              "title": "Deployment view",
+              "description": "Shows infrastructure topology — how components are deployed across nodes, containers, cloud regions, or availability zones. Required for RA-VIEW-01 score ≥ 3.",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "title": "Description",
+                  "description": "Narrative explaining the deployment topology, including infrastructure choices, multi-AZ or multi-region strategy, and key operational characteristics."
+                },
+                "diagram_source": {
+                  "type": "string",
+                  "title": "Diagram source"
+                },
+                "source_type": {
+                  "type": "string",
+                  "title": "Source type",
+                  "enum": ["structurizr", "plantuml", "mermaid", "archimate", "image", "visio"]
+                }
+              }
+            },
+            "data_flow": {
+              "type": "object",
+              "title": "Data flow view",
+              "description": "Describes how data moves through the system at runtime. Required for RA-VIEW-01 score ≥ 3. A diagram without a numbered walkthrough is not sufficient — narrative_steps are required evidence.",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "title": "Description",
+                  "description": "Overview of the primary data flows and processing patterns, including key integration points and transformations."
+                },
+                "narrative_steps": {
+                  "type": "array",
+                  "title": "Numbered flow steps",
+                  "description": "Step-by-step walkthrough of the primary data flow. Numbered steps are required evidence for RA-VIEW-01 — a diagram alone does not satisfy this criterion.",
+                  "items": {
+                    "type": "object",
+                    "title": "Flow step",
+                    "required": ["step", "description"],
+                    "properties": {
+                      "step": {
+                        "type": "integer",
+                        "title": "Step number"
+                      },
+                      "description": {
+                        "type": "string",
+                        "title": "Description",
+                        "description": "What happens at this step — which component sends what data to which component, and any transformation or decision point."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "security": {
+              "type": "object",
+              "title": "Security view (optional — required for score 4)",
+              "description": "Shows the security architecture: trust boundaries, authentication/authorisation mechanisms, data protection controls, and security domains. Optional but required for RA-VIEW-01 score 4.",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "title": "Description",
+                  "description": "Narrative describing the security architecture, trust boundaries, and key controls."
+                },
+                "diagram_source": {
+                  "type": "string",
+                  "title": "Diagram source"
+                },
+                "source_type": {
+                  "type": "string",
+                  "title": "Source type",
+                  "enum": ["structurizr", "plantuml", "mermaid", "archimate", "image", "visio"]
+                }
+              }
+            },
+            "element_catalog": {
+              "type": "array",
+              "title": "Element catalog",
+              "description": "Structured inventory of all named components in the architecture. Required evidence for RA-VIEW-02. Enables assessors to verify that diagram names, technology choices, and responsibilities are consistent across all views. The catalog is the single source of truth for component names.",
+              "items": {
+                "type": "object",
+                "title": "Catalog entry",
+                "required": ["name", "type", "responsibility"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "title": "Name",
+                    "description": "Canonical name for this component. Must match exactly how it appears in all diagrams — any discrepancy is evidence for a lower CON-01 score."
+                  },
+                  "type": {
+                    "type": "string",
+                    "title": "Type",
+                    "description": "Category of architecture element.",
+                    "enum": ["service", "database", "queue", "gateway", "cache", "storage", "external_system", "user", "container", "module", "library", "pipeline", "function", "other"]
+                  },
+                  "technology": {
+                    "type": "string",
+                    "title": "Technology",
+                    "description": "Specific technology, runtime, or platform used. Example: 'Node.js 20', 'PostgreSQL 16', 'Apache Kafka 3.x', 'AWS Lambda'."
+                  },
+                  "responsibility": {
+                    "type": "string",
+                    "title": "Responsibility",
+                    "description": "What this component does in one or two sentences."
+                  },
+                  "relationships": {
+                    "type": "array",
+                    "title": "Key relationships",
+                    "description": "The most important dependencies or interactions with other named components. Use the canonical name of the related component.",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "decisions": {
+          "type": "array",
+          "title": "Architecture decisions (ADRs)",
+          "description": "Architecture Decision Records documenting the key design choices made in this reference architecture. Evidence for profile criterion RA-DEC-01 (major gate). Score 1: technology choices without rationale. Score 2: rationale without alternatives. Score 3: ADR format with alternatives and trade-offs. Score 4: full ADRs with revisit conditions.",
+          "items": {
+            "type": "object",
+            "title": "Architecture Decision Record",
+            "required": ["id", "title", "context", "decision", "rationale"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "title": "Decision ID",
+                "description": "Unique identifier for this decision. Example: 'ADR-001', 'D-07'."
+              },
+              "title": {
+                "type": "string",
+                "title": "Title",
+                "description": "Short title summarising the decision. Example: 'Use event-driven architecture for inter-service communication'."
+              },
+              "context": {
+                "type": "string",
+                "title": "Context",
+                "description": "The situation, constraint, or driver that makes this decision necessary. What problem does this decision solve? Reference driver IDs where applicable."
+              },
+              "options": {
+                "type": "array",
+                "title": "Options considered",
+                "description": "Alternatives evaluated before choosing. Required for RA-DEC-01 score ≥ 3. Documenting only the chosen option without alternatives is an anti-pattern.",
+                "items": {
+                  "type": "object",
+                  "title": "Option",
+                  "required": ["id", "description"],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "title": "Option ID",
+                      "description": "Short identifier (e.g. 'A', 'B', 'Option 1')."
+                    },
+                    "description": {
+                      "type": "string",
+                      "title": "Description",
+                      "description": "What this option proposes."
+                    },
+                    "pros": {
+                      "type": "array",
+                      "title": "Pros",
+                      "items": { "type": "string" }
+                    },
+                    "cons": {
+                      "type": "array",
+                      "title": "Cons",
+                      "items": { "type": "string" }
+                    }
+                  }
+                }
+              },
+              "decision": {
+                "type": "string",
+                "title": "Decision",
+                "description": "Which option was chosen. State the choice clearly."
+              },
+              "rationale": {
+                "type": "string",
+                "title": "Rationale",
+                "description": "Why this option was chosen. Reference business drivers and architecture principles. Example: 'Option C selected because it satisfies DR-01 (fraud reduction) and aligns with the API-first principle'."
+              },
+              "tradeoffs": {
+                "type": "string",
+                "title": "Trade-offs accepted",
+                "description": "What is sacrificed or complicated by this decision. Required for RA-DEC-01 score ≥ 3. Example: 'Increased operational complexity in exchange for auditability and decoupling'."
+              },
+              "consequences": {
+                "type": "string",
+                "title": "Consequences",
+                "description": "Follow-on work, constraints, or implications this decision creates for adopting teams."
+              },
+              "revisit_conditions": {
+                "type": "string",
+                "title": "Revisit conditions",
+                "description": "Specific conditions under which this decision should be reconsidered. Required for RA-DEC-01 score 4. Example: 'Revisit if throughput exceeds 50K events/sec or if team lacks event sourcing experience'."
+              },
+              "driver_refs": {
+                "type": "array",
+                "title": "Driver references",
+                "description": "IDs of business drivers from drivers_and_principles.drivers that motivated this decision. Cross-referencing decisions to drivers is evidence for TRC-01.",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        },
+        "component_classification": {
+          "type": "object",
+          "title": "Component classification",
+          "description": "Defines the prescriptiveness of each component — which elements are mandatory, recommended, or optional. Evidence for profile criterion RA-DEC-02. Score 2: mandatory and optional elements distinguished. Score 3: three-level classification with rationale. Score 4: customisation framework with decision trees for deviation.",
+          "properties": {
+            "components": {
+              "type": "array",
+              "title": "Component mandate levels",
+              "description": "Classification table mapping each major component or design pattern to its mandate level with rationale.",
+              "items": {
+                "type": "object",
+                "title": "Classification entry",
+                "required": ["name", "mandate_level"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "title": "Component or pattern",
+                    "description": "Name of the component, pattern, or design choice being classified. Should match the name in the element catalog."
+                  },
+                  "mandate_level": {
+                    "type": "string",
+                    "title": "Mandate level",
+                    "description": "mandatory: all adopting teams must use this; recommended: should use unless there is a justified reason not to; optional: teams may use based on context.",
+                    "enum": ["mandatory", "recommended", "optional"]
+                  },
+                  "rationale": {
+                    "type": "string",
+                    "title": "Rationale",
+                    "description": "Why this component has this mandate level."
+                  }
+                }
+              }
+            },
+            "extension_points": {
+              "type": "array",
+              "title": "Extension points",
+              "description": "Formally defined variation points where adopting teams may deviate from the reference architecture without seeking an exception. Evidence for RA-DEC-02 score ≥ 3.",
+              "items": {
+                "type": "object",
+                "title": "Extension point",
+                "required": ["name", "description"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "title": "Extension point name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "title": "Description",
+                    "description": "What can be varied at this point and the constraints on variation."
+                  },
+                  "guidance": {
+                    "type": "string",
+                    "title": "Guidance",
+                    "description": "Recommendations on how to use this extension point, including when deviation is acceptable."
+                  },
+                  "examples": {
+                    "type": "string",
+                    "title": "Example valid variations"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "quality_attributes": {
+          "type": "array",
+          "title": "Quality attributes",
+          "description": "Measurable targets for each quality attribute relevant to this architecture. Evidence for profile criterion RA-QA-01 (major gate). Score 1: adjectives without numbers. Score 2: some measurable targets. Score 3: all material attributes with validation approaches. Score 4: automated fitness functions in CI/CD.",
+          "items": {
+            "type": "object",
+            "title": "Quality attribute",
+            "required": ["attribute", "target"],
+            "properties": {
+              "attribute": {
+                "type": "string",
+                "title": "Quality attribute",
+                "description": "Name of the quality attribute. Use concrete, assessable names — not adjectives. Examples: 'Availability', 'Latency P99', 'Throughput', 'Error rate', 'Recovery Time Objective (RTO)', 'Recovery Point Objective (RPO)'.",
+                "examples": ["Availability", "Latency P99", "Throughput", "Error rate", "Recovery Time Objective (RTO)", "Recovery Point Objective (RPO)", "Security posture"]
+              },
+              "target": {
+                "type": "string",
+                "title": "Measurable target",
+                "description": "A specific, measurable number or threshold. Must not be an adjective — numbers required. Example: '99.95% monthly availability', 'P99 < 200ms under 10K concurrent users', '5000 TPS sustained'."
+              },
+              "measurement": {
+                "type": "string",
+                "title": "Measurement method",
+                "description": "How this attribute is measured in practice. Example: 'synthetic probes every 30s via monitoring platform', 'APM P99 latency histogram from production traffic'."
+              },
+              "validation_strategy": {
+                "type": "string",
+                "title": "Validation strategy",
+                "description": "How compliance with this target is validated before and after deployment. Required for RA-QA-01 score ≥ 3. Example: 'Gatling load test with 10K concurrent users in staging environment before each release'."
+              },
+              "fitness_function": {
+                "type": "string",
+                "title": "Fitness function",
+                "description": "Automated test or check that continuously validates this attribute in CI/CD pipeline. Required for RA-QA-01 score 4. Example: 'Gatling load test fails build if P99 > 200ms; chaos engineering run weekly via Gremlin'."
+              },
+              "quality_scenario": {
+                "type": "string",
+                "title": "Quality scenario",
+                "description": "TOGAF or SEI-style quality scenario describing the stimulus, source, environment, response, and response measure for this attribute."
+              }
+            }
+          }
+        },
+        "operational_model": {
+          "type": "object",
+          "title": "Operational model",
+          "description": "How the architecture is operated, monitored, scaled, and recovered in production. Evidence for profile criterion RA-OPS-01 (major gate). Score 2: monitoring and scaling described in principle with SLOs mentioned. Score 3: concrete monitoring dashboards, scaling policies, SLOs, basic DR. Score 4: complete runbooks, alerting configs, error budgets.",
+          "properties": {
+            "slos": {
+              "type": "array",
+              "title": "Service Level Objectives",
+              "description": "Defined SLOs for this architecture. Required evidence for RA-OPS-01. Each SLO must have a specific numeric target.",
+              "items": {
+                "type": "object",
+                "title": "SLO",
+                "required": ["name", "target"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "title": "SLO name",
+                    "description": "Name of the SLO. Example: 'API availability', 'P99 request latency', 'Successful request rate'."
+                  },
+                  "target": {
+                    "type": "string",
+                    "title": "Target",
+                    "description": "Numeric target. Example: '99.95%', '< 200ms', '> 99.9%'."
+                  },
+                  "measurement_window": {
+                    "type": "string",
+                    "title": "Measurement window",
+                    "description": "Rolling window or period over which this SLO is measured. Example: 'rolling 30 days', 'calendar month'."
+                  },
+                  "error_budget": {
+                    "type": "string",
+                    "title": "Error budget",
+                    "description": "The allowed failure budget derived from this SLO. Required for RA-OPS-01 score 4. Example: '43.8 minutes/month at 99.95% availability'."
+                  }
+                }
+              }
+            },
+            "monitoring": {
+              "type": "object",
+              "title": "Monitoring strategy",
+              "description": "How the architecture is observed in production. Required evidence for RA-OPS-01.",
+              "properties": {
+                "strategy": {
+                  "type": "string",
+                  "title": "Strategy",
+                  "description": "Overview of the observability approach: signal types covered (metrics, logs, traces), tooling, and integration with on-call processes."
+                },
+                "metrics": {
+                  "type": "array",
+                  "title": "Key metrics",
+                  "description": "The most important metrics to monitor for this architecture. Example: 'HTTP request rate', 'P99 latency', 'Kafka consumer lag', 'Database connection pool utilisation'.",
+                  "items": { "type": "string" }
+                },
+                "dashboards": {
+                  "type": "string",
+                  "title": "Dashboard reference",
+                  "description": "Reference to dashboard templates or existing dashboards. Example: 'Grafana dashboard template at /ops/dashboards/payments-platform.json'."
+                },
+                "alerting_rules": {
+                  "type": "string",
+                  "title": "Alerting rules",
+                  "description": "Alerting thresholds and escalation policy. Reference alert configuration files if available. Required for RA-OPS-01 score 4."
+                }
+              }
+            },
+            "scaling": {
+              "type": "object",
+              "title": "Scaling policies",
+              "description": "How the architecture scales under load. Required evidence for RA-OPS-01.",
+              "properties": {
+                "policies": {
+                  "type": "array",
+                  "title": "Scaling policies",
+                  "description": "Specific scaling rules and triggers. Example: 'HPA targeting 70% CPU, min 3 / max 20 pods per service', 'Database read replicas added when primary CPU > 80%'.",
+                  "items": { "type": "string" }
+                },
+                "capacity_planning_notes": {
+                  "type": "string",
+                  "title": "Capacity planning notes",
+                  "description": "Current load profile, known capacity limits, and headroom before the next scaling tier is needed."
+                }
+              }
+            },
+            "disaster_recovery": {
+              "type": "object",
+              "title": "Disaster recovery",
+              "description": "Recovery objectives and procedures. Required evidence for RA-OPS-01.",
+              "properties": {
+                "rto": {
+                  "type": "string",
+                  "title": "Recovery Time Objective (RTO)",
+                  "description": "Maximum acceptable time to restore service after an incident. Example: '4 hours'."
+                },
+                "rpo": {
+                  "type": "string",
+                  "title": "Recovery Point Objective (RPO)",
+                  "description": "Maximum acceptable data loss measured in time. Example: '15 minutes'."
+                },
+                "failover_procedures": {
+                  "type": "string",
+                  "title": "Failover procedures",
+                  "description": "High-level description of the failover process. Reference runbook if available."
+                },
+                "runbook_ref": {
+                  "type": "string",
+                  "title": "Runbook reference",
+                  "description": "Location of the DR runbook (e.g. Confluence page URL, ops/ directory path). Tested DR runbooks referenced here are evidence for RA-OPS-01 score 4."
+                }
+              }
+            }
+          }
+        },
+        "implementation_artifacts": {
+          "type": "object",
+          "title": "Implementation artifacts",
+          "description": "Runnable and deployable artifacts that teams use to instantiate this reference architecture. Evidence for profile criterion RA-IMP-01. Score 2: some IaC or API specs. Score 3: complete set of IaC, API specs, and CI/CD. Score 4: full golden path including scaffold template and working sample application.",
+          "properties": {
+            "iac_templates": {
+              "type": "array",
+              "title": "Infrastructure-as-code templates",
+              "description": "Terraform, CDK, Bicep, CloudFormation, or equivalent templates that deploy the architecture. Required evidence for RA-IMP-01.",
+              "items": {
+                "type": "object",
+                "title": "IaC template",
+                "required": ["name", "location"],
+                "properties": {
+                  "name": { "type": "string", "title": "Name" },
+                  "type": {
+                    "type": "string",
+                    "title": "IaC type",
+                    "enum": ["terraform", "cdk", "bicep", "cloudformation", "pulumi", "ansible", "helm", "other"]
+                  },
+                  "location": {
+                    "type": "string",
+                    "title": "Location",
+                    "description": "Repository path or URL to the template."
+                  },
+                  "description": { "type": "string", "title": "Description" }
+                }
+              }
+            },
+            "api_specifications": {
+              "type": "array",
+              "title": "API specifications",
+              "description": "OpenAPI, AsyncAPI, or equivalent service interface specifications. Required evidence for RA-IMP-01.",
+              "items": {
+                "type": "object",
+                "title": "API specification",
+                "required": ["name", "location"],
+                "properties": {
+                  "name": { "type": "string", "title": "Name" },
+                  "spec_type": {
+                    "type": "string",
+                    "title": "Specification type",
+                    "enum": ["openapi", "asyncapi", "graphql", "grpc", "other"]
+                  },
+                  "location": { "type": "string", "title": "Location" }
+                }
+              }
+            },
+            "cicd_templates": {
+              "type": "array",
+              "title": "CI/CD pipeline templates",
+              "description": "Pipeline workflow files for building and deploying the architecture. Required evidence for RA-IMP-01.",
+              "items": {
+                "type": "object",
+                "title": "CI/CD template",
+                "required": ["name", "location"],
+                "properties": {
+                  "name": { "type": "string", "title": "Name" },
+                  "platform": {
+                    "type": "string",
+                    "title": "Platform",
+                    "enum": ["github_actions", "gitlab_ci", "jenkins", "azure_devops", "circleci", "other"]
+                  },
+                  "location": { "type": "string", "title": "Location" }
+                }
+              }
+            },
+            "scaffold_template": {
+              "type": "object",
+              "title": "Scaffold template",
+              "description": "A template (e.g. Backstage Software Template, Cookiecutter, Copier) for bootstrapping a new service from this reference architecture. Required for RA-IMP-01 score 4 — the golden path must be automatable.",
+              "properties": {
+                "name": { "type": "string", "title": "Name" },
+                "type": {
+                  "type": "string",
+                  "title": "Type",
+                  "enum": ["backstage", "cookiecutter", "copier", "yeoman", "other"]
+                },
+                "location": { "type": "string", "title": "Location" },
+                "description": { "type": "string", "title": "Description" }
+              }
+            },
+            "sample_application": {
+              "type": "object",
+              "title": "Sample application",
+              "description": "A working reference implementation demonstrating the architecture in practice. Required for RA-IMP-01 score 4.",
+              "properties": {
+                "name": { "type": "string", "title": "Name" },
+                "location": { "type": "string", "title": "Location" },
+                "description": { "type": "string", "title": "Description" }
+              }
+            }
+          }
+        },
+        "getting_started": {
+          "type": "object",
+          "title": "Getting started guide",
+          "description": "A tested, step-by-step guide for new teams adopting this reference architecture. Evidence for profile criterion RA-IMP-02. Score 3: tested guide with prerequisites and time estimate. Score 4: fully automated onboarding achieving < 1 hour to first deployment.",
+          "properties": {
+            "estimated_time_to_first_deployment": {
+              "type": "string",
+              "title": "Estimated time to first deployment",
+              "description": "How long a new team takes from zero to a running deployed service following this guide. Required evidence for RA-IMP-02. Example: '4 hours', '< 1 hour with Backstage template'."
+            },
+            "prerequisites": {
+              "type": "array",
+              "title": "Prerequisites",
+              "description": "Tools, access permissions, and knowledge required before starting. Required evidence for RA-IMP-02 score ≥ 3.",
+              "items": { "type": "string" }
+            },
+            "steps": {
+              "type": "array",
+              "title": "Steps",
+              "description": "Numbered steps for getting started, tested against a real environment. Required evidence for RA-IMP-02.",
+              "items": {
+                "type": "object",
+                "title": "Step",
+                "required": ["step", "title", "description"],
+                "properties": {
+                  "step": { "type": "integer", "title": "Step number" },
+                  "title": { "type": "string", "title": "Step title" },
+                  "description": {
+                    "type": "string",
+                    "title": "What to do",
+                    "description": "Clear instructions for this step, including expected outcome."
+                  },
+                  "command": {
+                    "type": "string",
+                    "title": "Command (if applicable)",
+                    "description": "Shell command or code snippet to run at this step."
+                  }
+                }
+              }
+            },
+            "troubleshooting": {
+              "type": "array",
+              "title": "Troubleshooting",
+              "description": "Common problems encountered when following this guide and their resolutions. Required evidence for RA-IMP-02 score ≥ 3.",
+              "items": {
+                "type": "object",
+                "title": "Troubleshooting entry",
+                "required": ["symptom", "resolution"],
+                "properties": {
+                  "symptom": {
+                    "type": "string",
+                    "title": "Symptom",
+                    "description": "What the problem looks like to a new adopter."
+                  },
+                  "cause": {
+                    "type": "string",
+                    "title": "Cause",
+                    "description": "Root cause of the problem."
+                  },
+                  "resolution": {
+                    "type": "string",
+                    "title": "Resolution",
+                    "description": "How to fix it."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "raid": {
+          "type": "object",
+          "title": "RAID log (Risks, Assumptions, Issues, Dependencies)",
+          "description": "Risks, design assumptions, constraints, and trade-offs. Evidence for core criterion RAT-01. Score 2: risks listed without mitigations. Score 3: risks with mitigations and owners; assumptions and constraints documented. Score 4: evidence-based trade-off analysis with accepted consequences explicit.",
+          "properties": {
+            "risks": {
+              "type": "array",
+              "title": "Risks",
+              "description": "Known risks with mitigations and named owners. Required evidence for RAT-01. Generic statements such as 'there are risks that will need to be addressed' score 1.",
+              "items": {
+                "type": "object",
+                "title": "Risk",
+                "required": ["description"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "title": "Risk ID",
+                    "description": "Short reference identifier. Example: 'RISK-01'."
+                  },
+                  "description": {
+                    "type": "string",
+                    "title": "Description",
+                    "description": "Specific risk in concrete terms — what could go wrong and the consequence if it materialises."
+                  },
+                  "likelihood": {
+                    "type": "string",
+                    "title": "Likelihood",
+                    "enum": ["high", "medium", "low"]
+                  },
+                  "impact": {
+                    "type": "string",
+                    "title": "Impact",
+                    "enum": ["high", "medium", "low"]
+                  },
+                  "mitigation": {
+                    "type": "string",
+                    "title": "Mitigation",
+                    "description": "Specific action taken or planned to reduce this risk. Required for RAT-01 score ≥ 3."
+                  },
+                  "owner": {
+                    "type": "string",
+                    "title": "Owner",
+                    "description": "Named individual or role responsible for monitoring and mitigating this risk. Required for RAT-01 score ≥ 3."
+                  },
+                  "residual_risk": {
+                    "type": "string",
+                    "title": "Residual risk",
+                    "description": "Risk level remaining after mitigation (high/medium/low) and acceptance decision."
+                  }
+                }
+              }
+            },
+            "assumptions": {
+              "type": "array",
+              "title": "Design assumptions",
+              "description": "Assumptions made during design that could affect the architecture if they prove false. Distinct from scope assumptions — these are design-time assumptions about technical or organisational behaviour.",
+              "items": {
+                "type": "object",
+                "title": "Design assumption",
+                "required": ["assumption"],
+                "properties": {
+                  "assumption": { "type": "string", "title": "Assumption" },
+                  "consequence_if_violated": {
+                    "type": "string",
+                    "title": "Consequence if violated"
+                  }
+                }
+              }
+            },
+            "constraints": {
+              "type": "array",
+              "title": "Constraints",
+              "description": "Technical, legal, or organisational constraints that limit design choices. Required evidence for RAT-01.",
+              "items": {
+                "type": "object",
+                "title": "Constraint",
+                "required": ["description"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "title": "Type",
+                    "enum": ["technical", "legal", "organisational", "financial", "regulatory"]
+                  },
+                  "description": { "type": "string", "title": "Description" },
+                  "implication": {
+                    "type": "string",
+                    "title": "Implication for the architecture"
+                  }
+                }
+              }
+            },
+            "tradeoffs": {
+              "type": "array",
+              "title": "Trade-offs",
+              "description": "Explicit trade-offs accepted in this design. Required for RAT-01 score ≥ 3. Each entry must state what was sacrificed and what was gained — not just that a trade-off exists.",
+              "items": {
+                "type": "object",
+                "title": "Trade-off",
+                "required": ["description"],
+                "properties": {
+                  "decision_ref": {
+                    "type": "string",
+                    "title": "Decision reference",
+                    "description": "ADR ID where this trade-off was formalised."
+                  },
+                  "description": {
+                    "type": "string",
+                    "title": "Trade-off description"
+                  },
+                  "what_was_sacrificed": {
+                    "type": "string",
+                    "title": "What was sacrificed"
+                  },
+                  "what_was_gained": {
+                    "type": "string",
+                    "title": "What was gained"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "governance": {
+          "type": "object",
+          "title": "Governance and compliance",
+          "description": "Alignment with applicable architecture standards, policies, and mandatory controls. Evidence for core criterion CMP-01 (critical gate — score < 1 triggers Reject regardless of other scores). Compliance by assertion ('we comply with all standards') scores 1 at most — explicit control-to-design mappings are required.",
+          "properties": {
+            "applicable_standards": {
+              "type": "array",
+              "title": "Applicable standards",
+              "description": "Standards, policies, and regulations relevant to this architecture. Required to move beyond score 0 for CMP-01.",
+              "items": {
+                "type": "object",
+                "title": "Standard or policy",
+                "required": ["name"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "title": "ID",
+                    "description": "Reference ID. Example: 'ESS-01', 'GDPR', 'ISO 27001', 'PCI-DSS'."
+                  },
+                  "name": {
+                    "type": "string",
+                    "title": "Name",
+                    "description": "Full name of the standard or policy."
+                  },
+                  "relevance": {
+                    "type": "string",
+                    "title": "Relevance",
+                    "description": "Why this standard applies to this architecture."
+                  }
+                }
+              }
+            },
+            "compliance_mapping": {
+              "type": "array",
+              "title": "Compliance mapping",
+              "description": "Explicit mapping from each applicable control to the design element that satisfies it. Required for CMP-01 score ≥ 3. Each entry links a specific control to the specific design component or decision that addresses it.",
+              "items": {
+                "type": "object",
+                "title": "Compliance mapping entry",
+                "required": ["control", "design_element"],
+                "properties": {
+                  "control": {
+                    "type": "string",
+                    "title": "Control",
+                    "description": "Specific control reference. Example: 'ESS-01: mutual TLS for service-to-service calls'."
+                  },
+                  "design_element": {
+                    "type": "string",
+                    "title": "Design element",
+                    "description": "The component, decision, or design pattern that satisfies this control."
+                  },
+                  "evidence": {
+                    "type": "string",
+                    "title": "Evidence location",
+                    "description": "Where in this document the supporting evidence can be found."
+                  },
+                  "owner": {
+                    "type": "string",
+                    "title": "Owner",
+                    "description": "Who is accountable for maintaining this compliance."
+                  }
+                }
+              }
+            },
+            "exceptions": {
+              "type": "array",
+              "title": "Compliance exceptions",
+              "description": "Approved exceptions to mandatory controls. Each exception must have an approver, approval date, and either an expiry date or a remediation plan. Required for CMP-01 score 4.",
+              "items": {
+                "type": "object",
+                "title": "Exception",
+                "required": ["standard", "control", "justification"],
+                "properties": {
+                  "standard": { "type": "string", "title": "Standard or policy" },
+                  "control": { "type": "string", "title": "Specific control" },
+                  "justification": { "type": "string", "title": "Justification" },
+                  "approver": { "type": "string", "title": "Approver" },
+                  "approval_date": {
+                    "type": "string",
+                    "format": "date",
+                    "title": "Approval date"
+                  },
+                  "expiry_date": {
+                    "type": "string",
+                    "format": "date",
+                    "title": "Expiry date"
+                  },
+                  "remediation_plan": {
+                    "type": "string",
+                    "title": "Remediation plan",
+                    "description": "Plan to achieve full compliance, if expiry date is not set."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "decisions_and_actions": {
+          "type": "object",
+          "title": "Decisions and next actions",
+          "description": "The governance outcome and follow-on actions. Evidence for core criterion ACT-01. Score 2: some decisions stated. Score 3: key decisions made with owned actions. Score 4: all decisions explicit with owned, dated actions and clear governance path.",
+          "properties": {
+            "governance_outcome": {
+              "type": "string",
+              "title": "Governance outcome",
+              "description": "The formal governance outcome for this architecture. Must be explicit — leaving this implicit is an anti-pattern for ACT-01.",
+              "enum": ["approved", "conditionally_approved", "pending_review", "rework_required", "rejected"]
+            },
+            "decision_statement": {
+              "type": "string",
+              "title": "Decision statement",
+              "description": "A concise statement of what is approved or proposed. Example: 'Approve this reference architecture as the mandatory pattern for all event-driven microservices in the Payments domain, effective Q2 2026'."
+            },
+            "conditions": {
+              "type": "array",
+              "title": "Conditions (for conditional approval)",
+              "description": "Named conditions that must be met for conditional approval to convert to full approval.",
+              "items": { "type": "string" }
+            },
+            "next_actions": {
+              "type": "array",
+              "title": "Next actions",
+              "description": "Specific follow-on tasks with named owners and target dates. Required for ACT-01 score ≥ 3. Every action must have an owner.",
+              "items": {
+                "type": "object",
+                "title": "Action",
+                "required": ["description"],
+                "properties": {
+                  "id": { "type": "string", "title": "Action ID" },
+                  "description": { "type": "string", "title": "Action" },
+                  "owner": {
+                    "type": "string",
+                    "title": "Owner",
+                    "description": "Named individual or team responsible. No unowned actions."
+                  },
+                  "target_date": {
+                    "type": "string",
+                    "format": "date",
+                    "title": "Target date"
+                  }
+                }
+              }
+            },
+            "review_triggers": {
+              "type": "string",
+              "title": "Review triggers",
+              "description": "Conditions that trigger a mandatory re-review of this architecture. Example: 'Architecture Board checkpoint 2026-04-10; post-migration assessment when migration completes'."
+            }
+          }
+        },
+        "glossary": {
+          "type": "array",
+          "title": "Glossary",
+          "description": "Canonical definitions for key terms, component names, and abbreviations used in this document. Evidence for core criterion CON-01 (internal consistency). A glossary that is consistently used throughout the document is required for CON-01 score 4.",
+          "items": {
+            "type": "object",
+            "title": "Glossary entry",
+            "required": ["term", "definition"],
+            "properties": {
+              "term": { "type": "string", "title": "Term" },
+              "definition": { "type": "string", "title": "Definition" },
+              "aliases": {
+                "type": "array",
+                "title": "Aliases",
+                "description": "Alternative names that refer to the same thing. Listing aliases here flags them as potential inconsistencies if found used differently elsewhere.",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        },
+        "evolution": {
+          "type": "object",
+          "title": "Evolution and lifecycle",
+          "description": "How this reference architecture evolves over time. Evidence for profile criterion RA-REU-01. Score 2: versioned with change log. Score 3: known limitations, evolution plan, and feedback channel. Score 4: full lifecycle management with deprecation strategy and migration guidance.",
+          "properties": {
+            "known_limitations": {
+              "type": "array",
+              "title": "Known limitations",
+              "description": "Documented gaps or areas where this architecture does not yet meet its intended standard. Required for RA-REU-01 score ≥ 3.",
+              "items": { "type": "string" }
+            },
+            "evolution_roadmap": {
+              "type": "array",
+              "title": "Evolution roadmap",
+              "description": "Planned improvements to this reference architecture, prioritised by value. Required for RA-REU-01 score ≥ 3.",
+              "items": {
+                "type": "object",
+                "title": "Roadmap item",
+                "required": ["description"],
+                "properties": {
+                  "item": { "type": "string", "title": "Item title" },
+                  "description": { "type": "string", "title": "Description" },
+                  "priority": {
+                    "type": "string",
+                    "title": "Priority",
+                    "enum": ["high", "medium", "low"]
+                  },
+                  "target_version": { "type": "string", "title": "Target version" }
+                }
+              }
+            },
+            "deprecation_strategy": {
+              "type": "string",
+              "title": "Deprecation strategy",
+              "description": "How this version will be deprecated when a successor is published, including migration guidance and transition timeline. Required for RA-REU-01 score 4."
+            },
+            "feedback_channel": {
+              "type": "string",
+              "title": "Feedback channel",
+              "description": "Where adopting teams report issues or request changes. Example: 'GitHub Issues on ThomasRohde/EAROS', 'Slack #platform-architecture channel'. Required for RA-REU-01 score ≥ 3."
+            },
+            "migration_guidance": {
+              "type": "string",
+              "title": "Migration guidance",
+              "description": "Guidance for teams migrating from a previous version of this reference architecture. Required for RA-REU-01 score 4 when breaking changes exist between versions."
+            }
+          }
+        }
+      }
+    }
+  }
+}
