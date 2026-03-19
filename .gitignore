@@ -48,3 +48,6 @@ calibration/results/*.draft.*
 .env
 .env.*
 !.env.example
+
+# Stitch
+.stitch/

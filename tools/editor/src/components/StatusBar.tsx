@@ -21,9 +21,13 @@ export default function StatusBar({ validation, kind }: Props) {
         display: 'flex',
         alignItems: 'center',
         gap: 1.5,
-        bgcolor: valid ? '#f1f8e9' : '#fff3e0',
+        bgcolor: valid
+          ? (theme) => theme.palette.mode === 'dark' ? 'rgba(76,175,80,0.1)' : '#f1f8e9' 
+          : (theme) => theme.palette.mode === 'dark' ? 'rgba(255,152,0,0.1)' : '#fff3e0',
         borderTop: '1px solid',
-        borderColor: valid ? '#c5e1a5' : '#ffe0b2',
+        borderColor: valid 
+          ? (theme) => theme.palette.mode === 'dark' ? 'rgba(76,175,80,0.3)' : '#c5e1a5'
+          : (theme) => theme.palette.mode === 'dark' ? 'rgba(255,152,0,0.3)' : '#ffe0b2',
         minHeight: 32,
         flexShrink: 0,
       }}

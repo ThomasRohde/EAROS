@@ -225,7 +225,7 @@ function ManifestSidebar({
   if (!manifest) {
     return (
       <Box sx={{ p: 2 }}>
-        <Typography variant="caption" display="block" sx={{ mb: 1, fontWeight: 600, color: '#555' }}>
+        <Typography variant="caption" display="block" sx={{ mb: 1, fontWeight: 600, color: 'text.secondary' }}>
           EAROS Files
         </Typography>
         <Typography variant="caption" color="text.secondary">
@@ -253,8 +253,9 @@ function ManifestSidebar({
               fontWeight: 700,
               letterSpacing: 0.8,
               textTransform: 'uppercase',
-              bgcolor: '#f5f5f5',
-              color: '#555',
+              bgcolor: 'background.paper',
+              color: 'text.secondary',
+              borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
             {section.label}
@@ -262,7 +263,7 @@ function ManifestSidebar({
           {section.entries.length === 0 && (
             <ListItemText
               primary="(none)"
-              sx={{ px: 2, py: 0.5, color: '#999', fontSize: '0.75rem' }}
+              sx={{ px: 2, py: 0.5, color: 'text.disabled', fontSize: '0.75rem' }}
             />
           )}
           {section.entries.map((entry) => {
@@ -283,7 +284,7 @@ function ManifestSidebar({
                     sx: { fontSize: '0.8rem', fontWeight: isSelected ? 600 : 400 },
                   }}
                   secondaryTypographyProps={{
-                    sx: { fontSize: '0.68rem', color: '#888' },
+                    sx: { fontSize: '0.68rem', color: 'text.disabled' },
                   }}
                 />
               </ListItemButton>
@@ -324,49 +325,49 @@ function FileInfoBar({
         display: 'flex',
         alignItems: 'center',
         gap: 1,
-        bgcolor: '#e8eaf6',
-        borderBottom: '1px solid #c5cae9',
+        bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)',
+        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
         minHeight: 30,
         flexShrink: 0,
       }}
     >
       {filename ? (
         <>
-          <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a237e' }}>
+          <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.78rem', color: 'text.primary' }}>
             {filename}
           </Typography>
           {kindLabel && (
-            <Chip label={kindLabel} size="small" sx={{ ...chipSx, bgcolor: '#c5cae9', color: '#1a237e' }} />
+            <Chip label={kindLabel} size="small" sx={{ ...chipSx, bgcolor: 'action.selected', color: 'text.primary' }} />
           )}
           {rubricId && (
-            <Typography variant="caption" sx={{ color: '#444', fontSize: '0.72rem' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem' }}>
               {rubricId}
             </Typography>
           )}
           {version && (
-            <Typography variant="caption" sx={{ color: '#777', fontSize: '0.72rem' }}>
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.72rem' }}>
               v{version}
             </Typography>
           )}
           {artifactType && (
-            <Typography variant="caption" sx={{ color: '#777', fontSize: '0.72rem' }}>
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.72rem' }}>
               · {artifactType}
             </Typography>
           )}
           <Box sx={{ flexGrow: 1 }} />
           <Tooltip title={`Save to ${currentFile}`}>
-            <IconButton size="small" onClick={onSave} sx={{ color: '#1a237e', p: 0.25 }}>
+            <IconButton size="small" onClick={onSave} sx={{ color: 'primary.main', p: 0.25 }}>
               <SaveIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Tooltip>
         </>
       ) : (
         <>
-          <Typography variant="caption" sx={{ color: '#999', fontSize: '0.75rem', fontStyle: 'italic' }}>
+          <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.75rem', fontStyle: 'italic' }}>
             unsaved
           </Typography>
           {kindLabel && (
-            <Chip label={kindLabel} size="small" sx={{ ...chipSx, bgcolor: '#e0e0e0', color: '#666' }} />
+            <Chip label={kindLabel} size="small" sx={{ ...chipSx, bgcolor: 'action.disabledBackground', color: 'text.disabled' }} />
           )}
           <Box sx={{ flexGrow: 1 }} />
         </>
@@ -478,19 +479,25 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
   }, [data, kind])
 
   const toolbarBtnSx = {
-    color: 'white',
-    borderColor: 'rgba(255,255,255,0.4)',
-    '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.08)' },
+    color: 'text.primary',
+    borderColor: 'divider',
+    '&:hover': { borderColor: 'text.primary', bgcolor: 'action.hover' },
     textTransform: 'none' as const,
     fontWeight: 400,
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#f0f2f5' }}>
-      <AppBar position="static" sx={{ bgcolor: '#1a237e' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: 'background.default' }}>
+      <AppBar position="static" sx={{ 
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.7)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+          color: 'text.primary',
+          boxShadow: 'none'
+        }}>
         <Toolbar variant="dense" sx={{ gap: 1.5 }}>
           <Tooltip title="Back to home">
-            <IconButton size="small" onClick={onBack} sx={{ color: 'rgba(255,255,255,0.8)', mr: 0.5 }}>
+            <IconButton size="small" onClick={onBack} sx={{ color: 'text.secondary', mr: 0.5 }}>
               <ArrowBackIcon fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -514,7 +521,7 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
             <IconButton
               size="small"
               onClick={() => setPreviewOpen((v) => !v)}
-              sx={{ color: previewOpen ? 'white' : 'rgba(255,255,255,0.5)' }}
+              sx={{ color: previewOpen ? 'primary.main' : 'text.disabled' }}
             >
               <CodeIcon />
             </IconButton>

@@ -70,8 +70,8 @@ export default function YamlPreview({ data, open, onToggle }: Props) {
           fontSize: '0.72rem',
           lineHeight: 1.6,
           whiteSpace: 'pre',
-          bgcolor: '#1e1e2e',
-          color: '#cdd6f4',
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1e1e2e' : '#f8f9fa',
+          color: (theme) => theme.palette.mode === 'dark' ? '#cdd6f4' : 'text.primary',
         }}
       >
         {yamlText}

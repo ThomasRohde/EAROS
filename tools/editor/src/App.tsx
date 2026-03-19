@@ -1,6 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import { Box, IconButton, Tooltip } from '@mui/material'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
+import DarkModeIcon from '@mui/icons-material/DarkMode'
+import LightModeIcon from '@mui/icons-material/LightMode'
+import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness'
+import { ThemeModeContext } from './ThemeContext'
 import type { ManifestData } from './manifest'
 import { fetchManifest } from './manifest'
 import HomeScreen from './components/HomeScreen'
@@ -37,6 +41,7 @@ export default function App() {
       <Box sx={{ position: 'relative' }}>
         <RubricEditor manifest={manifest} onBack={() => setMode('home')} autoNew />
         <HelpButton onClick={() => setHelpOpen(true)} />
+        <ThemeToggleButton />
         <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} mode={mode} />
       </Box>
     )
@@ -47,6 +52,7 @@ export default function App() {
       <Box sx={{ position: 'relative' }}>
         <RubricEditor manifest={manifest} onBack={() => setMode('home')} />
         <HelpButton onClick={() => setHelpOpen(true)} />
+        <ThemeToggleButton />
         <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} mode={mode} />
       </Box>
     )
@@ -64,6 +70,7 @@ export default function App() {
           }}
         />
         <HelpButton onClick={() => setHelpOpen(true)} />
+        <ThemeToggleButton />
         <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} mode={mode} />
       </Box>
     )
@@ -81,6 +88,7 @@ export default function App() {
           }}
         />
         <HelpButton onClick={() => setHelpOpen(true)} />
+        <ThemeToggleButton />
         <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} mode={mode} />
       </Box>
     )
@@ -98,6 +106,7 @@ export default function App() {
           }}
         />
         <HelpButton onClick={() => setHelpOpen(true)} />
+        <ThemeToggleButton />
         <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} mode={mode} />
       </Box>
     )
@@ -108,6 +117,7 @@ export default function App() {
       <Box sx={{ position: 'relative' }}>
         <ArtifactEditor initialMode="new" onBack={() => setMode('home')} />
         <HelpButton onClick={() => setHelpOpen(true)} />
+        <ThemeToggleButton />
         <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} mode={mode} />
       </Box>
     )
@@ -118,6 +128,7 @@ export default function App() {
       <Box sx={{ position: 'relative' }}>
         <ArtifactEditor initialMode="import" onBack={() => setMode('home')} />
         <HelpButton onClick={() => setHelpOpen(true)} />
+        <ThemeToggleButton />
         <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} mode={mode} />
       </Box>
     )
@@ -133,24 +144,75 @@ export default function App() {
   )
 }
 
-// ─── Floating help button (fixed, top-right) ──────────────────────────────────
+function ThemeToggleButton() {
+  const { mode, setMode } = useContext(ThemeModeContext)
+
+  const handleToggle = () => {
+    if (mode === 'system') setMode('light')
+    else if (mode === 'light') setMode('dark')
+    else setMode('system')
+  }
+
+  const getIcon = () => {
+    if (mode === 'light') return <LightModeIcon fontSize="medium" />
+    if (mode === 'dark') return <DarkModeIcon fontSize="medium" />
+    return <SettingsBrightnessIcon fontSize="medium" />
+  }
+
+  const modeLabel = mode.charAt(0).toUpperCase() + mode.slice(1)
+
+  return (
+    <Tooltip title={`Theme: ${modeLabel}`} placement="left">
+      <IconButton
+        onClick={handleToggle}
+        size="large"
+        sx={{
+          position: 'fixed',
+          bottom: 24,
+          right: 88,
+          zIndex: 1300,
+          color: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.6)',
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)',
+          backdropFilter: 'blur(10px)',
+          border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          '&:hover': { 
+            color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#000',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.8)'
+          },
+        }}
+      >
+        {getIcon()}
+      </IconButton>
+    </Tooltip>
+  )
+}
+
+// ─── Floating action buttons ──────────────────────────────────────────────────
 
 function HelpButton({ onClick }: { onClick: () => void }) {
   return (
     <Tooltip title="Help" placement="left">
       <IconButton
         onClick={onClick}
-        size="small"
+        size="large"
         sx={{
           position: 'fixed',
-          top: 8,
-          right: 12,
+          bottom: 24,
+          right: 24,
           zIndex: 1300,
-          color: 'rgba(255,255,255,0.75)',
-          '&:hover': { color: 'white', bgcolor: 'rgba(255,255,255,0.12)' },
+          color: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.6)',
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)',
+          backdropFilter: 'blur(10px)',
+          border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          '&:hover': { 
+            color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#000',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.8)'
+          },
         }}
       >
-        <HelpOutlineIcon fontSize="small" />
+        <HelpOutlineIcon fontSize="medium" />
       </IconButton>
     </Tooltip>
   )

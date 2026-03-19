@@ -1,0 +1,47 @@
+/* Glassmorphism & Animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes glowPulseDark {
+  0% { box-shadow: 0 0 10px rgba(6, 249, 249, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(6, 249, 249, 0.4); }
+  100% { box-shadow: 0 0 10px rgba(6, 249, 249, 0.2); }
+}
+
+@keyframes glowPulseLight {
+  0% { box-shadow: 0 4px 15px rgba(12, 127, 242, 0.1); }
+  50% { box-shadow: 0 8px 25px rgba(12, 127, 242, 0.2); }
+  100% { box-shadow: 0 4px 15px rgba(12, 127, 242, 0.1); }
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Sleek Webkit Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(125, 125, 125, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(125, 125, 125, 0.5);
+}
+
+::selection {
+  background: rgba(12, 127, 242, 0.3);
+  color: inherit;
+}

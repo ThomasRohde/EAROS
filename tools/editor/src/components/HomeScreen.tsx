@@ -4,6 +4,8 @@ import {
   Card,
   CardActionArea,
   CardContent,
+  useTheme,
+  alpha,
 } from '@mui/material'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import SettingsIcon from '@mui/icons-material/Settings'
@@ -23,11 +25,7 @@ interface CardDef {
   title: string
   description: string
   subtitle: string
-  accentColor: string
-  borderColor: string
-  hoverBorderColor: string
-  hoverShadow: string
-  iconBg: string
+  colorKey: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info'
 }
 
 const ROWS: Array<{ label: string; cards: CardDef[] }> = [
@@ -36,27 +34,19 @@ const ROWS: Array<{ label: string; cards: CardDef[] }> = [
     cards: [
       {
         mode: 'create-rubric',
-        icon: <AddCircleIcon sx={{ fontSize: 36, color: '#1a237e' }} />,
+        icon: <AddCircleIcon sx={{ fontSize: 36 }} />,
         title: 'Create Rubric',
         description: 'Design new scoring criteria for an artifact type',
         subtitle: 'Build a new core rubric, profile, or overlay from scratch',
-        accentColor: '#1a237e',
-        borderColor: '#c5cae9',
-        hoverBorderColor: '#1a237e',
-        hoverShadow: '0 6px 24px rgba(26,35,126,0.14)',
-        iconBg: '#e8eaf6',
+        colorKey: 'primary',
       },
       {
         mode: 'rubric',
-        icon: <SettingsIcon sx={{ fontSize: 36, color: '#1a237e' }} />,
+        icon: <SettingsIcon sx={{ fontSize: 36 }} />,
         title: 'Edit Rubric',
         description: 'Modify existing scoring criteria',
         subtitle: 'Update dimensions, criteria, and scoring guides',
-        accentColor: '#1a237e',
-        borderColor: '#c5cae9',
-        hoverBorderColor: '#1a237e',
-        hoverShadow: '0 6px 24px rgba(26,35,126,0.14)',
-        iconBg: '#e8eaf6',
+        colorKey: 'primary',
       },
     ],
   },
@@ -65,27 +55,19 @@ const ROWS: Array<{ label: string; cards: CardDef[] }> = [
     cards: [
       {
         mode: 'new-assessment',
-        icon: <PlaylistAddCheckIcon sx={{ fontSize: 36, color: '#2e7d32' }} />,
+        icon: <PlaylistAddCheckIcon sx={{ fontSize: 36 }} />,
         title: 'New Assessment',
         description: 'Score an architecture document',
         subtitle: 'Start a new evaluation with guided setup',
-        accentColor: '#2e7d32',
-        borderColor: '#c8e6c9',
-        hoverBorderColor: '#2e7d32',
-        hoverShadow: '0 6px 24px rgba(46,125,50,0.14)',
-        iconBg: '#e8f5e9',
+        colorKey: 'success',
       },
       {
         mode: 'continue-assessment',
-        icon: <FolderOpenIcon sx={{ fontSize: 36, color: '#2e7d32' }} />,
+        icon: <FolderOpenIcon sx={{ fontSize: 36 }} />,
         title: 'Continue Assessment',
         description: 'Resume a saved evaluation',
         subtitle: 'Open and continue an existing evaluation record',
-        accentColor: '#2e7d32',
-        borderColor: '#c8e6c9',
-        hoverBorderColor: '#2e7d32',
-        hoverShadow: '0 6px 24px rgba(46,125,50,0.14)',
-        iconBg: '#e8f5e9',
+        colorKey: 'success',
       },
     ],
   },
@@ -94,57 +76,68 @@ const ROWS: Array<{ label: string; cards: CardDef[] }> = [
     cards: [
       {
         mode: 'new-artifact',
-        icon: <NoteAddIcon sx={{ fontSize: 36, color: '#e65100' }} />,
+        icon: <NoteAddIcon sx={{ fontSize: 36 }} />,
         title: 'Create Artifact',
         description: 'Write a new architecture document',
         subtitle: 'Start from a template with built-in EAROS guidance',
-        accentColor: '#e65100',
-        borderColor: '#ffe0b2',
-        hoverBorderColor: '#e65100',
-        hoverShadow: '0 6px 24px rgba(230,81,0,0.14)',
-        iconBg: '#fff3e0',
+        colorKey: 'warning',
       },
       {
         mode: 'edit-artifact',
-        icon: <EditNoteIcon sx={{ fontSize: 36, color: '#e65100' }} />,
+        icon: <EditNoteIcon sx={{ fontSize: 36 }} />,
         title: 'Edit Artifact',
         description: 'Improve an existing document',
         subtitle: 'Open an architecture document and see EAROS assessment guidance',
-        accentColor: '#e65100',
-        borderColor: '#ffe0b2',
-        hoverBorderColor: '#e65100',
-        hoverShadow: '0 6px 24px rgba(230,81,0,0.14)',
-        iconBg: '#fff3e0',
+        colorKey: 'warning',
       },
     ],
   },
 ]
 
 export default function HomeScreen({ onSelectMode }: Props) {
+  const theme = useTheme()
+  const isDark = theme.palette.mode === 'dark'
+
   return (
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor: '#f5f7fa',
+        bgcolor: 'background.default',
+        backgroundImage: isDark 
+          ? 'radial-gradient(ellipse at 15% 50%, rgba(6, 249, 249, 0.08), transparent 35%), radial-gradient(ellipse at 85% 30%, rgba(139, 92, 246, 0.08), transparent 35%)'
+          : 'radial-gradient(ellipse at 15% 50%, rgba(2, 132, 199, 0.06), transparent 35%), radial-gradient(ellipse at 85% 30%, rgba(99, 102, 241, 0.06), transparent 35%)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        p: 3,
+        p: 4,
       }}
     >
       {/* Header */}
-      <Box sx={{ textAlign: 'center', mb: 5 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a237e', mb: 1 }}>
+      <Box sx={{ textAlign: 'center', mb: 7 }}>
+        <Typography 
+          variant="h3" 
+          sx={{ 
+            fontWeight: 800, 
+            mb: 1.5,
+            background: isDark 
+              ? 'linear-gradient(90deg, #06f9f9 0%, #8b5cf6 100%)' 
+              : 'linear-gradient(90deg, #0284c7 0%, #6366f1 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            letterSpacing: '-1.5px',
+            textShadow: isDark ? '0 0 40px rgba(6, 249, 249, 0.2)' : '0 4px 20px rgba(2, 132, 199, 0.1)',
+          }}
+        >
           EAROS Editor
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400 }}>
           Enterprise Architecture Rubric Operational Standard · v2.0
         </Typography>
       </Box>
 
       {/* Card grid */}
-      <Box sx={{ maxWidth: 780, width: '100%', display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Box sx={{ maxWidth: 860, width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
         {ROWS.map((row) => (
           <Box key={row.label}>
             {/* Section header */}
@@ -152,69 +145,72 @@ export default function HomeScreen({ onSelectMode }: Props) {
               variant="overline"
               sx={{
                 display: 'block',
-                mb: 1.5,
-                color: '#757575',
-                fontWeight: 600,
-                letterSpacing: 1.2,
-                fontSize: '0.7rem',
+                mb: 2.5,
+                color: theme.palette.text.secondary,
+                fontWeight: 700,
+                letterSpacing: 2.5,
+                fontSize: '0.75rem',
               }}
             >
               {row.label}
             </Typography>
 
             {/* Two-column row */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-              {row.cards.map((card) => (
-                <Card
-                  key={card.mode}
-                  sx={{
-                    borderRadius: 2.5,
-                    border: `1.5px solid ${card.borderColor}`,
-                    transition: 'border-color 0.18s, box-shadow 0.18s, transform 0.15s',
-                    '&:hover': {
-                      borderColor: card.hoverBorderColor,
-                      boxShadow: card.hoverShadow,
-                      transform: 'translateY(-2px)',
-                    },
-                  }}
-                >
-                  <CardActionArea onClick={() => onSelectMode(card.mode)} sx={{ height: '100%' }}>
-                    <CardContent sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, p: 2.5 }}>
-                      {/* Icon */}
-                      <Box
-                        sx={{
-                          width: 52,
-                          height: 52,
-                          bgcolor: card.iconBg,
-                          borderRadius: '12px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {card.icon}
-                      </Box>
-
-                      {/* Text */}
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ fontWeight: 700, color: card.accentColor, mb: 0.5, lineHeight: 1.2 }}
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3.5 }}>
+              {row.cards.map((card) => {
+                const mainColor = theme.palette[card.colorKey].main;
+                
+                return (
+                  <Card
+                    key={card.mode}
+                    sx={{
+                      '&:hover': {
+                        transform: 'translateY(-6px)',
+                        boxShadow: `0 12px 35px ${alpha(mainColor, isDark ? 0.25 : 0.18)}`,
+                        borderColor: alpha(mainColor, 0.4),
+                      },
+                    }}
+                  >
+                    <CardActionArea onClick={() => onSelectMode(card.mode)} sx={{ height: '100%' }}>
+                      <CardContent sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, p: 3.5 }}>
+                        {/* Icon */}
+                        <Box
+                          sx={{
+                            width: 60,
+                            height: 60,
+                            bgcolor: alpha(mainColor, isDark ? 0.1 : 0.08),
+                            borderRadius: '16px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            color: mainColor,
+                            boxShadow: `inset 0 0 0 1px ${alpha(mainColor, 0.2)}`,
+                          }}
                         >
-                          {card.title}
-                        </Typography>
-                        <Typography variant="body2" color="text.primary" sx={{ mb: 0.5, lineHeight: 1.5 }}>
-                          {card.description}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4 }}>
-                          {card.subtitle}
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              ))}
+                          {card.icon}
+                        </Box>
+
+                        {/* Text */}
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography
+                            variant="h6"
+                            sx={{ fontWeight: 700, color: mainColor, mb: 0.5, lineHeight: 1.2, letterSpacing: '-0.3px' }}
+                          >
+                            {card.title}
+                          </Typography>
+                          <Typography variant="body2" color="text.primary" sx={{ mb: 1.5, lineHeight: 1.5, fontWeight: 500 }}>
+                            {card.description}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4, display: 'block' }}>
+                            {card.subtitle}
+                          </Typography>
+                        </Box>
+                      </CardContent>
+                    </CardActionArea>
+                  </Card>
+                );
+              })}
             </Box>
           </Box>
         ))}

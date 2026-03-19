@@ -143,17 +143,17 @@ function SetupPanel({
           py: 1.25,
           display: 'flex',
           alignItems: 'center',
-          bgcolor: '#f0f4f8',
+          bgcolor: 'action.hover',
           cursor: 'pointer',
           userSelect: 'none',
-          '&:hover': { bgcolor: '#e8edf2' },
+          '&:hover': { bgcolor: 'action.selected' },
         }}
         onClick={() => setOpen((v) => !v)}
       >
-        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1a237e', flex: 1 }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.primary', flex: 1 }}>
           Setup — Rubric &amp; Artifact
         </Typography>
-        {open ? <ExpandLessIcon fontSize="small" sx={{ color: '#666' }} /> : <ExpandMoreIcon fontSize="small" sx={{ color: '#666' }} />}
+        {open ? <ExpandLessIcon fontSize="small" sx={{ color: 'text.secondary' }} /> : <ExpandMoreIcon fontSize="small" sx={{ color: 'text.secondary' }} />}
       </Box>
       <Collapse in={open}>
         <Box sx={{ p: 2.5 }}>
@@ -251,22 +251,22 @@ function DimensionSection({ dim, results, onChange }: DimSectionProps) {
   return (
     <Box sx={{ mb: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a237e' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>
           {dim.name}
         </Typography>
         {dim.source === 'core' && (
-          <Chip label="Core" size="small" sx={{ bgcolor: '#e3f2fd', color: '#1565c0', border: '1px solid #90caf9', fontSize: '0.65rem', height: 20 }} />
+          <Chip label="Core" size="small" sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(21, 101, 192, 0.2)' : '#e3f2fd', color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#1565c0', border: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#1565c0' : '#90caf9', fontSize: '0.65rem', height: 20 }} />
         )}
         {dim.source === 'profile' && (
-          <Chip label="Profile" size="small" sx={{ bgcolor: '#f3e5f5', color: '#6a1b9a', border: '1px solid #ce93d8', fontSize: '0.65rem', height: 20 }} />
+          <Chip label="Profile" size="small" sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(106, 27, 154, 0.2)' : '#f3e5f5', color: (theme) => theme.palette.mode === 'dark' ? '#ce93d8' : '#6a1b9a', border: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#6a1b9a' : '#ce93d8', fontSize: '0.65rem', height: 20 }} />
         )}
         {dim.source === 'overlay' && (
-          <Chip label="Overlay" size="small" sx={{ bgcolor: '#fce4ec', color: '#880e4f', border: '1px solid #f48fb1', fontSize: '0.65rem', height: 20 }} />
+          <Chip label="Overlay" size="small" sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(136, 14, 79, 0.2)' : '#fce4ec', color: (theme) => theme.palette.mode === 'dark' ? '#f48fb1' : '#880e4f', border: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#880e4f' : '#f48fb1', fontSize: '0.65rem', height: 20 }} />
         )}
         {dim.weight && dim.weight !== 1.0 && (
-          <Chip label={`×${dim.weight}`} size="small" variant="outlined" sx={{ fontSize: '0.65rem', height: 20, color: '#888' }} />
+          <Chip label={`×${dim.weight}`} size="small" variant="outlined" sx={{ fontSize: '0.65rem', height: 20, color: 'text.disabled' }} />
         )}
-        <Typography variant="caption" sx={{ color: '#888', ml: 'auto' }}>
+        <Typography variant="caption" sx={{ color: 'text.disabled', ml: 'auto' }}>
           {scored}/{total} scored
         </Typography>
       </Box>
@@ -419,12 +419,19 @@ export default function AssessmentForm({ manifest, preloaded, onBack }: Props) {
   const displayTitle = preloaded?.primaryTitle ?? selectedEntry?.title ?? selectedEntry?.artifact_type
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#f5f7fa' }}>
-      {/* AppBar — green for assessment mode */}
-      <AppBar position="static" sx={{ bgcolor: '#2e7d32', flexShrink: 0 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: 'background.default' }}>
+      {/* AppBar */}
+      <AppBar position="static" sx={{ 
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.7)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+          color: 'text.primary',
+          boxShadow: 'none',
+          flexShrink: 0 
+        }}>
         <Toolbar variant="dense" sx={{ gap: 1 }}>
           <Tooltip title="Back to home">
-            <IconButton size="small" onClick={onBack} sx={{ color: 'rgba(255,255,255,0.8)', mr: 0.5 }}>
+            <IconButton size="small" onClick={onBack} sx={{ color: 'text.secondary', mr: 0.5 }}>
               <ArrowBackIcon fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -435,11 +442,11 @@ export default function AssessmentForm({ manifest, preloaded, onBack }: Props) {
             <Chip
               label={displayRubricId}
               size="small"
-              sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: 'white', fontSize: '0.68rem', height: 20 }}
+              sx={{ bgcolor: 'action.selected', color: 'text.primary', fontSize: '0.68rem', height: 20 }}
             />
           )}
           {displayTitle && displayTitle !== displayRubricId && (
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.72rem' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem' }}>
               {displayTitle}
             </Typography>
           )}
@@ -450,9 +457,9 @@ export default function AssessmentForm({ manifest, preloaded, onBack }: Props) {
               variant="outlined"
               onClick={handleExport}
               sx={{
-                color: 'white',
-                borderColor: 'rgba(255,255,255,0.4)',
-                '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.08)' },
+                color: 'text.primary',
+                borderColor: 'divider',
+                '&:hover': { borderColor: 'text.primary', bgcolor: 'action.hover' },
                 textTransform: 'none',
                 fontWeight: 400,
               }}

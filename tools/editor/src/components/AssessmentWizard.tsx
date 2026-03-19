@@ -75,8 +75,8 @@ function StepCoreRubric({ options, selected, onSelect }: StepCoreRubricProps) {
                   px: 2,
                   py: 1.5,
                   borderRadius: 2,
-                  borderColor: selected === opt.path ? '#2e7d32' : 'divider',
-                  bgcolor: selected === opt.path ? '#f1f8e9' : 'white',
+                  borderColor: selected === opt.path ? 'primary.main' : 'divider',
+                  bgcolor: selected === opt.path ? 'action.selected' : 'background.paper',
                   cursor: 'pointer',
                   transition: 'border-color 0.15s, background-color 0.15s',
                 }}
@@ -87,7 +87,7 @@ function StepCoreRubric({ options, selected, onSelect }: StepCoreRubricProps) {
                   control={
                     <Radio
                       size="small"
-                      sx={{ color: '#2e7d32', '&.Mui-checked': { color: '#2e7d32' } }}
+                      color="primary"
                     />
                   }
                   label={
@@ -140,8 +140,8 @@ function StepProfile({ options, selected, onSelect }: StepProfileProps) {
               px: 2,
               py: 1.5,
               borderRadius: 2,
-              borderColor: selected === 'none' ? '#1565c0' : 'divider',
-              bgcolor: selected === 'none' ? '#e3f2fd' : 'white',
+              borderColor: selected === 'none' ? 'primary.main' : 'divider',
+              bgcolor: selected === 'none' ? 'action.selected' : 'background.paper',
               cursor: 'pointer',
               transition: 'border-color 0.15s, background-color 0.15s',
             }}
@@ -173,8 +173,8 @@ function StepProfile({ options, selected, onSelect }: StepProfileProps) {
                 px: 2,
                 py: 1.5,
                 borderRadius: 2,
-                borderColor: selected === opt.path ? '#1565c0' : 'divider',
-                bgcolor: selected === opt.path ? '#e3f2fd' : 'white',
+                borderColor: selected === opt.path ? 'primary.main' : 'divider',
+                bgcolor: selected === opt.path ? 'action.selected' : 'background.paper',
                 cursor: 'pointer',
                 transition: 'border-color 0.15s, background-color 0.15s',
               }}
@@ -245,8 +245,8 @@ function StepOverlays({ options, selected, onToggle }: StepOverlaysProps) {
                 px: 2,
                 py: 1.5,
                 borderRadius: 2,
-                borderColor: selected.has(opt.path) ? '#6a1b9a' : 'divider',
-                bgcolor: selected.has(opt.path) ? '#f3e5f5' : 'white',
+                borderColor: selected.has(opt.path) ? 'primary.main' : 'divider',
+                bgcolor: selected.has(opt.path) ? 'action.selected' : 'background.paper',
                 cursor: 'pointer',
                 transition: 'border-color 0.15s, background-color 0.15s',
               }}
@@ -258,7 +258,7 @@ function StepOverlays({ options, selected, onToggle }: StepOverlaysProps) {
                     size="small"
                     checked={selected.has(opt.path)}
                     onChange={() => onToggle(opt.path)}
-                    sx={{ color: '#6a1b9a', '&.Mui-checked': { color: '#6a1b9a' } }}
+                    color="primary"
                     onClick={(e) => e.stopPropagation()}
                   />
                 }
@@ -471,15 +471,22 @@ export default function AssessmentWizard({ manifest, onBack, onStart }: Props) {
       : ''
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#f5f7fa' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: 'background.default' }}>
       {/* AppBar */}
-      <AppBar position="static" sx={{ bgcolor: '#2e7d32', flexShrink: 0 }}>
+      <AppBar position="static" sx={{ 
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.7)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+          color: 'text.primary',
+          boxShadow: 'none',
+          flexShrink: 0 
+        }}>
         <Toolbar variant="dense" sx={{ gap: 1 }}>
           <Tooltip title="Back to home">
             <IconButton
               size="small"
               onClick={onBack}
-              sx={{ color: 'rgba(255,255,255,0.8)', mr: 0.5 }}
+              sx={{ color: 'text.secondary', mr: 0.5 }}
             >
               <ArrowBackIcon fontSize="small" />
             </IconButton>
@@ -567,8 +574,6 @@ export default function AssessmentWizard({ manifest, onBack, onStart }: Props) {
                 disabled={!canProceedFromStep[activeStep]}
                 sx={{
                   textTransform: 'none',
-                  bgcolor: '#2e7d32',
-                  '&:hover': { bgcolor: '#1b5e20' },
                 }}
               >
                 Next
@@ -583,8 +588,6 @@ export default function AssessmentWizard({ manifest, onBack, onStart }: Props) {
                 }
                 sx={{
                   textTransform: 'none',
-                  bgcolor: '#2e7d32',
-                  '&:hover': { bgcolor: '#1b5e20' },
                 }}
               >
                 {loading ? 'Loading…' : 'Start Assessment'}

@@ -7,6 +7,11 @@
 
 EAROS is a structured, extensible framework for evaluating enterprise architecture artifacts. It provides a universal rubric foundation, artifact-specific profiles, and cross-cutting overlays that together enable consistent, evidence-anchored assessment — by human reviewers and AI agents alike.
 
+<p align="center">
+  <img src="images/hero-home.png" width="49%" alt="EAROS Home Screen">
+  <img src="images/hero-editor.png" width="49%" alt="EAROS Editor Screen">
+</p>
+
 > EAROS is to architecture review what a marking rubric is to an exam: it makes the criteria explicit, the scoring reproducible, and the feedback actionable.
 
 ---
