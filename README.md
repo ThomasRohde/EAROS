@@ -125,8 +125,14 @@ EAROS/
 │   ├── scoring-sheets/              Excel-based tool for manual assessment
 │   │   └── EAROS_Scoring_Sheet_v2.xlsx
 │   ├── validate.py                  Python schema validation utility
-│   └── editor/                      Browser-based YAML editor (React + JSON Forms + Vite)
-│       ├── bin.js                   CLI entry point (validate / manifest / start editor)
+│   └── editor/                      Browser-based YAML editor + CLI (React + JSON Forms + Vite)
+│       ├── bin.js                   CLI entry point (earos command)
+│       ├── scaffold/                Bundled workspace scaffold (copied by earos init)
+│       │   ├── core/, profiles/, overlays/, templates/, standard/schemas/
+│       │   ├── .agents/skills/      10 agent skills (agent-agnostic)
+│       │   ├── .claude/CLAUDE.md    Claude Code discovery shim (points to AGENTS.md)
+│       │   ├── AGENTS.md            Full project guide for AI agents
+│       │   └── earos.manifest.yaml
 │       ├── src/
 │       │   ├── components/          HomeScreen, AssessmentWizard, ArtifactEditor,
 │       │   │                        RubricEditor, CriterionScorer, HelpDialog, …
@@ -153,17 +159,17 @@ EAROS/
 │   ├── getting-started.md
 │   └── profile-authoring-guide.md
 │
-└── .claude/skills/                  Claude agent skills for EAROS workflows
-    ├── earos-assess/                Full artifact assessment (8-step DAG, RULERS protocol)
-    ├── earos-review/                Challenger / evaluation auditor
-    ├── earos-template-fill/         Author coaching for assessment-ready artifacts
-    ├── earos-artifact-gen/          Guided interview → schema-compliant artifact YAML
-    ├── earos-create/                New rubric creation (profile, overlay, or core)
-    ├── earos-profile-author/        YAML authoring guide and v2 field reference
-    ├── earos-calibrate/             Calibration exercises and reliability metrics
-    ├── earos-report/                Executive reporting and portfolio dashboards
-    ├── earos-validate/              Repository health check and schema validation
-    └── earos-remediate/             Prioritized improvement plan from evaluation records
+└── .claude/skills/                  Claude Code skills (wraps .agents/skills/ for Claude Code)
+    ├── earos-assess/
+    ├── earos-review/
+    ├── earos-template-fill/
+    ├── earos-artifact-gen/
+    ├── earos-create/
+    ├── earos-profile-author/
+    ├── earos-calibrate/
+    ├── earos-report/
+    ├── earos-validate/
+    └── earos-remediate/
 ```
 
 ---
@@ -220,37 +226,103 @@ Gates prevent weak scores being masked by high averages elsewhere.
 
 ---
 
-## Quick Start
+## Getting Started
 
-### For Governance Teams — Creating and Managing Rubrics
+### Install
 
-1. Open the editor: `cd tools/editor && npm install && node bin.js`
-2. On the home screen, select **Create Rubric** or **Edit Rubric**
-3. Use the `earos-create` agent skill to author a new profile or overlay via guided interview
-4. Validate YAML: `node bin.js validate path/to/rubric.yaml`
-5. Add to the manifest: `node bin.js manifest add path/to/rubric.yaml`
+```bash
+npm install -g @trohde/earos
+```
 
-### For Reviewers — Assessing an Artifact
+### Scaffold a new workspace
+
+```bash
+earos init my-architecture
+cd my-architecture
+earos
+```
+
+`earos init` copies a complete, ready-to-use EAROS workspace into `my-architecture/` — all rubrics, schemas, templates, and agent skills bundled. The browser editor opens automatically at `http://localhost:3000`.
+
+---
+
+## earos init — Agent-Agnostic Workspace
+
+`earos init [dir]` scaffolds a self-contained EAROS workspace that works with any AI coding agent:
+
+```
+my-architecture/
+├── earos.manifest.yaml          Inventory of all rubric files
+├── AGENTS.md                    Full project guide — read by Cursor, Copilot, Windsurf, etc.
+├── .claude/CLAUDE.md            Thin Claude Code shim — points to AGENTS.md for discovery
+├── .agents/skills/              10 EAROS skills in agent-agnostic format
+│   ├── earos-assess/
+│   ├── earos-review/
+│   ├── earos-template-fill/
+│   ├── earos-artifact-gen/
+│   ├── earos-create/
+│   ├── earos-profile-author/
+│   ├── earos-calibrate/
+│   ├── earos-report/
+│   ├── earos-validate/
+│   └── earos-remediate/
+├── core/core-meta-rubric.yaml
+├── profiles/                    5 artifact profiles (solution-architecture, reference-architecture,
+│                                adr, capability-map, roadmap)
+├── overlays/                    3 cross-cutting overlays (security, data-governance, regulatory)
+├── standard/schemas/            JSON Schemas for rubrics, evaluations, and artifacts
+├── templates/                   Blank templates for new rubrics and evaluation records
+├── evaluations/                 Your evaluation records go here
+└── calibration/                 Calibration artifacts and results
+```
+
+**Agent-agnostic design:** Skills live in `.agents/skills/` — a convention understood by Cursor, GitHub Copilot, Windsurf, and other AI coding tools. `AGENTS.md` at the repo root is the primary guide for any agent. Claude Code additionally discovers `.claude/CLAUDE.md`, which is a thin shim that points agents to `AGENTS.md` and `.agents/skills/`. Every skill reads the actual YAML rubric files at runtime, so assessments always use the latest rubric version regardless of which agent runs them.
+
+---
+
+## CLI Commands
+
+```bash
+earos                              # Open the web editor (http://localhost:3000)
+earos init [dir]                   # Scaffold a new agent-agnostic EAROS workspace
+earos validate <file>              # Validate a rubric/evaluation/artifact YAML against schemas
+earos manifest                     # Regenerate earos.manifest.yaml from the filesystem
+earos manifest add <path>          # Add a single file to the manifest
+earos manifest check               # Verify manifest matches filesystem (exits non-zero on drift)
+```
+
+After creating a new rubric, always run `earos manifest add <path>` to register it.
+
+---
+
+## For Governance Teams — Creating and Managing Rubrics
+
+1. Run `earos` to open the editor, then select **Create Rubric** or **Edit Rubric**
+2. Use the `earos-create` agent skill to author a new profile or overlay via guided interview
+3. Validate YAML: `earos validate path/to/rubric.yaml`
+4. Add to the manifest: `earos manifest add path/to/rubric.yaml`
+
+## For Reviewers — Assessing an Artifact
 
 1. **Identify the artifact type** — solution architecture, ADR, capability map, reference architecture, or roadmap
 2. **Select the rubric set:** always start with `core/core-meta-rubric.yaml`, add the matching profile from `profiles/`, add applicable overlays from `overlays/`
 3. **Score using one of:**
-   - **Browser editor:** `cd tools/editor && node bin.js` — guided wizard with criterion-by-criterion scoring
+   - **Browser editor:** `earos` — guided wizard with criterion-by-criterion scoring
    - **Spreadsheet:** open `tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx`
-   - **Agent skill:** use the `earos-assess` skill in Claude
+   - **Agent skill:** use the `earos-assess` skill in your AI coding agent
 4. **Check gates** — any critical gate failure overrides the aggregate score
 5. **Determine status** against the thresholds above
 
 See [`docs/getting-started.md`](docs/getting-started.md) for a full walkthrough.
 
-### For Architects — Writing an Assessment-Ready Artifact
+## For Architects — Writing an Assessment-Ready Artifact
 
 1. Use the `earos-artifact-gen` skill — it interviews you and produces a schema-compliant artifact YAML
 2. Or use the `earos-template-fill` skill — it guides you through writing each section to satisfy rubric evidence requirements
 3. Or open the editor and select **Create Artifact** on the home screen
 4. Validate against `standard/schemas/artifact.schema.json`
 
-### AI-Agent Assessment
+## AI-Agent Assessment
 
 EAROS is designed for automated evaluation. The YAML rubric files are the machine-readable specification; the evaluation record schema defines the output format.
 
@@ -298,9 +370,11 @@ Calibrate your agent against `calibration/gold-set/` before production use. Targ
 
 ---
 
-## Claude Agent Skills
+## Agent Skills
 
-The `.claude/skills/` directory contains 10 Claude agent skills for end-to-end EAROS workflows. Skills are auto-triggered when their description matches the user's request — no slash command needed. Every skill reads the actual YAML rubric files at runtime, so assessments always use the latest rubric version.
+EAROS ships 10 agent skills for end-to-end workflows. In scaffolded workspaces (`earos init`) they live in `.agents/skills/` — readable by any AI coding agent (Cursor, Copilot, Windsurf, Claude Code, etc.). In the EAROS development repo they additionally appear as Claude Code skills in `.claude/skills/`.
+
+Every skill reads the actual YAML rubric files at runtime — no embedded rubric content — so assessments always use the latest rubric version.
 
 | Skill | Purpose |
 |-------|---------|
@@ -320,6 +394,8 @@ The `.claude/skills/` directory contains 10 Claude agent skills for end-to-end E
 ## The EAROS Editor
 
 A browser-based tool for creating and editing EAROS rubrics, running assessments, and authoring artifact documents. Built with React + JSON Forms + Material UI + Vite.
+
+When installed globally (`npm install -g @trohde/earos`), use the `earos` command from any workspace. When working in the development repo directly:
 
 ```bash
 cd tools/editor
