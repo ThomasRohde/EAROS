@@ -17,12 +17,18 @@ import {
   ListItemText,
   ListSubheader,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CodeIcon from '@mui/icons-material/Code'
 import SaveIcon from '@mui/icons-material/Save'
 import AddIcon from '@mui/icons-material/Add'
-import KindSelector from './KindSelector'
 import type { Kind } from './KindSelector'
 import YamlPreview from './YamlPreview'
 import FileControls from './FileControls'
@@ -398,24 +404,25 @@ export default function RubricEditor({ manifest, onBack }: Props) {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [currentFile, setCurrentFile] = useState<string | null>(null)
   const [currentEntry, setCurrentEntry] = useState<ManifestEntry | null>(null)
+  const [newDialogOpen, setNewDialogOpen] = useState(false)
+  const [dialogKind, setDialogKind] = useState<Kind>('profile')
 
   useEffect(() => {
     setValidation(validateData(data, schemaFor(kind)))
   }, [data, kind])
 
-  const handleKindChange = useCallback((k: Kind) => {
-    setKind(k)
-    setData(INITIAL[k])
-    setCurrentFile(null)
-    setCurrentEntry(null)
+  const handleNew = useCallback(() => {
+    setNewDialogOpen(true)
   }, [])
 
-  const handleNew = useCallback(() => {
-    setData(INITIAL[kind])
+  const handleNewConfirm = useCallback(() => {
+    setKind(dialogKind)
+    setData(INITIAL[dialogKind])
     setCurrentFile(null)
     setCurrentEntry(null)
-    setToast(`New ${kind}`)
-  }, [kind])
+    setNewDialogOpen(false)
+    setToast(`New ${dialogKind}`)
+  }, [dialogKind])
 
   const loadYaml = useCallback(
     (content: string) => {
@@ -494,8 +501,7 @@ export default function RubricEditor({ manifest, onBack }: Props) {
           <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: 0.5, mr: 0.5 }}>
             Edit Rubric
           </Typography>
-          <KindSelector kind={kind} onChange={handleKindChange} />
-          <Tooltip title={`New ${kind} from template`}>
+          <Tooltip title="New rubric from template">
             <Button
               size="small"
               variant="outlined"
@@ -566,6 +572,25 @@ export default function RubricEditor({ manifest, onBack }: Props) {
       </Box>
 
       <StatusBar validation={validation} kind={kind} />
+
+      <Dialog open={newDialogOpen} onClose={() => setNewDialogOpen(false)}>
+        <DialogTitle>New Rubric</DialogTitle>
+        <DialogContent>
+          <RadioGroup
+            value={dialogKind}
+            onChange={(e) => setDialogKind(e.target.value as Kind)}
+          >
+            <FormControlLabel value="core_rubric" control={<Radio />} label="Core Rubric" />
+            <FormControlLabel value="profile" control={<Radio />} label="Profile" />
+            <FormControlLabel value="overlay" control={<Radio />} label="Overlay" />
+            <FormControlLabel value="evaluation" control={<Radio />} label="Evaluation Record" />
+          </RadioGroup>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setNewDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleNewConfirm} variant="contained">Create</Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={toast !== null}
