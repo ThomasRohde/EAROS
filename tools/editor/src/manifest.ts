@@ -170,7 +170,7 @@ if (isMain) {
 
   function loadManifest(): ManifestData | null {
     if (!existsSync(MANIFEST_PATH)) return null
-    return readYaml(MANIFEST_PATH) as ManifestData | null
+    return readYaml(MANIFEST_PATH) as unknown as ManifestData | null
   }
 
   const subArgs = process.argv.slice(2)
