@@ -35,7 +35,14 @@
       "Bash(node generate-presentations.js)",
       "Bash(xxd)",
       "Bash(grep -ri danske --include=*.md --include=*.yaml --include=*.json --include=*.yml)",
-      "Bash(xargs -I{} sh -c \"head -c3 \"\"{}\"\" | xxd | grep -q \"\"ef bb bf\"\" && echo \"\"BOM: {}\"\"\")"
+      "Bash(xargs -I{} sh -c \"head -c3 \"\"{}\"\" | xxd | grep -q \"\"ef bb bf\"\" && echo \"\"BOM: {}\"\"\")",
+      "Bash(find C:UsersthomaProjectsEAROS -not -path */node_modules/* -type d)",
+      "Bash(git mv:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(xargs sed:*)",
+      "Bash(grep -r .v2. --include=*.md --include=*.yaml --include=*.json --include=*.py -l)",
+      "Bash(grep -r EAROS_v2 --include=*.md --include=*.yaml --include=*.json -l)",
+      "Bash(grep -r \"security\\\\.v2\\\\|data-governance\\\\.v2\\\\|regulatory\\\\.v2\" --include=*.md --include=*.yaml --include=*.json -l)"
     ]
   }
 }

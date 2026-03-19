@@ -24,16 +24,16 @@ All schema errors and documentation inaccuracies have been fixed. Quality warnin
 
 ## Check 1 — Schema Validation
 
-**Tool:** Python `jsonschema` v4.x, Draft 2020-12 validator against `standard/schemas/rubric.schema.v2.json`
+**Tool:** Python `jsonschema` v4.x, Draft 2020-12 validator against `standard/schemas/rubric.schema.json`
 **Required top-level fields per schema:** `rubric_id`, `version`, `kind`, `title`, `artifact_type`, `dimensions`, `scoring`, `outputs`
 
 ### Violations Found and Fixed
 
 | File | Violation | Fix Applied |
 |------|-----------|-------------|
-| `profiles/roadmap.v2.yaml` | Missing required `outputs` section | Added `outputs` block with all v2 fields |
-| `overlays/regulatory.v2.yaml` | Missing required `scoring` section | Added `scoring` with `append_to_base_rubric` method |
-| `overlays/regulatory.v2.yaml` | Missing required `outputs` section | Added `outputs` block with all v2 fields |
+| `profiles/roadmap.yaml` | Missing required `outputs` section | Added `outputs` block with all v2 fields |
+| `overlays/regulatory.yaml` | Missing required `scoring` section | Added `scoring` with `append_to_base_rubric` method |
+| `overlays/regulatory.yaml` | Missing required `outputs` section | Added `outputs` block with all v2 fields |
 
 ### Post-fix Status
 
@@ -50,16 +50,16 @@ All 9 rubric files now pass schema validation with 0 errors.
 
 | ID | File |
 |----|------|
-| ACT-01 | core/core-meta-rubric.v2.yaml |
-| ADR-01, ADR-02, ADR-03 | profiles/adr.v2.yaml |
-| CAP-01, CAP-02, CAP-03 | profiles/capability-map.v2.yaml |
-| CMP-01, CON-01, CVP-01, MNT-01, RAT-01, SCP-01, STK-01, STK-02, TRC-01 | core/core-meta-rubric.v2.yaml |
-| DAT-01 | overlays/data-governance.v2.yaml |
-| RA-DEC-01, RA-DEC-02, RA-IMP-01, RA-IMP-02, RA-OPS-01, RA-QA-01, RA-REU-01, RA-VIEW-01, RA-VIEW-02 | profiles/reference-architecture.v2.yaml |
-| RD-DEP-01, RD-OWN-01, RD-TRN-01 | profiles/roadmap.v2.yaml |
-| REG-EV-01, REG-ID-01 | overlays/regulatory.v2.yaml |
-| SEC-01 | overlays/security.v2.yaml |
-| SOL-01, SOL-02, SOL-03 | profiles/solution-architecture.v2.yaml |
+| ACT-01 | core/core-meta-rubric.yaml |
+| ADR-01, ADR-02, ADR-03 | profiles/adr.yaml |
+| CAP-01, CAP-02, CAP-03 | profiles/capability-map.yaml |
+| CMP-01, CON-01, CVP-01, MNT-01, RAT-01, SCP-01, STK-01, STK-02, TRC-01 | core/core-meta-rubric.yaml |
+| DAT-01 | overlays/data-governance.yaml |
+| RA-DEC-01, RA-DEC-02, RA-IMP-01, RA-IMP-02, RA-OPS-01, RA-QA-01, RA-REU-01, RA-VIEW-01, RA-VIEW-02 | profiles/reference-architecture.yaml |
+| RD-DEP-01, RD-OWN-01, RD-TRN-01 | profiles/roadmap.yaml |
+| REG-EV-01, REG-ID-01 | overlays/regulatory.yaml |
+| SEC-01 | overlays/security.yaml |
+| SOL-01, SOL-02, SOL-03 | profiles/solution-architecture.yaml |
 
 ---
 
@@ -78,10 +78,10 @@ All 9 rubric files now pass schema validation with 0 errors.
 
 | File | Violation | Fix Applied |
 |------|-----------|-------------|
-| `profiles/solution-architecture.v2.yaml` | `inherits: [EAROS-CORE-001@1.0.0]` — referenced rubric_id does not exist in the v2 repository | Changed to `inherits: [EAROS-CORE-002]` |
-| `profiles/adr.v2.yaml` | Same — inherits non-existent `EAROS-CORE-001@1.0.0` | Changed to `inherits: [EAROS-CORE-002]` |
-| `profiles/capability-map.v2.yaml` | Same — inherits non-existent `EAROS-CORE-001@1.0.0` | Changed to `inherits: [EAROS-CORE-002]` |
-| `overlays/regulatory.v2.yaml` | Had `inherits: [EAROS-CORE-002]` — overlays must NOT have an `inherits` field; they append, not inherit | Removed `inherits` field entirely |
+| `profiles/solution-architecture.yaml` | `inherits: [EAROS-CORE-001@1.0.0]` — referenced rubric_id does not exist in the v2 repository | Changed to `inherits: [EAROS-CORE-002]` |
+| `profiles/adr.yaml` | Same — inherits non-existent `EAROS-CORE-001@1.0.0` | Changed to `inherits: [EAROS-CORE-002]` |
+| `profiles/capability-map.yaml` | Same — inherits non-existent `EAROS-CORE-001@1.0.0` | Changed to `inherits: [EAROS-CORE-002]` |
+| `overlays/regulatory.yaml` | Had `inherits: [EAROS-CORE-002]` — overlays must NOT have an `inherits` field; they append, not inherit | Removed `inherits` field entirely |
 
 ### Post-fix Status
 
@@ -103,15 +103,15 @@ All ordinal criteria have all five keys in `scoring_guide`. ✓
 
 | File | Method | Thresholds |
 |------|--------|------------|
-| `core-meta-rubric.v2.yaml` | `gates_first_then_weighted_average` | Full set incl. floor check ✓ |
-| `reference-architecture.v2.yaml` | `gates_first_then_weighted_average` | Full set ✓ |
-| `roadmap.v2.yaml` | `gates_first_then_weighted_average` | **Fixed** — was missing floor check `no dimension < 2.0` |
-| `solution-architecture.v2.yaml` | `merge_with_inherited_and_apply_core_thresholds` | Profile-specific escalation only (by design) |
-| `adr.v2.yaml` | `merge_with_inherited_and_apply_core_thresholds` | Profile-specific escalation only (by design) |
-| `capability-map.v2.yaml` | `merge_with_inherited_and_apply_core_thresholds` | Profile-specific escalation only (by design) |
-| `security.v2.yaml` | `append_to_base_rubric` | Overlay-specific ✓ |
-| `data-governance.v2.yaml` | `append_to_base_rubric` | Overlay-specific ✓ |
-| `regulatory.v2.yaml` | `append_to_base_rubric` | **Fixed** — was missing `scoring` section |
+| `core-meta-rubric.yaml` | `gates_first_then_weighted_average` | Full set incl. floor check ✓ |
+| `reference-architecture.yaml` | `gates_first_then_weighted_average` | Full set ✓ |
+| `roadmap.yaml` | `gates_first_then_weighted_average` | **Fixed** — was missing floor check `no dimension < 2.0` |
+| `solution-architecture.yaml` | `merge_with_inherited_and_apply_core_thresholds` | Profile-specific escalation only (by design) |
+| `adr.yaml` | `merge_with_inherited_and_apply_core_thresholds` | Profile-specific escalation only (by design) |
+| `capability-map.yaml` | `merge_with_inherited_and_apply_core_thresholds` | Profile-specific escalation only (by design) |
+| `security.yaml` | `append_to_base_rubric` | Overlay-specific ✓ |
+| `data-governance.yaml` | `append_to_base_rubric` | Overlay-specific ✓ |
+| `regulatory.yaml` | `append_to_base_rubric` | **Fixed** — was missing `scoring` section |
 
 **Note on `merge_with_inherited_and_apply_core_thresholds`:** This method name is non-standard (not defined in the schema's method enum). It is nonetheless consistent across the three older profiles (SOL, ADR, CAP) and is a valid string per the schema (which does not restrict method values). Future authoring guidance should address whether these profiles should adopt `gates_first_then_weighted_average`.
 
@@ -150,17 +150,17 @@ Gate inventory:
 
 | File | Filename Major | Internal Version | Status |
 |------|---------------|-----------------|--------|
-| `core-meta-rubric.v2.yaml` | 2 | 2.0.0 | ✓ |
-| `reference-architecture.v2.yaml` | 2 | 2.0.0 | ✓ |
-| `roadmap.v2.yaml` | 2 | 2.0.0 | ✓ |
-| `regulatory.v2.yaml` | 2 | 2.0.0 | ✓ |
-| `solution-architecture.v2.yaml` | 2 | **1.0.0 → fixed to 2.0.0** | ✓ (after fix) |
-| `adr.v2.yaml` | 2 | **1.0.0 → fixed to 2.0.0** | ✓ (after fix) |
-| `capability-map.v2.yaml` | 2 | **1.0.0 → fixed to 2.0.0** | ✓ (after fix) |
-| `security.v2.yaml` | 2 | 1.0.0 | ⚠ mismatch |
-| `data-governance.v2.yaml` | 2 | 1.0.0 | ⚠ mismatch |
+| `core-meta-rubric.yaml` | 2 | 2.0.0 | ✓ |
+| `reference-architecture.yaml` | 2 | 2.0.0 | ✓ |
+| `roadmap.yaml` | 2 | 2.0.0 | ✓ |
+| `regulatory.yaml` | 2 | 2.0.0 | ✓ |
+| `solution-architecture.yaml` | 2 | **1.0.0 → fixed to 2.0.0** | ✓ (after fix) |
+| `adr.yaml` | 2 | **1.0.0 → fixed to 2.0.0** | ✓ (after fix) |
+| `capability-map.yaml` | 2 | **1.0.0 → fixed to 2.0.0** | ✓ (after fix) |
+| `security.yaml` | 2 | 1.0.0 | ⚠ mismatch |
+| `data-governance.yaml` | 2 | 1.0.0 | ⚠ mismatch |
 
-**Remaining mismatch — `security.v2.yaml` and `data-governance.v2.yaml`:** These overlays have `version: 1.0.0` internally but are named `.v2.yaml`. The `v2` in the filename appears to denote EAROS framework era rather than the file's own major version — a deliberate ambiguity in the original design. These have NOT been changed because: (1) bumping to 2.0.0 would imply a breaking change that did not occur, and (2) the `v2` naming may be intentional to signal EAROS v2 compatibility. This should be resolved by a governance decision, documented below under Judgment Calls.
+**Remaining mismatch — `security.yaml` and `data-governance.yaml`:** These overlays have `version: 1.0.0` internally but are named `.yaml`. The `v2` in the filename appears to denote EAROS framework era rather than the file's own major version — a deliberate ambiguity in the original design. These have NOT been changed because: (1) bumping to 2.0.0 would imply a breaking change that did not occur, and (2) the `v2` naming may be intentional to signal EAROS v2 compatibility. This should be resolved by a governance decision, documented below under Judgment Calls.
 
 All filenames use kebab-case ✓. No spaces in filenames ✓.
 
@@ -174,21 +174,21 @@ All filenames use kebab-case ✓. No spaces in filenames ✓.
 
 ### CLAUDE.md-required criterion fields (`description`, `gate`, `anti_patterns`, `examples.good`, `examples.bad`, `decision_tree`, `remediation_hints`)
 
-This is a quality standard beyond the JSON schema. 89 warnings remain after fixes. The `reference-architecture.v2.yaml` profile is the most complete; older profiles (SOL, ADR, CAP, Roadmap) and the two simple overlays (SEC, DAT) are missing these fields on most criteria.
+This is a quality standard beyond the JSON schema. 89 warnings remain after fixes. The `reference-architecture.yaml` profile is the most complete; older profiles (SOL, ADR, CAP, Roadmap) and the two simple overlays (SEC, DAT) are missing these fields on most criteria.
 
 **Breakdown by file:**
 
 | File | Criteria | Missing `description` | Missing `decision_tree` | Missing `examples` |
 |------|----------|-----------------------|------------------------|-------------------|
-| `core-meta-rubric.v2.yaml` | 10 | 9 | 8 | 7 |
-| `reference-architecture.v2.yaml` | 9 | 0 | 5 | 3 |
-| `solution-architecture.v2.yaml` | 3 | 3 | 3 | 3 |
-| `adr.v2.yaml` | 3 | 3 | 3 | 3 |
-| `capability-map.v2.yaml` | 3 | 3 | 3 | 3 |
-| `roadmap.v2.yaml` | 3 | 3 | 3 | 3 |
-| `security.v2.yaml` | 1 | 1 | 1 | 1 |
-| `data-governance.v2.yaml` | 1 | 1 | 1 | 1 |
-| `regulatory.v2.yaml` | 2 | 2 | 2 | 2 |
+| `core-meta-rubric.yaml` | 10 | 9 | 8 | 7 |
+| `reference-architecture.yaml` | 9 | 0 | 5 | 3 |
+| `solution-architecture.yaml` | 3 | 3 | 3 | 3 |
+| `adr.yaml` | 3 | 3 | 3 | 3 |
+| `capability-map.yaml` | 3 | 3 | 3 | 3 |
+| `roadmap.yaml` | 3 | 3 | 3 | 3 |
+| `security.yaml` | 1 | 1 | 1 | 1 |
+| `data-governance.yaml` | 1 | 1 | 1 | 1 |
+| `regulatory.yaml` | 2 | 2 | 2 | 2 |
 
 **Action required:** The missing fields in each criterion need domain-expert authoring. They cannot be safely auto-filled — they require knowledge of the review context. This is tracked as a backlog item below.
 
@@ -207,13 +207,13 @@ This is a quality standard beyond the JSON schema. 89 warnings remain after fixe
 | `docs/getting-started.md` | Gate description stated "any gate criterion scores 0 → Reject" — incorrect; only `critical` gates reject; `major` gates cap at Conditional Pass | Fixed to accurately describe gate severity model |
 | `CHANGELOG.md` | DAG step names `challenge_pass_check` and `calibration_anchor` | Fixed |
 | `CHANGELOG.md` | Reference architecture profile listed as "11 criteria" — actual count is 9 | Fixed |
-| `profiles/reference-architecture.v2.yaml` | Internal comment stated "11 criteria … 21 criteria total" | Fixed to 9 / 19 |
+| `profiles/reference-architecture.yaml` | Internal comment stated "11 criteria … 21 criteria total" | Fixed to 9 / 19 |
 | `CLAUDE.md` | Section 10 stated "11 criteria … 21 criteria total" | Fixed to 9 / 19 |
 
 ### File reference integrity (README → actual files)
 
 All files referenced in README.md were verified to exist:
-- `core/core-meta-rubric.v2.yaml` ✓
+- `core/core-meta-rubric.yaml` ✓
 - All 5 profiles ✓
 - All 3 overlays ✓
 - Both JSON schemas ✓
@@ -224,7 +224,7 @@ All files referenced in README.md were verified to exist:
 - `calibration/gold-set/`, `calibration/results/` ✓
 - All 3 research files ✓
 - All 3 presentation files ✓
-- `docs/getting-started.md`, `docs/profile-authoring-guide.v2.md` ✓
+- `docs/getting-started.md`, `docs/profile-authoring-guide.md` ✓
 
 ---
 
@@ -249,7 +249,7 @@ No other duplicate files found. ✓
 
 ### Coverage gaps (not fixed — judgment calls)
 
-- The CHANGELOG v1.0.0 entry references `solution-architecture.v1.yaml` and `adr.v1.yaml`, but the repository contains `solution-architecture.v2.yaml` and `adr.v2.yaml`. The v1.x files no longer exist in the repository. The v2.0.0 changelog does not mention these profiles were ported/revised for v2. **Recommendation:** Add a changelog entry noting the v2 updates to `solution-architecture.v2.yaml`, `adr.v2.yaml`, and `capability-map.v2.yaml` — or annotate that they were renamed from v1 originals.
+- The CHANGELOG v1.0.0 entry references `solution-architecture.yaml` and `adr.yaml`, but the repository contains `solution-architecture.yaml` and `adr.yaml`. The v1.x files no longer exist in the repository. The v2.0.0 changelog does not mention these profiles were ported/revised for v2. **Recommendation:** Add a changelog entry noting the v2 updates to `solution-architecture.yaml`, `adr.yaml`, and `capability-map.yaml` — or annotate that they were renamed from v1 originals.
 
 ---
 
@@ -263,9 +263,9 @@ The CLAUDE.md accurately describes the project structure, scoring model, gate ty
 
 These items require deliberate decisions by the project owner:
 
-### JC-1: Overlays `security.v2.yaml` and `data-governance.v2.yaml` — version mismatch
+### JC-1: Overlays `security.yaml` and `data-governance.yaml` — version mismatch
 
-Both have `version: 1.0.0` internally but are named `.v2.yaml`. Two interpretations:
+Both have `version: 1.0.0` internally but are named `.yaml`. Two interpretations:
 - **Interpretation A:** The `v2` in the filename means EAROS-v2-era compatibility, not the file's own major version. Under this interpretation, `version: 1.0.0` is correct.
 - **Interpretation B:** Per CLAUDE.md §8 convention, `v<major>` in the filename must match the internal major. Under this interpretation, the internal version should be `2.0.0`.
 
@@ -290,9 +290,9 @@ Priority order: core criteria first (most frequently used), then SOL/ADR/CAP pro
 
 ### JC-4: CHANGELOG v1.0.0 entry references non-existent file names
 
-The v1.0.0 section mentions `solution-architecture.v1.yaml` and `adr.v1.yaml`, which are not in the repository. Either the files were renamed without a changelog entry, or the v1 files were replaced wholesale.
+The v1.0.0 section mentions `solution-architecture.yaml` and `adr.yaml`, which are not in the repository. Either the files were renamed without a changelog entry, or the v1 files were replaced wholesale.
 
-**Recommendation:** Add a note to CHANGELOG v2.0.0 explaining that `solution-architecture.v2.yaml` and `adr.v2.yaml` are updated versions of the v1.0 originals, now inheriting EAROS-CORE-002.
+**Recommendation:** Add a note to CHANGELOG v2.0.0 explaining that `solution-architecture.yaml` and `adr.yaml` are updated versions of the v1.0 originals, now inheriting EAROS-CORE-002.
 
 ---
 
@@ -300,15 +300,15 @@ The v1.0.0 section mentions `solution-architecture.v1.yaml` and `adr.v1.yaml`, w
 
 | File | Change |
 |------|--------|
-| `profiles/solution-architecture.v2.yaml` | Fixed `inherits` (CORE-001→CORE-002), added `design_method: decision_centred`, bumped `version` to 2.0.0, added `require_evidence_class` and `require_evidence_anchors` to outputs |
-| `profiles/adr.v2.yaml` | Fixed `inherits`, added `design_method: decision_centred`, bumped `version` to 2.0.0, added v2 output fields |
-| `profiles/capability-map.v2.yaml` | Fixed `inherits`, added `design_method: viewpoint_centred`, bumped `version` to 2.0.0, added v2 output fields |
-| `profiles/roadmap.v2.yaml` | Added missing `outputs` section, fixed `thresholds` to include floor check and `not_reviewable` status |
-| `overlays/regulatory.v2.yaml` | Removed erroneous `inherits` field, added `scoring` section, added `outputs` section, fixed `rubric_id` from `EAROS-OVL-REG-001` to `EAROS-OVR-REG-001`, added `anti_patterns` and `remediation_hints` to both criteria |
+| `profiles/solution-architecture.yaml` | Fixed `inherits` (CORE-001→CORE-002), added `design_method: decision_centred`, bumped `version` to 2.0.0, added `require_evidence_class` and `require_evidence_anchors` to outputs |
+| `profiles/adr.yaml` | Fixed `inherits`, added `design_method: decision_centred`, bumped `version` to 2.0.0, added v2 output fields |
+| `profiles/capability-map.yaml` | Fixed `inherits`, added `design_method: viewpoint_centred`, bumped `version` to 2.0.0, added v2 output fields |
+| `profiles/roadmap.yaml` | Added missing `outputs` section, fixed `thresholds` to include floor check and `not_reviewable` status |
+| `overlays/regulatory.yaml` | Removed erroneous `inherits` field, added `scoring` section, added `outputs` section, fixed `rubric_id` from `EAROS-OVL-REG-001` to `EAROS-OVR-REG-001`, added `anti_patterns` and `remediation_hints` to both criteria |
 | `README.md` | Fixed score labels (Exemplary→Strong, Adequate→Good, Insufficient→Weak), fixed DAG step names |
 | `docs/getting-started.md` | Fixed `level_descriptors`→`scoring_guide`, `evidence_requirement`→`required_evidence`, rewrote gate description to accurately reflect severity model |
 | `CHANGELOG.md` | Fixed DAG step names, fixed reference architecture criterion count (11→9) |
-| `profiles/reference-architecture.v2.yaml` | Fixed internal comment (11 criteria→9, 21 total→19) |
+| `profiles/reference-architecture.yaml` | Fixed internal comment (11 criteria→9, 21 total→19) |
 | `CLAUDE.md` | Fixed Section 10 criterion count (11→9, 21→19) |
 | `tools/validate.py` | New file — validation script for ongoing use |
 

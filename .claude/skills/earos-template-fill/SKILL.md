@@ -16,13 +16,13 @@ The rubric is not the enemy. Every criterion it encodes reflects a real quality 
 ## Step 0 — Identify Artifact Type and Load Rubric
 
 Read these before giving any guidance:
-1. `core/core-meta-rubric.v2.yaml` — the universal criteria every artifact must address
+1. `core/core-meta-rubric.yaml` — the universal criteria every artifact must address
 2. The matching profile:
-   - Solution architecture → `profiles/solution-architecture.v2.yaml`
-   - Reference architecture → `profiles/reference-architecture.v2.yaml`
-   - ADR → `profiles/adr.v2.yaml`
-   - Capability map → `profiles/capability-map.v2.yaml`
-   - Roadmap → `profiles/roadmap.v2.yaml`
+   - Solution architecture → `profiles/solution-architecture.yaml`
+   - Reference architecture → `profiles/reference-architecture.yaml`
+   - ADR → `profiles/adr.yaml`
+   - Capability map → `profiles/capability-map.yaml`
+   - Roadmap → `profiles/roadmap.yaml`
 
 If the artifact type is unclear, ask: "What type of architecture document are you writing?"
 

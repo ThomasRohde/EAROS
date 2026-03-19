@@ -4,6 +4,8 @@
 
 This file tells Claude how to work effectively in this project.
 
+> **Greenfield project.** There are no published prior versions. Do not worry about backward compatibility — optimize for clarity and consistency over preserving legacy conventions.
+
 ---
 
 ## 1. Project Overview
@@ -26,12 +28,12 @@ EAROS is a structured, extensible framework for evaluating enterprise architectu
 │  capability-map · roadmap                                │
 ├──────────────────────────────────────────────────────────┤
 │  CORE  (universal foundation — all artifacts)            │
-│  core-meta-rubric.v2.yaml  (EAROS-CORE-002)             │
+│  core-meta-rubric.yaml  (EAROS-CORE-002)             │
 │  9 dimensions · 0–4 ordinal scale · gate model          │
 └──────────────────────────────────────────────────────────┘
 ```
 
-- **Core** (`core/core-meta-rubric.v2.yaml`, `rubric_id: EAROS-CORE-002`) defines 9 universal dimensions with 10 criteria that apply to every architecture artifact. Always evaluated.
+- **Core** (`core/core-meta-rubric.yaml`, `rubric_id: EAROS-CORE-002`) defines 9 universal dimensions with 10 criteria that apply to every architecture artifact. Always evaluated.
 - **Profiles** (`profiles/`) extend the core for specific artifact types (e.g., reference-architecture adds 11 criteria across 6 dimensions). Each profile `inherits: [EAROS-CORE-002]`.
 - **Overlays** (`overlays/`) inject cross-cutting concerns (security, data governance, regulatory) on top of any core+profile combination. Applied by context, not by artifact type.
 
@@ -139,27 +141,27 @@ The rubric is locked during evaluation (`rubric_locked: true`). Calibration uses
 ```
 EAROS/
 ├── standard/
-│   ├── EAROS_v2.md                  Canonical standard (read this first for deep understanding)
+│   ├── EAROS.md                  Canonical standard (read this first for deep understanding)
 │   ├── EAROS_Standard_v2.docx       Word version
 │   └── schemas/
-│       ├── rubric.schema.v2.json    JSON Schema for all rubric/profile/overlay YAML files
-│       └── evaluation.schema.v2.json JSON Schema for evaluation record output files
+│       ├── rubric.schema.json    JSON Schema for all rubric/profile/overlay YAML files
+│       └── evaluation.schema.json JSON Schema for evaluation record output files
 │
 ├── core/
-│   └── core-meta-rubric.v2.yaml    The universal foundation (EAROS-CORE-002)
+│   └── core-meta-rubric.yaml    The universal foundation (EAROS-CORE-002)
 │                                   9 dimensions, 10 criteria, always applied
 │
 ├── profiles/                        Artifact-type extensions (inherit core)
-│   ├── solution-architecture.v2.yaml
-│   ├── reference-architecture.v2.yaml   ← First full profile; model for others
-│   ├── adr.v2.yaml
-│   ├── capability-map.v2.yaml
-│   └── roadmap.v2.yaml
+│   ├── solution-architecture.yaml
+│   ├── reference-architecture.yaml   ← First full profile; model for others
+│   ├── adr.yaml
+│   ├── capability-map.yaml
+│   └── roadmap.yaml
 │
 ├── overlays/                        Cross-cutting injectors (applied by context)
-│   ├── security.v2.yaml            (EAROS-OVR-SEC-001)
-│   ├── data-governance.v2.yaml
-│   └── regulatory.v2.yaml
+│   ├── security.yaml            (EAROS-OVR-SEC-001)
+│   ├── data-governance.yaml
+│   └── regulatory.yaml
 │
 ├── templates/
 │   ├── new-profile.template.yaml   Scaffold for new profiles
@@ -180,7 +182,7 @@ EAROS/
 │
 ├── docs/
 │   ├── getting-started.md
-│   └── profile-authoring-guide.v2.md   How to create profiles
+│   └── profile-authoring-guide.md   How to create profiles
 │
 └── research/           Research underpinning the standard (63 sources)
 ```
@@ -270,9 +272,9 @@ Overlays use `kind: overlay` and `artifact_type: any`. Their `scoring.method` is
 
 ### Schema Validation
 
-All YAML files must validate against `standard/schemas/rubric.schema.v2.json`. Required top-level fields: `rubric_id`, `version`, `kind`, `title`, `artifact_type`, `dimensions`, `scoring`, `outputs`.
+All YAML files must validate against `standard/schemas/rubric.schema.json`. Required top-level fields: `rubric_id`, `version`, `kind`, `title`, `artifact_type`, `dimensions`, `scoring`, `outputs`.
 
-Evaluation records must validate against `standard/schemas/evaluation.schema.v2.json`.
+Evaluation records must validate against `standard/schemas/evaluation.schema.json`.
 
 ---
 
@@ -318,7 +320,7 @@ Rules:
 5. Update `decision_tree` and `scoring_guide` where disagreements clustered
 
 ### Step 6 — Publish
-- Validate YAML against `standard/schemas/rubric.schema.v2.json`
+- Validate YAML against `standard/schemas/rubric.schema.json`
 - Add worked examples to `examples/`
 - Document in `CHANGELOG.md`
 - File naming: `<artifact-type>.v<major>.yaml`
@@ -366,7 +368,7 @@ Overlays are additive — they cannot remove or weaken gates from the base rubri
 4. Record the evidence: quote or reference for each score (observed / inferred / external)
 5. Check gates — any critical gate failure → Reject immediately; do not compute average
 6. Compute weighted dimension average → apply status thresholds
-7. Record the evaluation in an output file conforming to `evaluation.schema.v2.json`
+7. Record the evaluation in an output file conforming to `evaluation.schema.json`
 
 ### Agent Mode
 
@@ -380,7 +382,7 @@ You are an architecture quality assessor. Apply the EAROS rubric defined in
   4. Flag any gate criteria that fail
   5. Classify evidence as observed / inferred / external
   6. Report confidence (high/medium/low) separately from the score
-Produce output conforming to evaluation.schema.v2.json.
+Produce output conforming to evaluation.schema.json.
 
 <artifact>
 [artifact content]
@@ -403,10 +405,19 @@ Human and agent evaluate independently, then reconcile. Disagreements of ≥ 2 p
 ## 8. Conventions
 
 ### File Naming
-- Rubric files: `<artifact-type>.v<major>.yaml` — e.g., `reference-architecture.v2.yaml`
-- Overlays: `<concern>.v<major>.yaml` — e.g., `security.v2.yaml`
-- Evaluation records: `<artifact-id>.evaluation.yaml`
+
+The `kind` field is the universal type discriminator. Version is tracked inside the file (`version: 2.0.0`), not in the filename.
+
+| File type | Pattern | Example |
+|-----------|---------|---------|
+| Rubric definitions (core, profiles, overlays) | `<name>.yaml` | `reference-architecture.yaml` |
+| Evaluation records | `<name>.evaluation.yaml` | `payments-api.evaluation.yaml` |
+| Templates | `<name>.template.yaml` | `evaluation-record.template.yaml` |
+| JSON schemas | `<name>.schema.json` | `rubric.schema.json` |
+
 - Kebab-case throughout; no spaces in filenames
+- Version is tracked inside the file only (`version: 2.0.0`), never in the filename
+- The `kind` field distinguishes file purpose: `core_rubric`, `profile`, `overlay`, `evaluation`
 
 ### Versioning (Semver)
 - `MAJOR` — breaking change to scoring model, gate structure, or status thresholds
@@ -454,7 +465,7 @@ The `rubric_locked: true` flag in `agent_evaluation` means an agent must not mod
 
 ## 10. The Reference Architecture Profile — Model for Other Profiles
 
-`profiles/reference-architecture.v2.yaml` (`EAROS-REFARCH-001`) is the first full profile in EAROS v2 and serves as the reference implementation for how profiles should be built.
+`profiles/reference-architecture.yaml` (`EAROS-REFARCH-001`) is the first full profile in EAROS v2 and serves as the reference implementation for how profiles should be built.
 
 **Why it is a good model:**
 - Uses `design_method: pattern_library` (Method E) — appropriate for recurring platform blueprints
@@ -517,13 +528,13 @@ The `.claude/skills/` directory contains Claude agent skills for working with EA
 
 | Task | Where to start |
 |------|---------------|
-| Understand the full standard | `standard/EAROS_v2.md` |
+| Understand the full standard | `standard/EAROS.md` |
 | Score a reference architecture | `earos-assess` skill or `tools/scoring-sheets/EAROS_RefArch_Scoring_Sheet.xlsx` |
 | Score any other artifact | `earos-assess` skill or `tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx` |
 | Create a new rubric (profile, overlay, or core) | `earos-create` skill |
-| Get YAML authoring help for an existing rubric design | `earos-profile-author` skill or `templates/new-profile.template.yaml` + `docs/profile-authoring-guide.v2.md` |
+| Get YAML authoring help for an existing rubric design | `earos-profile-author` skill or `templates/new-profile.template.yaml` + `docs/profile-authoring-guide.md` |
 | See a worked evaluation | `examples/example-solution-architecture.evaluation.yaml` |
-| Validate a rubric YAML | `earos-validate` skill or `standard/schemas/rubric.schema.v2.json` |
-| Validate an evaluation record | `standard/schemas/evaluation.schema.v2.json` |
+| Validate a rubric YAML | `earos-validate` skill or `standard/schemas/rubric.schema.json` |
+| Validate an evaluation record | `standard/schemas/evaluation.schema.json` |
 | Calibrate | `earos-calibrate` skill or `calibration/gold-set/` |
 | Generate an executive report | `earos-report` skill |

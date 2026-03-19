@@ -6,10 +6,10 @@ Detailed procedures for each of the 7 validation checks. Run in order — schema
 
 ## Check 1 — Schema Conformance
 
-**Purpose:** Verify all YAML files satisfy `standard/schemas/rubric.schema.v2.json` (for rubrics) and `standard/schemas/evaluation.schema.v2.json` (for evaluation records).
+**Purpose:** Verify all YAML files satisfy `standard/schemas/rubric.schema.json` (for rubrics) and `standard/schemas/evaluation.schema.json` (for evaluation records).
 
 **Files to check:**
-- `core/core-meta-rubric.v2.yaml`
+- `core/core-meta-rubric.yaml`
 - `profiles/*.yaml`
 - `overlays/*.yaml`
 - `examples/*.evaluation.yaml` (against evaluation schema)
@@ -41,7 +41,7 @@ Detailed procedures for each of the 7 validation checks. Run in order — schema
 
 **Error format:**
 ```
-[SCHEMA] profiles/capability-map.v2.yaml
+[SCHEMA] profiles/capability-map.yaml
   MISSING: outputs.require_evidence_anchors
   MISSING: dimensions[1].criteria[0].examples
   INVALID: version "1" — must be semver (X.Y.Z)
@@ -79,7 +79,7 @@ Detailed procedures for each of the 7 validation checks. Run in order — schema
 
 **Error format:**
 ```
-[V2-COMPLETENESS] profiles/solution-architecture.v2.yaml
+[V2-COMPLETENESS] profiles/solution-architecture.yaml
   Criterion SCP-01:
     MISSING: examples.bad
     INCOMPLETE: scoring_guide missing key "4"
@@ -93,7 +93,7 @@ Detailed procedures for each of the 7 validation checks. Run in order — schema
 
 **Purpose:** Verify that criterion IDs are unique across the file AND (for profiles) do not conflict with core criterion IDs.
 
-**Core criterion IDs (from `core-meta-rubric.v2.yaml`):** Load the core YAML first; extract all criterion IDs. These are reserved and must not be reused in profiles or overlays.
+**Core criterion IDs (from `core-meta-rubric.yaml`):** Load the core YAML first; extract all criterion IDs. These are reserved and must not be reused in profiles or overlays.
 
 **Within-file uniqueness:** For each file, collect all criterion IDs under all dimensions. Flag any duplicates.
 
@@ -106,13 +106,13 @@ Detailed procedures for each of the 7 validation checks. Run in order — schema
 
 **Error format:**
 ```
-[ID-UNIQUENESS] profiles/reference-architecture.v2.yaml
+[ID-UNIQUENESS] profiles/reference-architecture.yaml
   DUPLICATE criterion ID: RA-D1-VIEW-01 appears at dimensions[0].criteria[0] and dimensions[0].criteria[3]
 
-[ID-CONFLICT] profiles/solution-architecture.v2.yaml
+[ID-CONFLICT] profiles/solution-architecture.yaml
   Criterion SCP-01 conflicts with core criterion SCP-01 — use a profile-scoped prefix (e.g., SA-SCP-01)
 
-[ID-FORMAT] overlays/regulatory.v2.yaml
+[ID-FORMAT] overlays/regulatory.yaml
   rubric_id "EAROS-REG-001" does not match overlay pattern EAROS-OVR-[CONCERN]-NNN
 ```
 
@@ -124,7 +124,7 @@ Detailed procedures for each of the 7 validation checks. Run in order — schema
 
 **Checks to perform:**
 
-1. **Inherits resolution:** Every profile must have `inherits: [EAROS-CORE-002]`. Verify that `EAROS-CORE-002` matches the `rubric_id` in `core/core-meta-rubric.v2.yaml`.
+1. **Inherits resolution:** Every profile must have `inherits: [EAROS-CORE-002]`. Verify that `EAROS-CORE-002` matches the `rubric_id` in `core/core-meta-rubric.yaml`.
 
 2. **Evaluation record rubric references:** In `examples/*.evaluation.yaml`, the `rubric_id` field must match a rubric that exists in the project. Check that:
    - `rubric_id` in the record matches an actual YAML file's `rubric_id`
@@ -141,13 +141,13 @@ Detailed procedures for each of the 7 validation checks. Run in order — schema
 
 **Error format:**
 ```
-[CROSS-REF] profiles/adr.v2.yaml
+[CROSS-REF] profiles/adr.yaml
   inherits references EAROS-CORE-002 but core rubric_id is EAROS-CORE-001 — version mismatch
 
 [CROSS-REF] examples/example-solution-architecture.evaluation.yaml
   overlay_applied "EAROS-OVR-SEC-002" not found in overlays/ directory
 
-[CROSS-REF] profiles/roadmap.v2.yaml
+[CROSS-REF] profiles/roadmap.yaml
   dimension RM-D3 has weight: 0 — must be positive
 ```
 
@@ -155,7 +155,7 @@ Detailed procedures for each of the 7 validation checks. Run in order — schema
 
 ## Check 5 — Evaluation Record Schema
 
-**Purpose:** Verify evaluation record YAML files conform to `standard/schemas/evaluation.schema.v2.json`.
+**Purpose:** Verify evaluation record YAML files conform to `standard/schemas/evaluation.schema.json`.
 
 **Required top-level fields:**
 
@@ -206,7 +206,7 @@ Detailed procedures for each of the 7 validation checks. Run in order — schema
 |-------------------|----------------|
 | `CLAUDE.md` (Section 3 project structure) | File paths mentioned still exist |
 | `docs/getting-started.md` | Rubric IDs and criteria counts are current |
-| `docs/profile-authoring-guide.v2.md` | Required field list matches v2 criterion fields |
+| `docs/profile-authoring-guide.md` | Required field list matches v2 criterion fields |
 | `README.md` (if exists) | Links and file references are valid |
 
 **Specific checks:**
@@ -218,7 +218,7 @@ Detailed procedures for each of the 7 validation checks. Run in order — schema
 **Error format:**
 ```
 [DOCS] docs/getting-started.md
-  References "profiles/postmortem.v2.yaml" — file does not exist
+  References "profiles/postmortem.yaml" — file does not exist
   States "EAROS-CORE has 8 criteria" — actual count is 10
 
 [DOCS] CLAUDE.md Section 3
@@ -248,13 +248,13 @@ Detailed procedures for each of the 7 validation checks. Run in order — schema
 
 **Error format:**
 ```
-[YAML-STYLE] profiles/capability-map.v2.yaml
+[YAML-STYLE] profiles/capability-map.yaml
   line 47: scoring_guide key "0" is unquoted — should be "0": not 0:
   line 52: gate disabled with verbose syntax — use gate: false not gate:\n  enabled: false
   line 83: description exceeds 120 chars inline — use > block scalar
 
-[YAML-STYLE] profiles/Capability_Map.v2.yaml
-  Filename uses underscores and mixed case — should be kebab-case: capability-map.v2.yaml
+[YAML-STYLE] profiles/Capability_Map.yaml
+  Filename uses underscores and mixed case — should be kebab-case: capability-map.yaml
 ```
 
 ---

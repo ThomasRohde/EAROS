@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.org/earos/rubric.schema.v2.json",
-  "title": "EAROS v2.0 Rubric/Profile/Overlay Schema",
+  "$id": "https://raw.githubusercontent.com/ThomasRohde/EAROS/main/standard/schemas/rubric.schema.json",
+  "title": "EAROS Rubric/Profile/Overlay Schema",
   "type": "object",
   "required": [
     "rubric_id",

@@ -97,7 +97,7 @@ Before publishing, verify no ID collisions:
 - [ ] All criterion IDs (`id` fields) unique across ALL rubric files in the repo
 - [ ] All dimension IDs unique within this profile file
 
-To check: scan `core/core-meta-rubric.v2.yaml`, all files in `profiles/`, and all files in `overlays/` for any matching IDs.
+To check: scan `core/core-meta-rubric.yaml`, all files in `profiles/`, and all files in `overlays/` for any matching IDs.
 
 **Common mistake:** Using short IDs like `D1`, `CRT-01` that collide with core rubric dimension IDs.
 
@@ -129,20 +129,20 @@ Review gate assignments across the profile and verify:
 | New dimensions | 2–6 | [ ] |
 | Criteria that duplicate core criteria | 0 | [ ] |
 
-To verify: read `core/core-meta-rubric.v2.yaml` and compare each new criterion's `question` to ensure it covers a genuinely different concern.
+To verify: read `core/core-meta-rubric.yaml` and compare each new criterion's `question` to ensure it covers a genuinely different concern.
 
 ---
 
 ## Part 6 — Schema Validation
 
-If you have a YAML validator available, validate against `standard/schemas/rubric.schema.v2.json`.
+If you have a YAML validator available, validate against `standard/schemas/rubric.schema.json`.
 
 If not, manually verify the most common schema violations:
 - [ ] All string keys are quoted where required (especially numeric keys in `scoring_guide`: `"0":`, `"1":`, etc.)
 - [ ] Two-space indentation throughout (not 4-space, not tabs)
 - [ ] Lists use `- item` format, not inline `[item1, item2]` for multi-line lists
 - [ ] Multi-line descriptions use `>` block scalar, not `|` (unless you need to preserve newlines)
-- [ ] File name matches convention: `<artifact-type>.v1.yaml` (kebab-case)
+- [ ] File name matches convention: `<artifact-type>.yaml` (kebab-case)
 
 ---
 

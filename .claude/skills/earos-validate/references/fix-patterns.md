@@ -157,7 +157,7 @@ After renaming: search all evaluation records for the old ID and update them.
 
 **inherits version mismatch:**
 
-Read core/core-meta-rubric.v2.yaml to find the actual rubric_id value. Update the profile to match exactly:
+Read core/core-meta-rubric.yaml to find the actual rubric_id value. Update the profile to match exactly:
 
     inherits:
       - EAROS-CORE-002

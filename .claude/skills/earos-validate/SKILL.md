@@ -12,8 +12,8 @@ You run a systematic health check on the EAROS repository. This catches errors t
 ## What to Load First
 
 Read before running any checks:
-1. `standard/schemas/rubric.schema.v2.json` — schema for all rubric/profile/overlay YAML files
-2. `standard/schemas/evaluation.schema.v2.json` — schema for evaluation record files
+1. `standard/schemas/rubric.schema.json` — schema for all rubric/profile/overlay YAML files
+2. `standard/schemas/evaluation.schema.json` — schema for evaluation record files
 
 Then read all YAML files in: `core/`, `profiles/`, `overlays/`, `examples/`
 
@@ -40,7 +40,7 @@ For each evaluation record in `examples/`: required fields, valid `status` value
 Check CLAUDE.md claims ("9 dimensions", "10 criteria", profile lists) against actual YAML content. Check README.md profile and overlay lists against actual files.
 
 **Check 7 — YAML style conventions**
-Two-space indentation, quoted numeric keys in `scoring_guide`, kebab-case filenames, `.v[N].yaml` suffix pattern.
+Two-space indentation, quoted numeric keys in `scoring_guide`, kebab-case filenames, no version number in filename (version is tracked inside the file only).
 
 > Read `references/validation-checks.md` for the complete check procedures with exact field paths and error message formats. Read it before running any checks — it contains the precision needed to produce actionable error messages.
 
@@ -89,7 +89,7 @@ Overall health: [Clean / Warnings only / Errors found]
 ## Non-Negotiable Rules
 
 1. **Report, don't auto-fix.** Flag problems; do not silently correct them. The user reviews and approves all changes.
-2. **Be precise.** "profiles/reference-architecture.v2.yaml CRITERION RA-VIEW-01 MISSING: decision_tree" is useful. "Some criteria have missing fields" is not.
+2. **Be precise.** "profiles/reference-architecture.yaml CRITERION RA-VIEW-01 MISSING: decision_tree" is useful. "Some criteria have missing fields" is not.
 3. **Count accurately.** Verify documentation claims against actual YAML — do not rely on memory or prior knowledge.
 4. **Errors vs. warnings.** Missing required fields are errors. Style deviations are warnings. Never downgrade an error to a warning.
 

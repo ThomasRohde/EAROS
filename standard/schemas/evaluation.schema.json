@@ -1,9 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.org/earos/evaluation.schema.v2.json",
-  "title": "EAROS v2.0 Evaluation Record Schema",
+  "$id": "https://raw.githubusercontent.com/ThomasRohde/EAROS/main/standard/schemas/evaluation.schema.json",
+  "title": "EAROS Evaluation Record Schema",
   "type": "object",
   "required": [
+    "kind",
     "artifact_id",
     "artifact_type",
     "rubric_id",
@@ -16,6 +17,11 @@
     "overall_score"
   ],
   "properties": {
+    "kind": {
+      "type": "string",
+      "enum": ["evaluation"],
+      "description": "Type discriminator — always 'evaluation' for evaluation records"
+    },
     "artifact_id": {
       "type": "string"
     },

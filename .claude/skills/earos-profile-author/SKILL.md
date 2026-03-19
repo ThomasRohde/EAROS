@@ -17,9 +17,9 @@ You are guiding the creation of a new EAROS profile or overlay. This is a govern
 
 Before writing any YAML, read:
 1. `templates/new-profile.template.yaml` — scaffold to start from
-2. `core/core-meta-rubric.v2.yaml` — understand what core covers (don't duplicate it)
-3. `profiles/reference-architecture.v2.yaml` — the model profile; use as reference implementation
-4. `standard/schemas/rubric.schema.v2.json` — schema all YAML files must conform to
+2. `core/core-meta-rubric.yaml` — understand what core covers (don't duplicate it)
+3. `profiles/reference-architecture.yaml` — the model profile; use as reference implementation
+4. `standard/schemas/rubric.schema.json` — schema all YAML files must conform to
 
 Ask: **Are you creating a profile (artifact-specific) or an overlay (cross-cutting concern)?**
 
@@ -192,7 +192,7 @@ Quick summary:
 - Every criterion has all 13 v2 required fields
 - No criterion IDs duplicate existing IDs across `core/`, `profiles/`, `overlays/`
 - Gate assignments are deliberate (1–2 major, 0–1 critical maximum)
-- Profile YAML validates against `standard/schemas/rubric.schema.v2.json`
+- Profile YAML validates against `standard/schemas/rubric.schema.json`
 
 ---
 
@@ -222,11 +222,11 @@ Post-Calibration
 
 ## Step 8 — File Placement
 
-- Profiles: `profiles/<artifact-type>.v1.yaml` (kebab-case, lowercase)
-- Overlays: `overlays/<concern>.v1.yaml`
+- Profiles: `profiles/<artifact-type>.yaml` (kebab-case, lowercase)
+- Overlays: `overlays/<concern>.yaml`
 - Examples: `examples/example-<artifact-type>.evaluation.yaml`
 
-Remind the user: "Validate the YAML against `standard/schemas/rubric.schema.v2.json` before committing. Use `earos-validate` to run the full repo health check after adding the profile."
+Remind the user: "Validate the YAML against `standard/schemas/rubric.schema.json` before committing. Use `earos-validate` to run the full repo health check after adding the profile."
 
 ---
 
@@ -248,4 +248,4 @@ Remind the user: "Validate the YAML against `standard/schemas/rubric.schema.v2.j
 | Drafting criteria (any stage) | `references/criterion-writing-guide.md` |
 | Setting gate types and weights | `references/criterion-writing-guide.md#gate-guidance` |
 | Before publishing | `references/profile-checklist.md` |
-| Unsure if criteria overlap with core | Check `core/core-meta-rubric.v2.yaml` |
+| Unsure if criteria overlap with core | Check `core/core-meta-rubric.yaml` |

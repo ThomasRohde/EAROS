@@ -35,14 +35,14 @@ EAROS solves this by codifying evaluation criteria into governed, machine-readab
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  OVERLAYS  (cross-cutting concerns)                             │
-│  security.v2  ·  data-governance.v2  ·  regulatory.v2          │
+│  security  ·  data-governance  ·  regulatory                   │
 ├─────────────────────────────────────────────────────────────────┤
 │  PROFILES  (artifact-specific extensions)                       │
 │  solution-architecture  ·  reference-architecture  ·  adr       │
 │  capability-map  ·  roadmap                                     │
 ├─────────────────────────────────────────────────────────────────┤
 │  CORE  (universal foundation — all artifacts)                   │
-│  core-meta-rubric.v2.yaml                                       │
+│  core-meta-rubric.yaml                                       │
 │  9 dimensions · 0–4 ordinal scale · 3 pass thresholds          │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -60,26 +60,26 @@ EAROS solves this by codifying evaluation criteria into governed, machine-readab
 ```
 EAROS/
 ├── standard/                        Standard documents and JSON schemas
-│   ├── EAROS_v2.md                  The EAROS standard (canonical reference)
+│   ├── EAROS.md                  The EAROS standard (canonical reference)
 │   ├── EAROS_Standard_v2.docx       Word version of the standard
 │   └── schemas/
-│       ├── rubric.schema.v2.json    JSON Schema for rubric/profile/overlay files
-│       └── evaluation.schema.v2.json JSON Schema for evaluation record files
+│       ├── rubric.schema.json    JSON Schema for rubric/profile/overlay files
+│       └── evaluation.schema.json JSON Schema for evaluation record files
 │
 ├── core/
-│   └── core-meta-rubric.v2.yaml    Universal rubric — applies to all artifacts
+│   └── core-meta-rubric.yaml    Universal rubric — applies to all artifacts
 │
 ├── profiles/                        Artifact-specific rubric extensions
-│   ├── solution-architecture.v2.yaml
-│   ├── reference-architecture.v2.yaml
-│   ├── adr.v2.yaml
-│   ├── capability-map.v2.yaml
-│   └── roadmap.v2.yaml
+│   ├── solution-architecture.yaml
+│   ├── reference-architecture.yaml
+│   ├── adr.yaml
+│   ├── capability-map.yaml
+│   └── roadmap.yaml
 │
 ├── overlays/                        Cross-cutting concern injectors
-│   ├── security.v2.yaml
-│   ├── data-governance.v2.yaml
-│   └── regulatory.v2.yaml
+│   ├── security.yaml
+│   ├── data-governance.yaml
+│   └── regulatory.yaml
 │
 ├── templates/                       Blank templates for assessors and authors
 │   ├── new-profile.template.yaml   Scaffold for creating a new profile
@@ -107,7 +107,7 @@ EAROS/
 │
 ├── docs/                            How-to guides
 │   ├── getting-started.md
-│   └── profile-authoring-guide.v2.md
+│   └── profile-authoring-guide.md
 │
 ├── presentations/                   Slide decks for rollout and training
 │   ├── EAROS_v2_Part1_Overview.pptx
@@ -132,7 +132,7 @@ EAROS/
 
 1. **Identify the artifact type** — solution architecture, ADR, capability map, reference architecture, or roadmap.
 2. **Select the rubric set:**
-   - Always start with [`core/core-meta-rubric.v2.yaml`](core/core-meta-rubric.v2.yaml)
+   - Always start with [`core/core-meta-rubric.yaml`](core/core-meta-rubric.yaml)
    - Add the matching profile from [`profiles/`](profiles/)
    - Add any applicable overlays from [`overlays/`](overlays/)
 3. **Open the scoring sheet** in [`tools/scoring-sheets/`](tools/scoring-sheets/) — `EAROS_Scoring_Sheet_v2.xlsx` for most artifacts, `EAROS_RefArch_Scoring_Sheet.xlsx` for reference architectures.
@@ -148,7 +148,7 @@ See [`docs/getting-started.md`](docs/getting-started.md) for a full walkthrough.
 
 ### AI-Agent Assessment
 
-EAROS is designed for automated evaluation. The YAML rubric files are the machine-readable specification; the evaluation record schema (`standard/schemas/evaluation.schema.v2.json`) defines the output format.
+EAROS is designed for automated evaluation. The YAML rubric files are the machine-readable specification; the evaluation record schema (`standard/schemas/evaluation.schema.json`) defines the output format.
 
 **Minimal agent prompt pattern:**
 
@@ -159,7 +159,7 @@ You are an architecture quality assessor. Apply the EAROS rubric defined in
   2. Score 0–4 against the level descriptors
   3. If you cannot find evidence, score N/A and explain
   4. Flag any gate criteria that fail
-Produce output conforming to evaluation.schema.v2.json.
+Produce output conforming to evaluation.schema.json.
 
 <artifact>
 [artifact content]
@@ -171,7 +171,7 @@ The rubric files include a `agent_evaluation` section defining an 8-step DAG:
 
 Calibrate your agent against the gold-set artifacts in [`calibration/gold-set/`](calibration/gold-set/) before using in production. Target inter-rater reliability of Cohen's κ > 0.70.
 
-See [`standard/EAROS_v2.md`](standard/EAROS_v2.md) for the full specification of the agentic evaluation protocol.
+See [`standard/EAROS.md`](standard/EAROS.md) for the full specification of the agentic evaluation protocol.
 
 ---
 
@@ -201,7 +201,7 @@ See [`standard/EAROS_v2.md`](standard/EAROS_v2.md) for the full specification of
 
 ### Creating a New Profile
 
-Use [`templates/new-profile.template.yaml`](templates/new-profile.template.yaml) as your scaffold. The [`docs/profile-authoring-guide.v2.md`](docs/profile-authoring-guide.v2.md) describes five design methods:
+Use [`templates/new-profile.template.yaml`](templates/new-profile.template.yaml) as your scaffold. The [`docs/profile-authoring-guide.md`](docs/profile-authoring-guide.md) describes five design methods:
 
 - **Method A: Decision-Centred** — for ADRs, investment reviews
 - **Method B: Viewpoint-Centred** — for capability maps, reference architectures
@@ -209,7 +209,7 @@ Use [`templates/new-profile.template.yaml`](templates/new-profile.template.yaml)
 - **Method D: Risk-Centred** — for security, regulatory, resilience architecture
 - **Method E: Pattern-Library** — for recurring platform services
 
-Validate new profiles against [`standard/schemas/rubric.schema.v2.json`](standard/schemas/rubric.schema.v2.json).
+Validate new profiles against [`standard/schemas/rubric.schema.json`](standard/schemas/rubric.schema.json).
 
 ### Calibrating an Agent or Reviewer
 
@@ -249,7 +249,7 @@ Thomas Rohde · [rohde.thomas@gmail.com](mailto:rohde.thomas@gmail.com) · [gith
 
 Contributions to profiles, overlays, calibration artifacts, and documentation are welcome. When contributing:
 
-- Follow the naming convention `<artifact-type>.v<major>.yaml`
+- Use `<artifact-type>.yaml` for rubric files (no version number in filename)
 - Validate YAML files against the JSON schemas in `standard/schemas/`
 - Include level descriptors (0–4) and evidence requirements for every new criterion
 - Add worked examples to `examples/` when introducing new profiles

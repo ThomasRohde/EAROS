@@ -16,20 +16,20 @@ You are running a governed architecture quality evaluation. The output must be *
 Read these files before scoring anything. The rubric files contain the `scoring_guide` and `decision_tree` fields that define what each score level means. Do not score from memory — read the rubric.
 
 **Always load:**
-- `core/core-meta-rubric.v2.yaml` — 9 dimensions, 10 criteria, applies to every artifact
+- `core/core-meta-rubric.yaml` — 9 dimensions, 10 criteria, applies to every artifact
 
 **Load the matching profile (if one exists):**
-- Solution architecture → `profiles/solution-architecture.v2.yaml`
-- Reference architecture → `profiles/reference-architecture.v2.yaml`
-- Architecture Decision Record → `profiles/adr.v2.yaml`
-- Capability map → `profiles/capability-map.v2.yaml`
-- Roadmap → `profiles/roadmap.v2.yaml`
+- Solution architecture → `profiles/solution-architecture.yaml`
+- Reference architecture → `profiles/reference-architecture.yaml`
+- Architecture Decision Record → `profiles/adr.yaml`
+- Capability map → `profiles/capability-map.yaml`
+- Roadmap → `profiles/roadmap.yaml`
 - No match → core only
 
 **Ask the user which overlays apply (if not specified):**
-- `overlays/security.v2.yaml` — apply when the artifact touches auth, authorization, personal data, or external integrations
-- `overlays/data-governance.v2.yaml` — apply when the artifact describes data flows, retention, or classification
-- `overlays/regulatory.v2.yaml` — apply when the artifact is in a regulated domain (payments, healthcare, financial reporting)
+- `overlays/security.yaml` — apply when the artifact touches auth, authorization, personal data, or external integrations
+- `overlays/data-governance.yaml` — apply when the artifact describes data flows, retention, or classification
+- `overlays/regulatory.yaml` — apply when the artifact is in a regulated domain (payments, healthcare, financial reporting)
 
 ---
 

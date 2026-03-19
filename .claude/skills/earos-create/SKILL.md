@@ -14,7 +14,7 @@ You are an architecture governance consultant guiding the creation of a new EARO
 ## Step 0 — Load Reference Files
 
 Before the interview begins, read:
-1. `core/core-meta-rubric.v2.yaml` — understand what the core already covers (never duplicate it)
+1. `core/core-meta-rubric.yaml` — understand what the core already covers (never duplicate it)
 2. List `profiles/` — note what artifact types already have profiles
 3. List `overlays/` — note what cross-cutting concerns already have overlays
 
@@ -49,7 +49,7 @@ If the user is unsure:
 - Ask: "Is the existing `EAROS-CORE-002` insufficient, or do you need a supplementary core for a specific domain? Modifying the core requires a governance decision."
 
 **For a profile:**
-- Confirm `core/core-meta-rubric.v2.yaml` exists. If it doesn't: "No core rubric exists. Create one first, or proceed with a standalone profile?"
+- Confirm `core/core-meta-rubric.yaml` exists. If it doesn't: "No core rubric exists. Create one first, or proceed with a standalone profile?"
 - Show existing profiles. Ask: "Does a profile for this artifact type already exist? Here's what we have: [list]. Is this a new type or a revision of an existing one?"
 
 **For an overlay:**
@@ -180,7 +180,7 @@ Quick checks:
 3. **All 13 v2 fields present** on every criterion (see `references/criterion-writing-guide.md`)
 4. **Gate balance**: at most 1–2 major gates, 0–1 critical gates per profile
 5. **Core overlap**: no criterion duplicates what `EAROS-CORE-002` already covers
-6. **Schema conformance**: structure matches `standard/schemas/rubric.schema.v2.json`
+6. **Schema conformance**: structure matches `standard/schemas/rubric.schema.json`
 
 Tell the user: "Run `earos-validate` after placing the file to catch any remaining schema errors."
 
@@ -218,8 +218,8 @@ Post-Calibration
 
 ## Step 7 — File Placement
 
-- Profiles → `profiles/<artifact-type>.v1.yaml` (kebab-case, lowercase)
-- Overlays → `overlays/<concern>.v1.yaml`
+- Profiles → `profiles/<artifact-type>.yaml` (kebab-case, lowercase)
+- Overlays → `overlays/<concern>.yaml`
 - Core rubric → `core/<name>.v<major>.yaml`
 
 Remind the user to run `earos-validate` after placing the file and before committing.

@@ -18,7 +18,7 @@ This file documents what depends on what in the EAROS three-layer model, how to 
 │  Each inherits: [EAROS-CORE-002]                 │
 ├──────────────────────────────────────────────────┤
 │  CORE (universal foundation)                     │
-│  core-meta-rubric.v2.yaml (EAROS-CORE-002)       │
+│  core-meta-rubric.yaml (EAROS-CORE-002)       │
 │  9 dimensions · 10 criteria · gate model         │
 └──────────────────────────────────────────────────┘
 ```
@@ -35,7 +35,7 @@ This file documents what depends on what in the EAROS three-layer model, how to 
 ### Before creating a Profile
 
 1. **Does the core exist?**
-   - Read `core/core-meta-rubric.v2.yaml`
+   - Read `core/core-meta-rubric.yaml`
    - If absent: ask "Do you want to create a core rubric first, or proceed with a standalone profile (without inheriting from core)?"
 
 2. **Does a profile already exist for this artifact type?**
@@ -133,7 +133,7 @@ All criterion IDs must be unique across the entire EAROS repository — not just
 ### ID Namespace Check
 
 Before assigning any criterion ID, scan:
-1. `core/core-meta-rubric.v2.yaml` — existing IDs: `STK-01`, `STK-02`, `SCP-01`, `CVP-01`, `TRC-01`, `CON-01`, `RAT-01`, `CMP-01`, `ACT-01`, `MNT-01`
+1. `core/core-meta-rubric.yaml` — existing IDs: `STK-01`, `STK-02`, `SCP-01`, `CVP-01`, `TRC-01`, `CON-01`, `RAT-01`, `CMP-01`, `ACT-01`, `MNT-01`
 2. All files in `profiles/` — check criterion IDs in each
 3. All files in `overlays/` — check criterion IDs in each
 

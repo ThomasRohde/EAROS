@@ -1,3 +1,4 @@
+kind: evaluation
 artifact_id: "[ART-YYYY-NNNN]"
 artifact_type: "[artifact_type]"
 artifact_version: "[version]"

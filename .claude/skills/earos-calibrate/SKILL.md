@@ -21,7 +21,7 @@ You are running an EAROS calibration exercise. Calibration validates that a rubr
 ## Step 0 — Load Calibration Inputs
 
 Read these files:
-1. `core/core-meta-rubric.v2.yaml`
+1. `core/core-meta-rubric.yaml`
 2. The profile or overlay being calibrated (ask if not specified; scan `profiles/` and `overlays/`)
 3. `calibration/gold-set/` — scan for existing reference artifacts and their benchmark scores
 4. `calibration/results/` — scan for prior calibration runs (to understand trends)

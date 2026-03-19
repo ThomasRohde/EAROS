@@ -23,12 +23,12 @@ EAROS has profiles for the most common enterprise architecture artifact types:
 
 | Artifact Type | Profile to Use |
 |--------------|----------------|
-| Solution architecture document | `profiles/solution-architecture.v2.yaml` |
-| Reference architecture | `profiles/reference-architecture.v2.yaml` |
-| Architecture Decision Record (ADR) | `profiles/adr.v2.yaml` |
-| Capability map | `profiles/capability-map.v2.yaml` |
-| Architecture roadmap | `profiles/roadmap.v2.yaml` |
-| Other / unknown | Core only: `core/core-meta-rubric.v2.yaml` |
+| Solution architecture document | `profiles/solution-architecture.yaml` |
+| Reference architecture | `profiles/reference-architecture.yaml` |
+| Architecture Decision Record (ADR) | `profiles/adr.yaml` |
+| Capability map | `profiles/capability-map.yaml` |
+| Architecture roadmap | `profiles/roadmap.yaml` |
+| Other / unknown | Core only: `core/core-meta-rubric.yaml` |
 
 If your artifact does not match any profile, apply only the core rubric. The core dimensions are universal.
 
@@ -40,22 +40,22 @@ Every assessment starts with the core and adds a profile, plus any applicable ov
 
 **Minimum (core only):**
 ```
-core/core-meta-rubric.v2.yaml
+core/core-meta-rubric.yaml
 ```
 
 **Typical (core + profile):**
 ```
-core/core-meta-rubric.v2.yaml
-profiles/solution-architecture.v2.yaml
+core/core-meta-rubric.yaml
+profiles/solution-architecture.yaml
 ```
 
 **Full (core + profile + overlay):**
 ```
-core/core-meta-rubric.v2.yaml
-profiles/solution-architecture.v2.yaml
-overlays/security.v2.yaml         ← if the design touches auth, secrets, or data handling
-overlays/data-governance.v2.yaml  ← if the design involves data flows or storage
-overlays/regulatory.v2.yaml       ← if the design is subject to compliance requirements
+core/core-meta-rubric.yaml
+profiles/solution-architecture.yaml
+overlays/security.yaml         ← if the design touches auth, secrets, or data handling
+overlays/data-governance.yaml  ← if the design involves data flows or storage
+overlays/regulatory.yaml       ← if the design is subject to compliance requirements
 ```
 
 Apply overlays selectively. Not every artifact needs every overlay.
@@ -188,7 +188,7 @@ Target inter-rater reliability: Cohen's κ > 0.70 for well-defined criteria.
 
 ## Next Steps
 
-- **Create a profile** for an artifact type not yet covered → [`docs/profile-authoring-guide.v2.md`](profile-authoring-guide.v2.md)
-- **Set up AI-agent assessment** → [`README.md`](../README.md#ai-agent-assessment) and [`standard/EAROS_v2.md`](../standard/EAROS_v2.md)
+- **Create a profile** for an artifact type not yet covered → [`docs/profile-authoring-guide.md`](profile-authoring-guide.md)
+- **Set up AI-agent assessment** → [`README.md`](../README.md#ai-agent-assessment) and [`standard/EAROS.md`](../standard/EAROS.md)
 - **Review the research behind EAROS** → [`research/`](../research/)
 - **Run a team calibration session** → [`calibration/`](../calibration/)

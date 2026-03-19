@@ -32,7 +32,7 @@ The five methods are not about the content of the architecture — they are abou
 - Decision consequences made explicit
 - Revisit/escalation conditions named
 
-**Example profile:** `profiles/adr.v2.yaml`
+**Example profile:** `profiles/adr.yaml`
 
 **Key indicator to choose Method A:** The primary artifact purpose is to get approval or record a governance decision — not to describe an architecture in full.
 
@@ -57,7 +57,7 @@ The five methods are not about the content of the architecture — they are abou
 - Views explicitly mapped to stakeholder concerns
 - Consistent terminology and component naming across views
 
-**Example profiles:** `profiles/reference-architecture.v2.yaml`, `profiles/solution-architecture.v2.yaml`
+**Example profiles:** `profiles/reference-architecture.yaml`, `profiles/solution-architecture.yaml`
 
 **Key indicator to choose Method B:** The artifact is expected to contain multiple diagrams and the audience needs different perspectives on the same system.
 
@@ -83,7 +83,7 @@ The five methods are not about the content of the architecture — they are abou
 - Transition steps sequenced with dependencies
 - Rollback or abort conditions named
 
-**Example profile:** `profiles/roadmap.v2.yaml`
+**Example profile:** `profiles/roadmap.yaml`
 
 **Key indicator to choose Method C:** The artifact describes a change over time, not just a static design.
 
@@ -112,7 +112,7 @@ The five methods are not about the content of the architecture — they are abou
 
 **Key indicator to choose Method D:** The primary purpose of the artifact is to demonstrate that risks have been identified and managed — not just to describe the architecture.
 
-**Note:** The security and regulatory overlays (`overlays/security.v2.yaml`, `overlays/regulatory.v2.yaml`) often apply alongside Method D profiles but are not substitutes for a D-method profile when the artifact is primarily risk-focused.
+**Note:** The security and regulatory overlays (`overlays/security.yaml`, `overlays/regulatory.yaml`) often apply alongside Method D profiles but are not substitutes for a D-method profile when the artifact is primarily risk-focused.
 
 ---
 
@@ -137,7 +137,7 @@ The five methods are not about the content of the architecture — they are abou
 - Known variants documented
 - Adoption metrics or proven instances
 
-**Example profile:** `profiles/reference-architecture.v2.yaml` (uses Method E)
+**Example profile:** `profiles/reference-architecture.yaml` (uses Method E)
 
 **Key indicator to choose Method E:** Teams are expected to adopt this pattern repeatedly — it needs to work as a template, not just a one-time design.
 

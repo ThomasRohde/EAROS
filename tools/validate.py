@@ -13,15 +13,15 @@ except ImportError:
 ROOT = Path(__file__).parent.parent
 
 RUBRIC_FILES = [
-    "core/core-meta-rubric.v2.yaml",
-    "profiles/reference-architecture.v2.yaml",
-    "profiles/solution-architecture.v2.yaml",
-    "profiles/adr.v2.yaml",
-    "profiles/capability-map.v2.yaml",
-    "profiles/roadmap.v2.yaml",
-    "overlays/security.v2.yaml",
-    "overlays/data-governance.v2.yaml",
-    "overlays/regulatory.v2.yaml",
+    "core/core-meta-rubric.yaml",
+    "profiles/reference-architecture.yaml",
+    "profiles/solution-architecture.yaml",
+    "profiles/adr.yaml",
+    "profiles/capability-map.yaml",
+    "profiles/roadmap.yaml",
+    "overlays/security.yaml",
+    "overlays/data-governance.yaml",
+    "overlays/regulatory.yaml",
 ]
 
 KNOWN_RUBRIC_IDS = set()
@@ -35,7 +35,7 @@ for f in RUBRIC_FILES:
             KNOWN_RUBRIC_IDS.add(d["rubric_id"])
 
 # Load schema
-SCHEMA_PATH = ROOT / "standard/schemas/rubric.schema.v2.json"
+SCHEMA_PATH = ROOT / "standard/schemas/rubric.schema.json"
 with open(SCHEMA_PATH) as f:
     SCHEMA = json.load(f)
 
@@ -98,18 +98,8 @@ def check_file(filepath):
     if kind == "profile" and "design_method" not in doc:
         errors.append("Schema: Profile missing 'design_method' field (required for EAROS v2 profiles)")
 
-    # 4. File naming vs version
-    fname = Path(filepath).name
-    m = re.search(r"\.v(\d+)\.yaml$", fname)
-    if m:
-        fname_major = int(m.group(1))
-        if version:
-            int_major = int(version.split(".")[0])
-            if fname_major != int_major:
-                warnings.append(
-                    f"Naming: filename says v{fname_major} but internal version is {version} "
-                    f"(major={int_major}) — convention requires these to match"
-                )
+    # 4. (File naming check removed — version is no longer encoded in filenames;
+    #     use the internal `version` field instead.)
 
     # 5. Rubric_id prefix convention for overlays
     rubric_id = doc.get("rubric_id", "")

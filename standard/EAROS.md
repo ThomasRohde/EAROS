@@ -976,18 +976,18 @@ architecture-rubrics/
  profile.schema.json
  overlay.schema.json
  core/
- core-meta-rubric.v1.yaml
+ core-meta-rubric.yaml
  scoring-guidance.v1.md
  profiles/
- capability-map.v1.yaml
- solution-architecture.v1.yaml
- adr.v1.yaml
- roadmap.v1.yaml
+ capability-map.yaml
+ solution-architecture.yaml
+ adr.yaml
+ roadmap.yaml
  overlays/
- security.v1.yaml
- regulatory.v1.yaml
- data-governance.v1.yaml
- cloud.v1.yaml
+ security.yaml
+ regulatory.yaml
+ data-governance.yaml
+ cloud.yaml
  calibration/
  capability-map/
  solution-architecture/
@@ -1189,11 +1189,11 @@ All architecture rubrics shall be managed as governed, versioned, evidence-based
 
 To operationalize this standard, create these next (additions for v2.0 marked with *):
 
-1. core-meta-rubric.v1.yaml
-2. solution-architecture.v1.yaml
-3. adr.v1.yaml
-4. capability-map.v1.yaml
-5. security.v1.yaml
+1. core-meta-rubric.yaml
+2. solution-architecture.yaml
+3. adr.yaml
+4. capability-map.yaml
+5. security.yaml
 6. evaluation.schema.json
 7. calibration-pack.md
 8. review-report-template.md

@@ -2,7 +2,7 @@
 
 This file contains the full templates for EAROS evaluation outputs. Read this before producing output in Step 8.
 
-The canonical schema is `standard/schemas/evaluation.schema.v2.json`. The worked example is `examples/example-solution-architecture.evaluation.yaml`. When in doubt, mirror the worked example.
+The canonical schema is `standard/schemas/evaluation.schema.json`. The worked example is `examples/example-solution-architecture.evaluation.yaml`. When in doubt, mirror the worked example.
 
 ---
 
@@ -292,7 +292,7 @@ Copy from the YAML narrative_summary field.]
 
 ---
 
-*Evaluated using EAROS [rubric IDs]. Schema: evaluation.schema.v2.json.*
+*Evaluated using EAROS [rubric IDs]. Schema: evaluation.schema.json.*
 ```
 
 ---
@@ -308,4 +308,4 @@ Before submitting the YAML evaluation record, check:
 5. `status` was determined by gates first, then thresholds
 6. The `narrative_summary` does not just list criterion scores — it synthesizes them
 
-The full JSON Schema for validation is at `standard/schemas/evaluation.schema.v2.json`. If you have access to a YAML validator, validate the output before delivery.
+The full JSON Schema for validation is at `standard/schemas/evaluation.schema.json`. If you have access to a YAML validator, validate the output before delivery.

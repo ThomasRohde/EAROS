@@ -17,9 +17,9 @@ Version 2.0 is a major revision of the standard, expanding the rubric architectu
 
 **Architecture**
 - Three-layer model: core meta-rubric + artifact-specific profiles + cross-cutting overlays
-- `overlays/` directory with `security.v2.yaml`, `data-governance.v2.yaml`, `regulatory.v2.yaml`
-- Three new profiles: `capability-map.v2.yaml`, `roadmap.v2.yaml`, `reference-architecture.v2.yaml`
-- JSON Schema definitions for rubric files (`rubric.schema.v2.json`) and evaluation records (`evaluation.schema.v2.json`)
+- `overlays/` directory with `security.yaml`, `data-governance.yaml`, `regulatory.yaml`
+- Three new profiles: `capability-map.yaml`, `roadmap.yaml`, `reference-architecture.yaml`
+- JSON Schema definitions for rubric files (`rubric.schema.json`) and evaluation records (`evaluation.schema.json`)
 
 **Standard (Principle 8 — Machine-Readable Where Possible)**
 - New design principle requiring artifacts to prefer machine-readable formats (YAML, JSON, ArchiMate, diagram-as-code) for improved assessability
@@ -36,14 +36,14 @@ Version 2.0 is a major revision of the standard, expanding the rubric architectu
 - Minimum calibration requirement: 3+ reference artifacts before production use
 
 **Profiles**
-- `reference-architecture.v2.yaml`: 6 dimensions, 9 profile-specific criteria covering views, prescriptiveness, operational readiness, implementation actionability, quality attribute specification, and reusability
-- `capability-map.v2.yaml`: criteria for hierarchy integrity, completeness, business alignment, and heat-mapping readiness
-- `roadmap.v2.yaml`: criteria for horizon clarity, dependency mapping, investment traceability, and milestone measurability
+- `reference-architecture.yaml`: 6 dimensions, 9 profile-specific criteria covering views, prescriptiveness, operational readiness, implementation actionability, quality attribute specification, and reusability
+- `capability-map.yaml`: criteria for hierarchy integrity, completeness, business alignment, and heat-mapping readiness
+- `roadmap.yaml`: criteria for horizon clarity, dependency mapping, investment traceability, and milestone measurability
 
 **Tooling and Templates**
 - `templates/new-profile.template.yaml`: scaffold for authoring new profiles
 - `templates/evaluation-record.template.yaml`: blank evaluation record
-- `docs/profile-authoring-guide.v2.md`: five profile design methods (A–E)
+- `docs/profile-authoring-guide.md`: five profile design methods (A–E)
 - `examples/example-solution-architecture.evaluation.yaml`: worked evaluation record
 - Reference Architecture document template (`templates/reference-architecture/Reference_Architecture_Template_v2.docx`)
 
@@ -71,7 +71,7 @@ Version 2.0 is a major revision of the standard, expanding the rubric architectu
 
 ### Summary
 
-Version 1.0 was an internal draft that established the initial rubric concept and scoring model. It was never formally published or deployed in production. All files from this draft were superseded by the v2.0 release. No v1 files exist in this repository; the v2.0 files (`solution-architecture.v2.yaml`, `adr.v2.yaml`, etc.) are not renames of v1 originals — they are new implementations of the v2 three-layer model.
+Version 1.0 was an internal draft that established the initial rubric concept and scoring model. It was never formally published or deployed in production. All files from this draft were superseded by the v2.0 release. No v1 files exist in this repository; the v2.0 files (`solution-architecture.yaml`, `adr.yaml`, etc.) are not renames of v1 originals — they are new implementations of the v2 three-layer model.
 
 ### What existed in the draft
 

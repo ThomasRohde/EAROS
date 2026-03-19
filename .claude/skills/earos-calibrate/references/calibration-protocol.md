@@ -55,7 +55,7 @@ Do NOT share these gold-set scores with the evaluator before they complete their
 
 ### 2.1 Read the rubric
 
-Read the full rubric YAML for the profile being calibrated. Read `core/core-meta-rubric.v2.yaml` as well — core criteria are always evaluated.
+Read the full rubric YAML for the profile being calibrated. Read `core/core-meta-rubric.yaml` as well — core criteria are always evaluated.
 
 Do NOT read the gold-set scores. Close any document containing them.
 

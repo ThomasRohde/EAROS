@@ -7,7 +7,7 @@ This checklist covers all pre-publication quality checks for a new EAROS rubric 
 ## Quick Reference — What "Valid" Means
 
 A valid EAROS v2 rubric file:
-1. Passes schema validation against `standard/schemas/rubric.schema.v2.json`
+1. Passes schema validation against `standard/schemas/rubric.schema.json`
 2. Has a unique rubric ID and unique criterion IDs (no conflicts across the entire repo)
 3. Has the correct YAML structure for its kind (profile, overlay, or core rubric)
 4. Has all 13 v2 required fields on every criterion
@@ -116,7 +116,7 @@ Check before committing. These IDs must be globally unique:
 
 ### Criterion-level IDs
 
-- [ ] Scan all criterion IDs in `core/core-meta-rubric.v2.yaml` — no conflicts
+- [ ] Scan all criterion IDs in `core/core-meta-rubric.yaml` — no conflicts
 - [ ] Scan all criterion IDs in every file in `profiles/` — no conflicts
 - [ ] Scan all criterion IDs in every file in `overlays/` — no conflicts
 
@@ -216,14 +216,14 @@ Before the file can move from `status: draft` to `status: candidate`:
 
 | Type | Location | Filename pattern |
 |------|----------|-----------------|
-| Profile | `profiles/` | `<artifact-type>.v<major>.yaml` |
-| Overlay | `overlays/` | `<concern>.v<major>.yaml` |
-| Core rubric | `core/` | `<name>.v<major>.yaml` |
+| Profile | `profiles/` | `<artifact-type>.yaml` |
+| Overlay | `overlays/` | `<concern>.yaml` |
+| Core rubric | `core/` | `<name>.yaml` |
 
 Rules:
 - Kebab-case filenames (no spaces, no uppercase)
-- Version in filename is the major version only: `solution-architecture.v2.yaml`, not `solution-architecture.v2.1.0.yaml`
-- Do not use `v1` in the filename for a v2 rubric — if this is the first version of a new profile, it should be `v1.yaml`
+- No version number in the filename — version is tracked inside the file only (`version: 2.0.0`)
+- The `kind` field is the type discriminator (`profile`, `overlay`, `core_rubric`)
 
 ---
 

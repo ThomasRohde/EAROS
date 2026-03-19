@@ -21,7 +21,7 @@ You need three things. If any are missing, ask before proceeding:
 2. **The original artifact** — the document or design that was evaluated
 3. **The rubric files** — identified by `rubric_id` in the evaluation record; load from `core/`, `profiles/`, `overlays/`
 
-Also load `standard/schemas/evaluation.schema.v2.json` for structural validation.
+Also load `standard/schemas/evaluation.schema.json` for structural validation.
 
 ---
 
