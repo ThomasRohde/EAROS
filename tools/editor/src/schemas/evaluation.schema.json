@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ThomasRohde/EAROS/main/standard/schemas/evaluation.schema.json",
+  "title": "EAROS Evaluation Record Schema",
+  "type": "object",
+  "required": [
+    "kind",
+    "artifact_id",
+    "artifact_type",
+    "rubric_id",
+    "rubric_version",
+    "evaluated_by",
+    "evaluation_mode",
+    "evaluation_date",
+    "criterion_results",
+    "overall_status",
+    "overall_score"
+  ],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": ["evaluation"],
+      "description": "Type discriminator — always 'evaluation' for evaluation records"
+    },
+    "artifact_id": {
+      "type": "string"
+    },
+    "artifact_type": {
+      "type": "string"
+    },
+    "artifact_version": {
+      "type": "string"
+    },
+    "rubric_id": {
+      "type": "string"
+    },
+    "rubric_version": {
+      "type": "string"
+    },
+    "profiles_applied": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "overlays_applied": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evaluated_by": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "role",
+          "actor"
+        ],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "evaluator",
+              "challenger",
+              "calibrator"
+            ]
+          },
+          "actor": {
+            "type": "string",
+            "enum": [
+              "human",
+              "agent"
+            ]
+          },
+          "identity": {
+            "type": "string"
+          },
+          "model_version": {
+            "type": "string",
+            "description": "v2.0: LLM model+version if agent"
+          }
+        }
+      }
+    },
+    "evaluation_mode": {
+      "type": "string",
+      "enum": [
+        "human",
+        "agent",
+        "hybrid"
+      ]
+    },
+    "evaluation_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "dag_execution": {
+      "type": "object",
+      "description": "v2.0: DAG evaluation metadata",
+      "properties": {
+        "steps_completed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rubric_lock_version": {
+          "type": "string"
+        },
+        "calibration_applied": {
+          "type": "boolean"
+        }
+      }
+    },
+    "criterion_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "criterion_id",
+          "score",
+          "confidence"
+        ],
+        "properties": {
+          "criterion_id": {
+            "type": "string"
+          },
+          "score": {
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string",
+                "const": "N/A"
+              }
+            ]
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "confidence_reason": {
+            "type": "string",
+            "description": "v2.0: Why confidence is below high"
+          },
+          "evidence_sufficiency": {
+            "type": "string",
+            "enum": [
+              "sufficient",
+              "partial",
+              "insufficient",
+              "none"
+            ]
+          },
+          "evidence_class": {
+            "type": "string",
+            "enum": [
+              "observed",
+              "inferred",
+              "external"
+            ],
+            "description": "v2.0"
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "section": {
+                      "type": "string"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "paragraph": {
+                      "type": "string"
+                    },
+                    "quotation": {
+                      "type": "string",
+                      "description": "v2.0: RULERS evidence anchor"
+                    },
+                    "diagram_id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "evidence_gaps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommended_actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "dimension_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "dimension_id",
+          "weighted_score"
+        ],
+        "properties": {
+          "dimension_id": {
+            "type": "string"
+          },
+          "weighted_score": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "gate_failures": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "overall_status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "conditional_pass",
+        "rework_required",
+        "reject",
+        "not_reviewable"
+      ]
+    },
+    "overall_score": {
+      "type": "number"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "evidence_gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recommended_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "decision_summary": {
+      "type": "string"
+    },
+    "challenger_notes": {
+      "type": "string",
+      "description": "v2.0: Challenger pass findings"
+    }
+  }
+}

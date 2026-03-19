@@ -175,6 +175,25 @@ See [`standard/EAROS.md`](standard/EAROS.md) for the full specification of the a
 
 ---
 
+## Tools
+
+### EAROS Editor
+
+A browser-based YAML editor for creating and editing EAROS rubric and evaluation files.
+
+```bash
+cd tools/editor
+npm install
+npm run dev                              # open editor in browser
+node bin.js validate path/to/file.yaml  # validate a file and exit 0/1
+```
+
+Features: kind selector (core_rubric / profile / overlay / evaluation), tabbed form driven by JSON Schema, live YAML preview, import/export, real-time schema validation, drag-and-drop file loading.
+
+See [`tools/editor/README.md`](tools/editor/README.md) for full documentation.
+
+---
+
 ## Scoring Reference
 
 | Score | Label | Meaning |
