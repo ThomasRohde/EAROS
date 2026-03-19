@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import {
   Box,
   AppBar,
@@ -30,15 +30,9 @@ import type { CriterionResult } from './CriterionScorer'
 import AssessmentSummary from './AssessmentSummary'
 import type { RubricDimension } from './AssessmentSummary'
 import { toYaml } from '../utils/yaml'
+import type { PreloadedAssessment, DimWithSource, ArtifactMeta } from '../types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-interface ArtifactMeta {
-  title: string
-  version: string
-  author: string
-  date: string
-}
 
 interface LoadedRubric {
   rubric_id: string
@@ -47,11 +41,6 @@ interface LoadedRubric {
   kind: string
   artifact_type: string
   dimensions: RubricDimension[]
-}
-
-// Each loaded section is labeled so criteria display shows "Core" vs "Profile"
-interface DimWithSource extends RubricDimension {
-  source: 'core' | 'profile'
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -72,7 +61,7 @@ function buildInitialResults(dims: RubricDimension[]): Record<string, CriterionR
 
 function exportEvaluation(
   meta: ArtifactMeta,
-  rubricEntry: ManifestEntry | null,
+  primaryRubricId: string,
   dimensions: RubricDimension[],
   results: Record<string, CriterionResult>,
 ): string {
@@ -97,7 +86,7 @@ function exportEvaluation(
   const record = {
     kind: 'evaluation',
     evaluation_id: `EVAL-${Date.now()}`,
-    rubric_id: rubricEntry?.rubric_id ?? 'unknown',
+    rubric_id: primaryRubricId || 'unknown',
     rubric_version: '1.0.0',
     artifact_ref: {
       title: meta.title || 'Untitled',
@@ -270,6 +259,9 @@ function DimensionSection({ dim, results, onChange }: DimSectionProps) {
         {dim.source === 'profile' && (
           <Chip label="Profile" size="small" sx={{ bgcolor: '#f3e5f5', color: '#6a1b9a', border: '1px solid #ce93d8', fontSize: '0.65rem', height: 20 }} />
         )}
+        {dim.source === 'overlay' && (
+          <Chip label="Overlay" size="small" sx={{ bgcolor: '#fce4ec', color: '#880e4f', border: '1px solid #f48fb1', fontSize: '0.65rem', height: 20 }} />
+        )}
         {dim.weight && dim.weight !== 1.0 && (
           <Chip label={`×${dim.weight}`} size="small" variant="outlined" sx={{ fontSize: '0.65rem', height: 20, color: '#888' }} />
         )}
@@ -324,22 +316,31 @@ function EmptyState() {
 
 interface Props {
   manifest: ManifestData | null
+  preloaded?: PreloadedAssessment | null
   onBack: () => void
 }
 
-export default function AssessmentForm({ manifest, onBack }: Props) {
-  const [selectedPath, setSelectedPath] = useState('')
-  const [selectedEntry, setSelectedEntry] = useState<ManifestEntry | null>(null)
-  const [dimensions, setDimensions] = useState<DimWithSource[]>([])
-  const [loading, setLoading] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
-  const [meta, setMeta] = useState<ArtifactMeta>({
+export default function AssessmentForm({ manifest, preloaded, onBack }: Props) {
+  // When preloaded is provided, initialize state from it
+  const initialMeta: ArtifactMeta = preloaded?.meta ?? {
     title: '',
     version: '',
     author: '',
     date: new Date().toISOString().slice(0, 10),
-  })
-  const [results, setResults] = useState<Record<string, CriterionResult>>({})
+    artifactType: '',
+  }
+  const initialDims: DimWithSource[] = preloaded?.dimensions ?? []
+  const initialResults: Record<string, CriterionResult> = preloaded?.existingResults
+    ?? (initialDims.length > 0 ? buildInitialResults(initialDims) : {})
+
+  // Manual-mode rubric selection (only used when preloaded is null)
+  const [selectedPath, setSelectedPath] = useState('')
+  const [selectedEntry, setSelectedEntry] = useState<ManifestEntry | null>(null)
+  const [dimensions, setDimensions] = useState<DimWithSource[]>(initialDims)
+  const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [meta, setMeta] = useState<ArtifactMeta>(initialMeta)
+  const [results, setResults] = useState<Record<string, CriterionResult>>(initialResults)
   const [toast, setToast] = useState<string | null>(null)
 
   const handleSelectRubric = useCallback(async (path: string) => {
@@ -355,7 +356,6 @@ export default function AssessmentForm({ manifest, onBack }: Props) {
     setLoadError(null)
 
     try {
-      // Fetch the selected rubric
       const rubricData = await fetchRepoFile(path) as LoadedRubric | null
       if (!rubricData) throw new Error('Could not load rubric file')
 
@@ -372,7 +372,6 @@ export default function AssessmentForm({ manifest, onBack }: Props) {
         source: rubricData.kind === 'core_rubric' ? 'core' : 'profile',
       }))
 
-      // If this is a profile (not core), also load core dimensions
       let coreDims: DimWithSource[] = []
       if (rubricData.kind === 'profile' && manifest?.core?.length) {
         const coreEntry = manifest.core[0]
@@ -399,7 +398,8 @@ export default function AssessmentForm({ manifest, onBack }: Props) {
   }, [])
 
   const handleExport = useCallback(() => {
-    const yaml = exportEvaluation(meta, selectedEntry, dimensions, results)
+    const primaryRubricId = preloaded?.primaryRubricId ?? selectedEntry?.rubric_id ?? 'unknown'
+    const yaml = exportEvaluation(meta, primaryRubricId, dimensions, results)
     const filename = meta.title
       ? `${meta.title.replace(/\s+/g, '-').toLowerCase()}.evaluation.yaml`
       : 'evaluation.yaml'
@@ -411,9 +411,11 @@ export default function AssessmentForm({ manifest, onBack }: Props) {
     a.click()
     URL.revokeObjectURL(url)
     setToast('Evaluation exported')
-  }, [meta, selectedEntry, dimensions, results])
+  }, [meta, preloaded, selectedEntry, dimensions, results])
 
   const hasCriteria = dimensions.length > 0
+  const displayRubricId = preloaded?.primaryRubricId ?? selectedEntry?.rubric_id
+  const displayTitle = preloaded?.primaryTitle ?? selectedEntry?.title ?? selectedEntry?.artifact_type
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#f5f7fa' }}>
@@ -426,21 +428,19 @@ export default function AssessmentForm({ manifest, onBack }: Props) {
             </IconButton>
           </Tooltip>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: 0.5 }}>
-            Assess Artifact
+            {meta.title || 'Assess Artifact'}
           </Typography>
-          {selectedEntry && (
-            <>
-              <Chip
-                label={selectedEntry.rubric_id ?? 'rubric'}
-                size="small"
-                sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: 'white', fontSize: '0.68rem', height: 20 }}
-              />
-              {selectedEntry.artifact_type && (
-                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.72rem' }}>
-                  {selectedEntry.artifact_type}
-                </Typography>
-              )}
-            </>
+          {displayRubricId && (
+            <Chip
+              label={displayRubricId}
+              size="small"
+              sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: 'white', fontSize: '0.68rem', height: 20 }}
+            />
+          )}
+          {displayTitle && displayTitle !== displayRubricId && (
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.72rem' }}>
+              {displayTitle}
+            </Typography>
           )}
           <Box sx={{ flexGrow: 1 }} />
           {hasCriteria && (
@@ -464,16 +464,18 @@ export default function AssessmentForm({ manifest, onBack }: Props) {
 
       {/* Main scrollable area */}
       <Box sx={{ flex: 1, overflow: 'auto', px: 3, py: 2 }}>
-        {/* Setup panel */}
-        <SetupPanel
-          manifest={manifest}
-          selectedPath={selectedPath}
-          onSelectPath={handleSelectRubric}
-          meta={meta}
-          onMetaChange={setMeta}
-          loading={loading}
-          loadError={loadError}
-        />
+        {/* Setup panel — only shown when NOT pre-loaded via the wizard */}
+        {!preloaded && (
+          <SetupPanel
+            manifest={manifest}
+            selectedPath={selectedPath}
+            onSelectPath={handleSelectRubric}
+            meta={meta}
+            onMetaChange={setMeta}
+            loading={loading}
+            loadError={loadError}
+          />
+        )}
 
         {/* Criteria */}
         {!hasCriteria && <EmptyState />}
@@ -487,7 +489,6 @@ export default function AssessmentForm({ manifest, onBack }: Props) {
           />
         ))}
 
-        {/* Bottom padding so content isn't hidden behind summary bar */}
         <Box sx={{ height: 16 }} />
       </Box>
 

@@ -42,7 +42,11 @@
       "Bash(xargs sed:*)",
       "Bash(grep -r .v2. --include=*.md --include=*.yaml --include=*.json --include=*.py -l)",
       "Bash(grep -r EAROS_v2 --include=*.md --include=*.yaml --include=*.json -l)",
-      "Bash(grep -r \"security\\\\.v2\\\\|data-governance\\\\.v2\\\\|regulatory\\\\.v2\" --include=*.md --include=*.yaml --include=*.json -l)"
+      "Bash(grep -r \"security\\\\.v2\\\\|data-governance\\\\.v2\\\\|regulatory\\\\.v2\" --include=*.md --include=*.yaml --include=*.json -l)",
+      "Bash(git push:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)",
+      "Bash(node bin.js manifest check)"
     ]
   }
 }

@@ -64,6 +64,18 @@ export async function fetchRepoFile(repoPath: string): Promise<unknown | null> {
   }
 }
 
+/** List .evaluation.yaml files from examples/ and evaluations/ directories. */
+export async function fetchEvaluations(): Promise<Array<{ path: string; name: string }>> {
+  try {
+    const resp = await fetch('/api/evaluations')
+    if (!resp.ok) return []
+    const data = await resp.json() as { files: Array<{ path: string; name: string }> }
+    return data.files ?? []
+  } catch {
+    return []
+  }
+}
+
 /** Save data back to a repo YAML file via the dev-server API. Returns true on success. */
 export async function saveRepoFile(repoPath: string, data: unknown): Promise<boolean> {
   try {

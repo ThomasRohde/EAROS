@@ -8,7 +8,7 @@
  *   POST /api/file/:path      — writes JSON data as YAML to a file in the repo root
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import yaml from 'js-yaml'
@@ -54,6 +54,27 @@ export function earosApiPlugin(): Plugin {
           } else {
             sendJson(res, 200, data)
           }
+          return
+        }
+
+        // GET /api/evaluations — list .evaluation.yaml files from examples/ and evaluations/
+        if (url === '/evaluations' && req.method === 'GET') {
+          const dirs = ['examples', 'evaluations']
+          const files: Array<{ path: string; name: string }> = []
+          for (const dir of dirs) {
+            const dirPath = resolve(REPO_ROOT, dir)
+            if (existsSync(dirPath)) {
+              try {
+                const entries = readdirSync(dirPath)
+                for (const entry of entries) {
+                  if (entry.endsWith('.evaluation.yaml')) {
+                    files.push({ path: `${dir}/${entry}`, name: entry })
+                  }
+                }
+              } catch { /* skip unreadable dirs */ }
+            }
+          }
+          sendJson(res, 200, { files })
           return
         }
 

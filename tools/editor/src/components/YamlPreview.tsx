@@ -1,13 +1,16 @@
 import { useMemo } from 'react'
 import { Paper, Typography, Box, IconButton, Tooltip } from '@mui/material'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { toYaml } from '../utils/yaml'
 
 interface Props {
   data: unknown
+  open: boolean
+  onToggle: () => void
 }
 
-export default function YamlPreview({ data }: Props) {
+export default function YamlPreview({ data, open, onToggle }: Props) {
   const yamlText = useMemo(() => {
     try {
       return toYaml(data)
@@ -19,6 +22,8 @@ export default function YamlPreview({ data }: Props) {
   const handleCopy = () => {
     navigator.clipboard.writeText(yamlText).catch(() => {})
   }
+
+  if (!open) return null
 
   return (
     <Paper
@@ -40,6 +45,11 @@ export default function YamlPreview({ data }: Props) {
           borderColor: 'divider',
         }}
       >
+        <Tooltip title="Collapse preview">
+          <IconButton size="small" onClick={onToggle} sx={{ mr: 0.5 }}>
+            <ChevronRightIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Tooltip>
         <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', flexGrow: 1 }}>
           YAML Preview
         </Typography>
