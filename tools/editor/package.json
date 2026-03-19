@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -p tsconfig.server.json && tsc && vite build",
+    "build": "tsc -p tsconfig.server.json && tsc && vite build && npm run build:scaffold",
+    "build:scaffold": "node scripts/build-scaffold.js",
     "postbuild": "node scripts/postbuild.mjs",
     "preview": "vite preview",
     "prepublishOnly": "npm run build"
@@ -17,8 +18,10 @@
     "dist/",
     "bin.js",
     "serve.js",
+    "init.js",
     "manifest-cli.mjs",
     "schemas/",
+    "scaffold/",
     "README.md"
   ],
   "keywords": [

@@ -12,5 +12,5 @@
     "noEmit": false,
     "declaration": false
   },
-  "files": ["src/serve.ts"]
+  "files": ["src/serve.ts", "src/init.ts"]
 }

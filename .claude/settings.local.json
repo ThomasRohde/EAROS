@@ -51,7 +51,8 @@
       "Bash(earos validate:*)",
       "Bash(node tools/editor/bin.js validate core/core-meta-rubric.yaml)",
       "Bash(node tools/editor/bin.js --help)",
-      "Bash(timeout 8 node -e \":*)"
+      "Bash(timeout 8 node -e \":*)",
+      "Bash(find C:UsersthomaProjectsEAROStoolseditor -not -path */node_modules/* -type f)"
     ]
   }
 }

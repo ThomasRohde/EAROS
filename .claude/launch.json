@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "EAROS Editor",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tools/editor/bin.js"],
+      "port": 3000
+    },
+    {
       "name": "EAROS Editor (dev)",
       "runtimeExecutable": "node",
       "runtimeArgs": ["tools/editor/node_modules/vite/bin/vite.js", "tools/editor"],
