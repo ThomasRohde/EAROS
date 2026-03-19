@@ -26,17 +26,7 @@ import { toJson, toYaml } from '../utils/yaml'
 import { validateData } from '../utils/validate'
 import type { ValidationResult } from '../utils/validate'
 import { saveRepoFile } from '../manifest'
-import artifactSchemaRaw from '../schemas/artifact.schema.json'
-
-// Strip draft-2020 $schema declaration so JSON Forms' AJV doesn't reject it
-function prepareSchema(s: Record<string, unknown>): Record<string, unknown> {
-  const result = { ...s }
-  delete result.$schema
-  delete result.$id
-  return result
-}
-
-const ARTIFACT_SCHEMA = prepareSchema(artifactSchemaRaw as Record<string, unknown>)
+import { loadSchema } from '../utils/schemaLoader'
 
 const ARTIFACT_UISCHEMA = {
   type: 'Categorization',
@@ -246,11 +236,17 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
   const [toast, setToast] = useState<string | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [currentFile, setCurrentFile] = useState<string | null>(null)
+  const [artifactSchema, setArtifactSchema] = useState<Record<string, unknown> | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    setValidation(validateData(data, ARTIFACT_SCHEMA))
-  }, [data])
+    loadSchema('artifact').then((s) => { if (s) setArtifactSchema(s) })
+  }, [])
+
+  useEffect(() => {
+    if (!artifactSchema) return
+    setValidation(validateData(data, artifactSchema))
+  }, [data, artifactSchema])
 
   const loadYaml = useCallback((content: string) => {
     try {
@@ -375,7 +371,7 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
             {/* Form panel */}
             <Paper sx={{ flex: 1, overflow: 'auto', p: 2 }}>
               <JsonForms
-                schema={ARTIFACT_SCHEMA as any}
+                schema={(artifactSchema ?? {}) as any}
                 uischema={ARTIFACT_UISCHEMA as any}
                 data={data}
                 renderers={materialRenderers}

@@ -29,8 +29,8 @@ async function validateFile(filePath: string): Promise<void> {
   const kind = data?.kind
   const schemaFile =
     kind === 'evaluation'
-      ? resolve(__dirname, '../schemas/evaluation.schema.json')
-      : resolve(__dirname, '../schemas/rubric.schema.json')
+      ? resolve(__dirname, '../../../standard/schemas/evaluation.schema.json')
+      : resolve(__dirname, '../../../standard/schemas/rubric.schema.json')
 
   const schema = JSON.parse(readFileSync(schemaFile, 'utf8'))
   const ajv = new Ajv({ strict: false, allErrors: true })

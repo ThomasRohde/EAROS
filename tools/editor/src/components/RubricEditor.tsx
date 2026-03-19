@@ -36,25 +36,10 @@ import StatusBar from './StatusBar'
 import { toJson, toYaml } from '../utils/yaml'
 import { validateData } from '../utils/validate'
 import type { ValidationResult } from '../utils/validate'
-import rubricSchemaRaw from '../schemas/rubric.schema.json'
-import evaluationSchemaRaw from '../schemas/evaluation.schema.json'
 import type { ManifestData, ManifestEntry } from '../manifest'
 import { fetchRepoFile, saveRepoFile } from '../manifest'
+import { loadSchema } from '../utils/schemaLoader'
 
-// Strip draft-2020 $schema declaration so JSON Forms' AJV doesn't reject it
-function prepareSchema(s: Record<string, unknown>): Record<string, unknown> {
-  const result = { ...s }
-  delete result.$schema
-  delete result.$id
-  return result
-}
-
-const RUBRIC_SCHEMA = prepareSchema(rubricSchemaRaw as Record<string, unknown>)
-const EVAL_SCHEMA = prepareSchema(evaluationSchemaRaw as Record<string, unknown>)
-
-function schemaFor(kind: Kind) {
-  return kind === 'evaluation' ? EVAL_SCHEMA : RUBRIC_SCHEMA
-}
 
 const RUBRIC_UISCHEMA = {
   type: 'Categorization',
@@ -407,10 +392,19 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
   const [currentEntry, setCurrentEntry] = useState<ManifestEntry | null>(null)
   const [newDialogOpen, setNewDialogOpen] = useState(autoNew)
   const [dialogKind, setDialogKind] = useState<Kind>('profile')
+  const [rubricSchema, setRubricSchema] = useState<Record<string, unknown> | null>(null)
+  const [evalSchema, setEvalSchema] = useState<Record<string, unknown> | null>(null)
 
   useEffect(() => {
-    setValidation(validateData(data, schemaFor(kind)))
-  }, [data, kind])
+    loadSchema('rubric').then((s) => { if (s) setRubricSchema(s) })
+    loadSchema('evaluation').then((s) => { if (s) setEvalSchema(s) })
+  }, [])
+
+  useEffect(() => {
+    const schema = kind === 'evaluation' ? evalSchema : rubricSchema
+    if (!schema) return
+    setValidation(validateData(data, schema))
+  }, [data, kind, rubricSchema, evalSchema])
 
   const handleNew = useCallback(() => {
     setNewDialogOpen(true)
@@ -555,7 +549,7 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
         {/* Form panel */}
         <Paper sx={{ flex: 1, overflow: 'auto', p: 2 }}>
           <JsonForms
-            schema={schemaFor(kind) as any}
+            schema={((kind === 'evaluation' ? evalSchema : rubricSchema) ?? {}) as any}
             uischema={uischemaFor(kind) as any}
             data={data}
             renderers={materialRenderers}

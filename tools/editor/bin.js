@@ -33,8 +33,8 @@ async function validateFile(filePath) {
   const kind = data?.kind
   const schemaFile =
     kind === 'evaluation'
-      ? resolve(__dirname, 'src/schemas/evaluation.schema.json')
-      : resolve(__dirname, 'src/schemas/rubric.schema.json')
+      ? resolve(__dirname, '../../standard/schemas/evaluation.schema.json')
+      : resolve(__dirname, '../../standard/schemas/rubric.schema.json')
 
   const schema = JSON.parse(readFileSync(schemaFile, 'utf8'))
 

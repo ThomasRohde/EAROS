@@ -46,7 +46,8 @@
       "Bash(git push:*)",
       "Bash(npx tsc:*)",
       "Bash(npx vite:*)",
-      "Bash(node bin.js manifest check)"
+      "Bash(node bin.js manifest check)",
+      "Bash(ls \"C:\\\\Users\\\\thoma\\\\Projects\\\\EAROS\\\\templates\\\\reference-architecture\"\" 2>/dev/null && ls \"C:UsersthomaProjectsEAROStoolsscoring-sheets\"\")"
     ]
   }
 }
