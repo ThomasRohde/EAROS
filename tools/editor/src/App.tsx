@@ -7,9 +7,10 @@ import {
   Toolbar,
   Typography,
   Paper,
-  Alert,
+  Chip,
   Snackbar,
   IconButton,
+  Button,
   Tooltip,
   List,
   ListItemButton,
@@ -18,8 +19,8 @@ import {
   Divider,
 } from '@mui/material'
 import CodeIcon from '@mui/icons-material/Code'
-import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import SaveIcon from '@mui/icons-material/Save'
+import AddIcon from '@mui/icons-material/Add'
 import KindSelector from './components/KindSelector'
 import type { Kind } from './components/KindSelector'
 import YamlPreview from './components/YamlPreview'
@@ -225,10 +226,23 @@ function ManifestSidebar({
   currentFile,
   onSelect,
 }: {
-  manifest: ManifestData
+  manifest: ManifestData | null
   currentFile: string | null
-  onSelect: (path: string) => void
+  onSelect: (entry: ManifestEntry) => void
 }) {
+  if (!manifest) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Typography variant="caption" display="block" sx={{ mb: 1, fontWeight: 600, color: '#555' }}>
+          EAROS Files
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Start the dev server to browse repo files.
+        </Typography>
+      </Box>
+    )
+  }
+
   const sections: SidebarSection[] = [
     { label: 'Core', entries: manifest.core ?? [] },
     { label: 'Profiles', entries: manifest.profiles ?? [] },
@@ -266,7 +280,7 @@ function ManifestSidebar({
               <ListItemButton
                 key={entry.path}
                 selected={isSelected}
-                onClick={() => onSelect(entry.path)}
+                onClick={() => onSelect(entry)}
                 sx={{ py: 0.25, px: 1.5 }}
               >
                 <ListItemText
@@ -289,6 +303,86 @@ function ManifestSidebar({
   )
 }
 
+// ─── File Info Bar ─────────────────────────────────────────────────────────────
+
+function FileInfoBar({
+  data,
+  currentFile,
+  currentEntry,
+  onSave,
+}: {
+  data: object
+  currentFile: string | null
+  currentEntry: ManifestEntry | null
+  onSave: () => void
+}) {
+  const d = data as any
+  const filename = currentFile ? currentFile.split('/').pop() : null
+  const rubricId = d.rubric_id ?? d.artifact_id ?? null
+  const version = d.version ?? d.rubric_version ?? null
+  const artifactType = currentEntry?.artifact_type ?? d.artifact_type ?? null
+  const kindLabel = d.kind ?? null
+  const chipSx = { height: 18, fontSize: '0.65rem', '.MuiChip-label': { px: 0.75 } }
+
+  return (
+    <Box
+      sx={{
+        px: 2,
+        py: 0.25,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        bgcolor: '#e8eaf6',
+        borderBottom: '1px solid #c5cae9',
+        minHeight: 30,
+        flexShrink: 0,
+      }}
+    >
+      {filename ? (
+        <>
+          <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#1a237e' }}>
+            {filename}
+          </Typography>
+          {kindLabel && (
+            <Chip label={kindLabel} size="small" sx={{ ...chipSx, bgcolor: '#c5cae9', color: '#1a237e' }} />
+          )}
+          {rubricId && (
+            <Typography variant="caption" sx={{ color: '#444', fontSize: '0.72rem' }}>
+              {rubricId}
+            </Typography>
+          )}
+          {version && (
+            <Typography variant="caption" sx={{ color: '#777', fontSize: '0.72rem' }}>
+              v{version}
+            </Typography>
+          )}
+          {artifactType && (
+            <Typography variant="caption" sx={{ color: '#777', fontSize: '0.72rem' }}>
+              · {artifactType}
+            </Typography>
+          )}
+          <Box sx={{ flexGrow: 1 }} />
+          <Tooltip title={`Save to ${currentFile}`}>
+            <IconButton size="small" onClick={onSave} sx={{ color: '#1a237e', p: 0.25 }}>
+              <SaveIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
+        </>
+      ) : (
+        <>
+          <Typography variant="caption" sx={{ color: '#999', fontSize: '0.75rem', fontStyle: 'italic' }}>
+            unsaved
+          </Typography>
+          {kindLabel && (
+            <Chip label={kindLabel} size="small" sx={{ ...chipSx, bgcolor: '#e0e0e0', color: '#666' }} />
+          )}
+          <Box sx={{ flexGrow: 1 }} />
+        </>
+      )}
+    </Box>
+  )
+}
+
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
@@ -296,11 +390,10 @@ export default function App() {
   const [data, setData] = useState<object>(INITIAL.profile)
   const [validation, setValidation] = useState<ValidationResult>({ valid: true, errors: [] })
   const [toast, setToast] = useState<string | null>(null)
-  const [dragOver, setDragOver] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [manifest, setManifest] = useState<ManifestData | null>(null)
   const [currentFile, setCurrentFile] = useState<string | null>(null)
+  const [currentEntry, setCurrentEntry] = useState<ManifestEntry | null>(null)
 
   useEffect(() => {
     setValidation(validateData(data, schemaFor(kind)))
@@ -308,19 +401,22 @@ export default function App() {
 
   // Load manifest from dev-server API on mount
   useEffect(() => {
-    fetchManifest().then((m) => {
-      if (m) {
-        setManifest(m)
-        setSidebarOpen(true)
-      }
-    })
+    fetchManifest().then((m) => { if (m) setManifest(m) })
   }, [])
 
   const handleKindChange = useCallback((k: Kind) => {
     setKind(k)
     setData(INITIAL[k])
     setCurrentFile(null)
+    setCurrentEntry(null)
   }, [])
+
+  const handleNew = useCallback(() => {
+    setData(INITIAL[kind])
+    setCurrentFile(null)
+    setCurrentEntry(null)
+    setToast(`New ${kind}`)
+  }, [kind])
 
   const loadYaml = useCallback(
     (content: string) => {
@@ -332,6 +428,7 @@ export default function App() {
         }
         setData(parsed ?? {})
         setCurrentFile(null)
+        setCurrentEntry(null)
         setToast('File imported')
       } catch (e) {
         setToast(`Import failed: ${(e as Error).message}`)
@@ -340,8 +437,8 @@ export default function App() {
     [kind],
   )
 
-  const loadFromRepo = useCallback(async (filePath: string) => {
-    const fileData = await fetchRepoFile(filePath) as any
+  const loadFromRepo = useCallback(async (entry: ManifestEntry) => {
+    const fileData = await fetchRepoFile(entry.path) as any
     if (!fileData) {
       setToast('Failed to load file from repo')
       return
@@ -351,8 +448,9 @@ export default function App() {
       setKind(k)
     }
     setData(fileData ?? {})
-    setCurrentFile(filePath)
-    setToast(`Loaded ${filePath.split('/').pop()}`)
+    setCurrentFile(entry.path)
+    setCurrentEntry(entry)
+    setToast(`Loaded ${entry.path.split('/').pop()}`)
   }, [kind])
 
   const saveToRepo = useCallback(async () => {
@@ -377,46 +475,35 @@ export default function App() {
     setToast('Exported')
   }, [data, kind])
 
-  // Drag-and-drop on the form panel
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setDragOver(false)
-      const file = e.dataTransfer.files[0]
-      if (!file) return
-      const reader = new FileReader()
-      reader.onload = (ev) => loadYaml(ev.target?.result as string)
-      reader.readAsText(file)
-    },
-    [loadYaml],
-  )
+  const toolbarBtnSx = {
+    color: 'white',
+    borderColor: 'rgba(255,255,255,0.4)',
+    '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.08)' },
+    textTransform: 'none' as const,
+    fontWeight: 400,
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#f0f2f5' }}>
       <AppBar position="static" sx={{ bgcolor: '#1a237e' }}>
-        <Toolbar variant="dense" sx={{ gap: 2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: 0.5 }}>
+        <Toolbar variant="dense" sx={{ gap: 1.5 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: 0.5, mr: 0.5 }}>
             EAROS Editor
           </Typography>
           <KindSelector kind={kind} onChange={handleKindChange} />
+          <Tooltip title={`New ${kind} from template`}>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={handleNew}
+              sx={toolbarBtnSx}
+            >
+              New
+            </Button>
+          </Tooltip>
           <Box sx={{ flexGrow: 1 }} />
           <FileControls onImport={loadYaml} onExport={handleExport} />
-          {currentFile && (
-            <Tooltip title={`Save to repo: ${currentFile}`}>
-              <IconButton size="small" onClick={saveToRepo} sx={{ color: 'rgba(255,255,255,0.85)' }}>
-                <SaveIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-          <Tooltip title={sidebarOpen ? 'Hide file browser' : 'Browse repo files'}>
-            <IconButton
-              size="small"
-              onClick={() => setSidebarOpen((v) => !v)}
-              sx={{ color: sidebarOpen ? 'white' : 'rgba(255,255,255,0.5)' }}
-            >
-              <FolderOpenIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
           <Tooltip title={previewOpen ? 'Hide YAML preview' : 'Show YAML preview'}>
             <IconButton
               size="small"
@@ -429,55 +516,39 @@ export default function App() {
         </Toolbar>
       </AppBar>
 
+      <FileInfoBar
+        data={data}
+        currentFile={currentFile}
+        currentEntry={currentEntry}
+        onSave={saveToRepo}
+      />
+
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', p: 1, gap: 1 }}>
-        {/* Manifest sidebar */}
-        {sidebarOpen && (
-          <Paper
-            sx={{
-              width: 220,
-              flexShrink: 0,
-              overflow: 'auto',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            {manifest ? (
-              <ManifestSidebar
-                manifest={manifest}
-                currentFile={currentFile}
-                onSelect={loadFromRepo}
-              />
-            ) : (
-              <Box sx={{ p: 2, color: '#999', fontSize: '0.8rem' }}>
-                <Typography variant="caption" display="block" sx={{ mb: 1, fontWeight: 600 }}>
-                  EAROS Files
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  API unavailable. Start the dev server to browse repo files.
-                </Typography>
-              </Box>
-            )}
-          </Paper>
-        )}
+        {/* Manifest sidebar — always visible */}
+        <Paper
+          sx={{
+            width: 220,
+            flexShrink: 0,
+            overflow: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <ManifestSidebar
+            manifest={manifest}
+            currentFile={currentFile}
+            onSelect={loadFromRepo}
+          />
+        </Paper>
 
         {/* Form panel */}
         <Paper
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={handleDrop}
           sx={{
             flex: 1,
             overflow: 'auto',
             p: 2,
-            outline: dragOver ? '2px dashed #1a237e' : 'none',
-            transition: 'outline 0.1s',
           }}
         >
-          {dragOver && (
-            <Alert severity="info" sx={{ mb: 1 }}>
-              Drop YAML file to import
-            </Alert>
-          )}
           <JsonForms
             schema={schemaFor(kind) as any}
             uischema={uischemaFor(kind) as any}

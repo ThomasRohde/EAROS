@@ -37,7 +37,7 @@ export default function FileControls({ onImport, onExport }: Props) {
         style={{ display: 'none' }}
         onChange={handleChange}
       />
-      <Tooltip title="Import YAML file">
+      <Tooltip title="Import a YAML file from outside the repo">
         <Button
           size="small"
           variant="outlined"
@@ -45,7 +45,7 @@ export default function FileControls({ onImport, onExport }: Props) {
           onClick={() => inputRef.current?.click()}
           sx={{ ...btnSx, mr: 1 }}
         >
-          Import
+          Import External
         </Button>
       </Tooltip>
       <Tooltip title="Export as YAML">
