@@ -93,7 +93,7 @@ dimensions:
           - interim state definitions with entry and exit criteria
         scoring_guide:
           "0": No transition states — jump directly from current to target with no intermediate
-          "1": Vague phase labels only (e.g. 'Phase 1: Migrate') with no architecture content
+          "1": "Vague phase labels only (e.g. 'Phase 1: Migrate') with no architecture content"
           "2": Some transition states defined — intermediate architectures sketched but incomplete
           "3": Transition states are clearly defined and sequenced — each state has architecture content
           "4": Transition states are detailed with entry and exit criteria, risk assessment, and rollback plan
