@@ -140,6 +140,8 @@ The rubric is locked during evaluation (`rubric_locked: true`). Calibration uses
 
 ```
 EAROS/
+├── earos.manifest.yaml          Inventory of all EAROS rubric files (auto-generated; keep up to date)
+│
 ├── standard/
 │   ├── EAROS.md                  Canonical standard (read this first for deep understanding)
 │   ├── EAROS_Standard_v2.docx       Word version
@@ -524,6 +526,34 @@ The `.claude/skills/` directory contains Claude agent skills for working with EA
 
 ---
 
+## 12. Manifest (earos.manifest.yaml)
+
+`earos.manifest.yaml` (at the repo root) is the authoritative inventory of all EAROS rubric files. It lists every core rubric, profile, and overlay with their paths, rubric IDs, titles, artifact types, and statuses.
+
+**Purpose:**
+- Gives skills a single source of truth for discovering available profiles and overlays — no hardcoded paths
+- Powers the editor's file sidebar (browse and load rubrics directly)
+- Enables `earos-validate` to detect drift between the manifest and the filesystem
+
+**CLI commands** (from `tools/editor/`):
+```
+node bin.js manifest             # Regenerate manifest by scanning core/, profiles/, overlays/
+node bin.js manifest add <file>  # Add a single file to the manifest
+node bin.js manifest check       # Verify manifest matches filesystem; exits non-zero on drift
+```
+
+**Keeping it current:**
+- After creating a new rubric with `earos-create`: run `node bin.js manifest add <path>` (or manually add the entry)
+- After deleting a rubric: re-run `node bin.js manifest` to regenerate
+- `earos-validate` Check 8 reports any manifest-filesystem inconsistency as an ERROR
+
+**Skills that use the manifest:**
+- `earos-assess` — reads manifest first to discover available profiles and overlays
+- `earos-create` — updates manifest as the final step of rubric creation
+- `earos-validate` — Check 8 validates manifest-filesystem consistency
+
+---
+
 ## Quick Reference
 
 | Task | Where to start |
@@ -538,3 +568,6 @@ The `.claude/skills/` directory contains Claude agent skills for working with EA
 | Validate an evaluation record | `standard/schemas/evaluation.schema.json` |
 | Calibrate | `earos-calibrate` skill or `calibration/gold-set/` |
 | Generate an executive report | `earos-report` skill |
+| Regenerate the manifest | `node tools/editor/bin.js manifest` |
+| Add a new rubric to the manifest | `node tools/editor/bin.js manifest add <path>` |
+| Check manifest-filesystem consistency | `node tools/editor/bin.js manifest check` |

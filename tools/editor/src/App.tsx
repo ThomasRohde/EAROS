@@ -9,7 +9,17 @@ import {
   Paper,
   Alert,
   Snackbar,
+  IconButton,
+  Tooltip,
+  List,
+  ListItemButton,
+  ListItemText,
+  ListSubheader,
+  Divider,
 } from '@mui/material'
+import CodeIcon from '@mui/icons-material/Code'
+import FolderOpenIcon from '@mui/icons-material/FolderOpen'
+import SaveIcon from '@mui/icons-material/Save'
 import KindSelector from './components/KindSelector'
 import type { Kind } from './components/KindSelector'
 import YamlPreview from './components/YamlPreview'
@@ -20,6 +30,8 @@ import { validateData } from './utils/validate'
 import type { ValidationResult } from './utils/validate'
 import rubricSchemaRaw from './schemas/rubric.schema.json'
 import evaluationSchemaRaw from './schemas/evaluation.schema.json'
+import type { ManifestData, ManifestEntry } from './manifest'
+import { fetchManifest, fetchRepoFile, saveRepoFile } from './manifest'
 
 // Strip draft-2020 $schema declaration so JSON Forms' AJV doesn't reject it
 function prepareSchema(s: Record<string, unknown>): Record<string, unknown> {
@@ -201,20 +213,113 @@ const INITIAL: Record<Kind, object> = {
   },
 }
 
+// ─── Manifest Sidebar ─────────────────────────────────────────────────────────
+
+interface SidebarSection {
+  label: string
+  entries: ManifestEntry[]
+}
+
+function ManifestSidebar({
+  manifest,
+  currentFile,
+  onSelect,
+}: {
+  manifest: ManifestData
+  currentFile: string | null
+  onSelect: (path: string) => void
+}) {
+  const sections: SidebarSection[] = [
+    { label: 'Core', entries: manifest.core ?? [] },
+    { label: 'Profiles', entries: manifest.profiles ?? [] },
+    { label: 'Overlays', entries: manifest.overlays ?? [] },
+  ]
+
+  return (
+    <List dense disablePadding sx={{ width: '100%' }}>
+      {sections.map((section, si) => (
+        <Box key={section.label}>
+          {si > 0 && <Divider />}
+          <ListSubheader
+            sx={{
+              lineHeight: '28px',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              letterSpacing: 0.8,
+              textTransform: 'uppercase',
+              bgcolor: '#f5f5f5',
+              color: '#555',
+            }}
+          >
+            {section.label}
+          </ListSubheader>
+          {section.entries.length === 0 && (
+            <ListItemText
+              primary="(none)"
+              sx={{ px: 2, py: 0.5, color: '#999', fontSize: '0.75rem' }}
+            />
+          )}
+          {section.entries.map((entry) => {
+            const filename = entry.path.split('/').pop() ?? entry.path
+            const isSelected = currentFile === entry.path
+            return (
+              <ListItemButton
+                key={entry.path}
+                selected={isSelected}
+                onClick={() => onSelect(entry.path)}
+                sx={{ py: 0.25, px: 1.5 }}
+              >
+                <ListItemText
+                  primary={filename}
+                  secondary={entry.rubric_id}
+                  primaryTypographyProps={{
+                    variant: 'body2',
+                    sx: { fontSize: '0.8rem', fontWeight: isSelected ? 600 : 400 },
+                  }}
+                  secondaryTypographyProps={{
+                    sx: { fontSize: '0.68rem', color: '#888' },
+                  }}
+                />
+              </ListItemButton>
+            )
+          })}
+        </Box>
+      ))}
+    </List>
+  )
+}
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+
 export default function App() {
   const [kind, setKind] = useState<Kind>('profile')
   const [data, setData] = useState<object>(INITIAL.profile)
   const [validation, setValidation] = useState<ValidationResult>({ valid: true, errors: [] })
   const [toast, setToast] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [manifest, setManifest] = useState<ManifestData | null>(null)
+  const [currentFile, setCurrentFile] = useState<string | null>(null)
 
   useEffect(() => {
     setValidation(validateData(data, schemaFor(kind)))
   }, [data, kind])
 
+  // Load manifest from dev-server API on mount
+  useEffect(() => {
+    fetchManifest().then((m) => {
+      if (m) {
+        setManifest(m)
+        setSidebarOpen(true)
+      }
+    })
+  }, [])
+
   const handleKindChange = useCallback((k: Kind) => {
     setKind(k)
     setData(INITIAL[k])
+    setCurrentFile(null)
   }, [])
 
   const loadYaml = useCallback(
@@ -226,6 +331,7 @@ export default function App() {
           setKind(k)
         }
         setData(parsed ?? {})
+        setCurrentFile(null)
         setToast('File imported')
       } catch (e) {
         setToast(`Import failed: ${(e as Error).message}`)
@@ -233,6 +339,27 @@ export default function App() {
     },
     [kind],
   )
+
+  const loadFromRepo = useCallback(async (filePath: string) => {
+    const fileData = await fetchRepoFile(filePath) as any
+    if (!fileData) {
+      setToast('Failed to load file from repo')
+      return
+    }
+    const k: Kind = fileData?.kind ?? kind
+    if (['core_rubric', 'profile', 'overlay', 'evaluation'].includes(k)) {
+      setKind(k)
+    }
+    setData(fileData ?? {})
+    setCurrentFile(filePath)
+    setToast(`Loaded ${filePath.split('/').pop()}`)
+  }, [kind])
+
+  const saveToRepo = useCallback(async () => {
+    if (!currentFile) return
+    const ok = await saveRepoFile(currentFile, data)
+    setToast(ok ? `Saved → ${currentFile.split('/').pop()}` : 'Save failed')
+  }, [currentFile, data])
 
   const handleExport = useCallback(() => {
     const filename =
@@ -274,17 +401,72 @@ export default function App() {
           <KindSelector kind={kind} onChange={handleKindChange} />
           <Box sx={{ flexGrow: 1 }} />
           <FileControls onImport={loadYaml} onExport={handleExport} />
+          {currentFile && (
+            <Tooltip title={`Save to repo: ${currentFile}`}>
+              <IconButton size="small" onClick={saveToRepo} sx={{ color: 'rgba(255,255,255,0.85)' }}>
+                <SaveIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+          <Tooltip title={sidebarOpen ? 'Hide file browser' : 'Browse repo files'}>
+            <IconButton
+              size="small"
+              onClick={() => setSidebarOpen((v) => !v)}
+              sx={{ color: sidebarOpen ? 'white' : 'rgba(255,255,255,0.5)' }}
+            >
+              <FolderOpenIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={previewOpen ? 'Hide YAML preview' : 'Show YAML preview'}>
+            <IconButton
+              size="small"
+              onClick={() => setPreviewOpen((v) => !v)}
+              sx={{ color: previewOpen ? 'white' : 'rgba(255,255,255,0.5)' }}
+            >
+              <CodeIcon />
+            </IconButton>
+          </Tooltip>
         </Toolbar>
       </AppBar>
 
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', p: 1, gap: 1 }}>
+        {/* Manifest sidebar */}
+        {sidebarOpen && (
+          <Paper
+            sx={{
+              width: 220,
+              flexShrink: 0,
+              overflow: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            {manifest ? (
+              <ManifestSidebar
+                manifest={manifest}
+                currentFile={currentFile}
+                onSelect={loadFromRepo}
+              />
+            ) : (
+              <Box sx={{ p: 2, color: '#999', fontSize: '0.8rem' }}>
+                <Typography variant="caption" display="block" sx={{ mb: 1, fontWeight: 600 }}>
+                  EAROS Files
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  API unavailable. Start the dev server to browse repo files.
+                </Typography>
+              </Box>
+            )}
+          </Paper>
+        )}
+
         {/* Form panel */}
         <Paper
           onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
           sx={{
-            flex: '0 0 58%',
+            flex: 1,
             overflow: 'auto',
             p: 2,
             outline: dragOver ? '2px dashed #1a237e' : 'none',
@@ -307,9 +489,11 @@ export default function App() {
         </Paper>
 
         {/* YAML preview panel */}
-        <Box sx={{ flex: '0 0 42%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <YamlPreview data={data} />
-        </Box>
+        {previewOpen && (
+          <Box sx={{ flex: '0 0 42%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <YamlPreview data={data} open={previewOpen} onToggle={() => setPreviewOpen(false)} />
+          </Box>
+        )}
       </Box>
 
       <StatusBar validation={validation} kind={kind} />

@@ -12,14 +12,15 @@ You run a systematic health check on the EAROS repository. This catches errors t
 ## What to Load First
 
 Read before running any checks:
-1. `standard/schemas/rubric.schema.json` — schema for all rubric/profile/overlay YAML files
-2. `standard/schemas/evaluation.schema.json` — schema for evaluation record files
+1. `earos.manifest.yaml` — the authoritative registry of all rubric files; Check 8 validates it
+2. `standard/schemas/rubric.schema.json` — schema for all rubric/profile/overlay YAML files
+3. `standard/schemas/evaluation.schema.json` — schema for evaluation record files
 
 Then read all YAML files in: `core/`, `profiles/`, `overlays/`, `examples/`
 
-## The Seven Checks
+## The Eight Checks
 
-Run all seven. Do not stop at the first error.
+Run all eight. Do not stop at the first error.
 
 **Check 1 — Schema conformance**
 For each rubric YAML, verify required top-level fields, `scoring` and `outputs` sub-fields, and kind-specific requirements (profiles must have `inherits`, overlays must not, overlays must use `append_to_base_rubric`).
@@ -41,6 +42,14 @@ Check CLAUDE.md claims ("9 dimensions", "10 criteria", profile lists) against ac
 
 **Check 7 — YAML style conventions**
 Two-space indentation, quoted numeric keys in `scoring_guide`, kebab-case filenames, no version number in filename (version is tracked inside the file only).
+
+**Check 8 — Manifest-filesystem consistency**
+Read `earos.manifest.yaml`. For each entry in `core`, `profiles`, and `overlays`:
+- Verify the file exists on disk at the listed path
+- Verify `rubric_id` in the manifest matches `rubric_id` in the file
+- Verify `title` and `artifact_type` are consistent
+
+Then verify completeness: every `.yaml` file in `core/`, `profiles/`, and `overlays/` must appear in the manifest. Any file on disk that is absent from the manifest is an ERROR. Any manifest entry whose file is missing is an ERROR.
 
 > Read `references/validation-checks.md` for the complete check procedures with exact field paths and error message formats. Read it before running any checks — it contains the precision needed to produce actionable error messages.
 
@@ -70,6 +79,7 @@ Files checked: [N rubric files] + [N evaluation records]
 | Evaluation records | [N] | [N] |
 | Documentation accuracy | [N] | [N] |
 | YAML style | [N] | [N] |
+| Manifest consistency | [N] | [N] |
 | TOTAL | [N] | [N] |
 
 Overall health: [Clean / Warnings only / Errors found]

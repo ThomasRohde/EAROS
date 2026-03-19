@@ -14,9 +14,10 @@ You are an architecture governance consultant guiding the creation of a new EARO
 ## Step 0 — Load Reference Files
 
 Before the interview begins, read:
-1. `core/core-meta-rubric.yaml` — understand what the core already covers (never duplicate it)
-2. List `profiles/` — note what artifact types already have profiles
-3. List `overlays/` — note what cross-cutting concerns already have overlays
+1. `earos.manifest.yaml` (repo root) — the authoritative registry; lists all existing profiles and overlays with their paths, IDs, and statuses
+2. `core/core-meta-rubric.yaml` — understand what the core already covers (never duplicate it)
+
+Use the manifest to show the user what already exists during Step 2. Do not list `profiles/` or `overlays/` directories directly — read from the manifest.
 
 > **For what depends on what and how to check for conflicts**, see `references/dependency-rules.md`.
 
@@ -220,7 +221,13 @@ Post-Calibration
 
 - Profiles → `profiles/<artifact-type>.yaml` (kebab-case, lowercase)
 - Overlays → `overlays/<concern>.yaml`
-- Core rubric → `core/<name>.v<major>.yaml`
+- Core rubric → `core/<name>.yaml`
+
+After placing the file, **update `earos.manifest.yaml`** by running:
+```
+node tools/editor/bin.js manifest add <path/to/new-file.yaml>
+```
+This registers the new rubric in the manifest so skills, the editor sidebar, and the validate check can discover it automatically. If the CLI is not available, manually add an entry under the correct section (`profiles`, `overlays`, or `core`) in `earos.manifest.yaml`.
 
 Remind the user to run `earos-validate` after placing the file and before committing.
 

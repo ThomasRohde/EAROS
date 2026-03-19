@@ -15,18 +15,23 @@ You are running a governed architecture quality evaluation. The output must be *
 
 Read these files before scoring anything. The rubric files contain the `scoring_guide` and `decision_tree` fields that define what each score level means. Do not score from memory — read the rubric.
 
+**Start with the manifest.** Read `earos.manifest.yaml` (at the repo root) first — it is the authoritative registry of all available profiles and overlays. Use the `path` values listed in the manifest to find the files. Do not hardcode paths.
+
 **Always load:**
 - `core/core-meta-rubric.yaml` — 9 dimensions, 10 criteria, applies to every artifact
 
 **Load the matching profile (if one exists):**
+Check `earos.manifest.yaml` → `profiles` section for available profiles and their `artifact_type`. Select the entry whose `artifact_type` matches the artifact being assessed. If no match exists, use core only.
+
+Common matches:
 - Solution architecture → `profiles/solution-architecture.yaml`
 - Reference architecture → `profiles/reference-architecture.yaml`
 - Architecture Decision Record → `profiles/adr.yaml`
 - Capability map → `profiles/capability-map.yaml`
 - Roadmap → `profiles/roadmap.yaml`
-- No match → core only
 
 **Ask the user which overlays apply (if not specified):**
+Check `earos.manifest.yaml` → `overlays` section for all available overlays.
 - `overlays/security.yaml` — apply when the artifact touches auth, authorization, personal data, or external integrations
 - `overlays/data-governance.yaml` — apply when the artifact describes data flows, retention, or classification
 - `overlays/regulatory.yaml` — apply when the artifact is in a regulated domain (payments, healthcare, financial reporting)

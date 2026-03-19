@@ -2,6 +2,7 @@
 import { createServer } from 'vite'
 import open from 'open'
 import { readFileSync } from 'fs'
+import { spawnSync } from 'child_process'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import yaml from 'js-yaml'
@@ -82,6 +83,17 @@ if (args[0] === 'validate') {
     process.exit(1)
   }
   await validateFile(args[1])
+} else if (args[0] === 'manifest') {
+  // Delegate to src/manifest.ts via tsx (devDependency)
+  const manifestTs = resolve(__dirname, 'src/manifest.ts')
+  const tsxBin = resolve(__dirname, 'node_modules/.bin/tsx')
+  const result = spawnSync(tsxBin, [manifestTs, ...args.slice(1)], { stdio: 'inherit', shell: true })
+  if (result.error) {
+    console.error('tsx is required for the manifest command. Run: npm install')
+    console.error(result.error.message)
+    process.exit(1)
+  }
+  process.exit(result.status ?? 0)
 } else {
   await startEditor(args[0])
 }
