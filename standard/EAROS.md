@@ -977,7 +977,7 @@ architecture-rubrics/
  overlay.schema.json
  core/
  core-meta-rubric.yaml
- scoring-guidance.v1.md
+ scoring-guidance.md
  profiles/
  capability-map.yaml
  solution-architecture.yaml
