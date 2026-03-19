@@ -37,19 +37,17 @@ EAROS solves this by codifying evaluation criteria into governed, machine-readab
 
 ## The Three-Layer Model
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  OVERLAYS  (cross-cutting concerns)                             │
-│  security  ·  data-governance  ·  regulatory                   │
-├─────────────────────────────────────────────────────────────────┤
-│  PROFILES  (artifact-specific extensions)                       │
-│  solution-architecture  ·  reference-architecture  ·  adr       │
-│  capability-map  ·  roadmap                                     │
-├─────────────────────────────────────────────────────────────────┤
-│  CORE  (universal foundation — all artifacts)                   │
-│  core-meta-rubric.yaml                                       │
-│  9 dimensions · 0–4 ordinal scale · 3 pass thresholds          │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    O["<b>OVERLAYS</b> (cross-cutting concerns)<br/>security · data-governance · regulatory"]
+    P["<b>PROFILES</b> (artifact-specific extensions)<br/>solution-architecture · reference-architecture · adr · capability-map · roadmap"]
+    C["<b>CORE</b> (universal foundation — all artifacts)<br/>core-meta-rubric.yaml<br/>9 dimensions · 0–4 ordinal scale · 3 pass thresholds"]
+
+    O --- P --- C
+
+    style O fill:#f3e5f5,stroke:#ab47bc,stroke-width:2px,color:#000
+    style P fill:#e3f2fd,stroke:#42a5f5,stroke-width:2px,color:#000
+    style C fill:#e8f5e9,stroke:#66bb6a,stroke-width:2px,color:#000
 ```
 
 **Core** defines the nine dimensions that apply to every architecture artifact: stakeholder fit, scope clarity, concern coverage, traceability, internal consistency, risk coverage, compliance, actionability, and maintainability.
@@ -136,12 +134,18 @@ EAROS/
 
 The three schemas form a deliberate derivation chain:
 
-```
-rubric.schema.json          ← governs all rubric YAML files (core, profiles, overlays)
-    ↓ required_evidence fields drive
-artifact.schema.json        ← governs architecture artifact documents
-    ↓ sections map to evidence requirements
-evaluation-record.template.yaml / evaluation.schema.json
+```mermaid
+flowchart LR
+    R["<b>rubric.schema.json</b><br/>governs all rubric YAML files (core, profiles, overlays)"]
+    A["<b>artifact.schema.json</b><br/>governs architecture artifact documents"]
+    E["<b>evaluation.schema.json</b> / evaluation-record.template.yaml"]
+
+    R -->|required_evidence fields drive| A
+    A -->|sections map to evidence requirements| E
+
+    style R fill:#fff3e0,stroke:#ffb74d,stroke-width:2px,color:#000
+    style A fill:#e0f7fa,stroke:#4dd0e1,stroke-width:2px,color:#000
+    style E fill:#fce4ec,stroke:#f06292,stroke-width:2px,color:#000
 ```
 
 A well-completed artifact document satisfies the evidence requirements that rubric criteria require. When a profile adds criteria with new `required_evidence` fields, the artifact schema should be extended to add the corresponding sections. This chain makes EAROS end-to-end: rubric defines what counts as evidence → artifact schema structures how evidence is captured → evaluation schema records how it is scored.
@@ -189,8 +193,27 @@ Produce output conforming to evaluation.schema.json.
 </artifact>
 ```
 
-The rubric files include a `agent_evaluation` section defining an 8-step DAG:
-`structural_validation → content_extraction → criterion_scoring → cross_reference_validation → dimension_aggregation → challenge_pass → calibration → status_determination`
+The rubric files include an `agent_evaluation` section defining an 8-step DAG:
+
+```mermaid
+flowchart LR
+    S1[structural<br>validation] --> S2[content<br>extraction]
+    S2 --> S3[criterion<br>scoring]
+    S3 --> S4[cross_reference<br>validation]
+    S4 --> S5[dimension<br>aggregation]
+    S5 --> S6[challenge<br>pass]
+    S6 --> S7[calibration]
+    S7 --> S8[status<br>determination]
+    
+    style S1 fill:#f5f5f5,stroke:#9e9e9e,color:#000
+    style S2 fill:#f5f5f5,stroke:#9e9e9e,color:#000
+    style S3 fill:#f5f5f5,stroke:#9e9e9e,color:#000
+    style S4 fill:#f5f5f5,stroke:#9e9e9e,color:#000
+    style S5 fill:#f5f5f5,stroke:#9e9e9e,color:#000
+    style S6 fill:#f5f5f5,stroke:#9e9e9e,color:#000
+    style S7 fill:#f5f5f5,stroke:#9e9e9e,color:#000
+    style S8 fill:#4caf50,stroke:#2e7d32,color:#fff
+```
 
 Calibrate your agent against the gold-set artifacts in [`calibration/gold-set/`](calibration/gold-set/) before using in production. Target inter-rater reliability of Cohen's κ > 0.70.
 
