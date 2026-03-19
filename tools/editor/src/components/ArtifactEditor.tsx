@@ -20,6 +20,7 @@ import SaveIcon from '@mui/icons-material/Save'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
 import DownloadIcon from '@mui/icons-material/Download'
 import NoteAddIcon from '@mui/icons-material/NoteAdd'
+import QuickTipBanner from './QuickTipBanner'
 import YamlPreview from './YamlPreview'
 import StatusBar from './StatusBar'
 import { toJson, toYaml } from '../utils/yaml'
@@ -364,6 +365,11 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
       </AppBar>
 
       <ArtifactInfoBar data={data} currentFile={currentFile} onSave={saveToRepo} />
+
+      <QuickTipBanner
+        tipKey="artifact-editor"
+        message="Each section maps to an EAROS criterion. Fill them all to maximize your assessment score."
+      />
 
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', p: 1, gap: 1 }}>
         {hasContent ? (

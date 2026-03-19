@@ -29,6 +29,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CodeIcon from '@mui/icons-material/Code'
 import SaveIcon from '@mui/icons-material/Save'
 import AddIcon from '@mui/icons-material/Add'
+import QuickTipBanner from './QuickTipBanner'
 import type { Kind } from './KindSelector'
 import YamlPreview from './YamlPreview'
 import FileControls from './FileControls'
@@ -526,6 +527,11 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
         currentFile={currentFile}
         currentEntry={currentEntry}
         onSave={saveToRepo}
+      />
+
+      <QuickTipBanner
+        tipKey="rubric-editor"
+        message="Each criterion needs a scoring guide, examples, and a decision tree for AI agents to apply it consistently."
       />
 
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', p: 1, gap: 1 }}>

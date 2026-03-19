@@ -23,6 +23,7 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
+import QuickTipBanner from './QuickTipBanner'
 import type { ManifestData, ManifestEntry } from '../manifest'
 import { fetchRepoFile } from '../manifest'
 import CriterionScorer from './CriterionScorer'
@@ -461,6 +462,11 @@ export default function AssessmentForm({ manifest, preloaded, onBack }: Props) {
           )}
         </Toolbar>
       </AppBar>
+
+      <QuickTipBanner
+        tipKey="assessment-form"
+        message="Every score needs evidence from the artifact — cite specific sections, pages, or diagrams."
+      />
 
       {/* Main scrollable area */}
       <Box sx={{ flex: 1, overflow: 'auto', px: 3, py: 2 }}>
