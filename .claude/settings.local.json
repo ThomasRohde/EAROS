@@ -32,7 +32,10 @@
       "Bash(__NEW_LINE_48b218b2005fcd44__ unzip:*)",
       "Bash(unzip -p presentations/EAROS_v2_Part1_Overview.pptx ppt/slides/slide1.xml)",
       "Bash(sed 's/<[^>]*>//g')",
-      "Bash(node generate-presentations.js)"
+      "Bash(node generate-presentations.js)",
+      "Bash(xxd)",
+      "Bash(grep -ri danske --include=*.md --include=*.yaml --include=*.json --include=*.yml)",
+      "Bash(xargs -I{} sh -c \"head -c3 \"\"{}\"\" | xxd | grep -q \"\"ef bb bf\"\" && echo \"\"BOM: {}\"\"\")"
     ]
   }
 }
