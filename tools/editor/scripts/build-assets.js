@@ -34,6 +34,34 @@ if (existsSync(schemasSrc)) {
   console.log('  copied standard/schemas/')
 }
 
+// Copy EAROS.md (the full standard document)
+const earosMdSrc = join(repoRoot, 'standard', 'EAROS.md')
+if (existsSync(earosMdSrc)) {
+  cpSync(earosMdSrc, join(assetsDir, 'standard', 'EAROS.md'))
+  console.log('  copied standard/EAROS.md')
+}
+
+// Copy docs/
+const docsSrc = join(repoRoot, 'docs')
+if (existsSync(docsSrc)) {
+  cpSync(docsSrc, join(assetsDir, 'docs'), { recursive: true })
+  console.log('  copied docs/')
+}
+
+// Copy examples/
+const examplesSrc = join(repoRoot, 'examples')
+if (existsSync(examplesSrc)) {
+  cpSync(examplesSrc, join(assetsDir, 'examples'), { recursive: true })
+  console.log('  copied examples/')
+}
+
+// Copy research/
+const researchSrc = join(repoRoot, 'research')
+if (existsSync(researchSrc)) {
+  cpSync(researchSrc, join(assetsDir, 'research'), { recursive: true })
+  console.log('  copied research/')
+}
+
 // Copy manifest
 const manifestSrc = join(repoRoot, 'earos.manifest.yaml')
 if (existsSync(manifestSrc)) {
@@ -61,6 +89,15 @@ if (existsSync(readmeSrc)) {
     )
   writeFileSync(join(assetsDir, 'README.md'), readme)
   console.log('  copied README.md (patched .agents/skills/)')
+}
+
+// Copy CLAUDE.md from repo root → scaffold root, patching .claude/skills/ → .agents/skills/
+const claudeMdSrc = join(repoRoot, 'CLAUDE.md')
+if (existsSync(claudeMdSrc)) {
+  let claudeMd = readFileSync(claudeMdSrc, 'utf8')
+  claudeMd = claudeMd.replace(/\.claude\/skills\//g, '.agents/skills/')
+  writeFileSync(join(assetsDir, 'CLAUDE.md'), claudeMd)
+  console.log('  copied CLAUDE.md (patched .agents/skills/)')
 }
 
 // Generate AGENTS.md — agent-agnostic project guide (no Claude-specific references)
@@ -178,6 +215,9 @@ structural_validation
 
 \`\`\`
 <workspace>/
+├── CLAUDE.md                    Full project guide (Claude Code reads this)
+├── AGENTS.md                    Agent-agnostic project guide (this file)
+├── README.md
 ├── earos.manifest.yaml          Inventory of all EAROS rubric files
 ├── core/
 │   └── core-meta-rubric.yaml    Universal foundation (EAROS-CORE-002)
@@ -191,13 +231,20 @@ structural_validation
 │   ├── security.yaml
 │   ├── data-governance.yaml
 │   └── regulatory.yaml
-├── standard/schemas/            JSON Schemas for validation
-│   ├── rubric.schema.json
-│   ├── evaluation.schema.json
-│   └── artifact.schema.json
+├── standard/
+│   ├── EAROS.md                 The full EAROS standard document
+│   └── schemas/                 JSON Schemas for validation
+│       ├── rubric.schema.json
+│       ├── evaluation.schema.json
+│       └── artifact.schema.json
 ├── templates/                   Blank templates
+├── examples/                    Worked evaluation examples
+├── docs/                        Documentation (getting-started, profile guide)
+├── research/                    Research underpinning the standard
 ├── evaluations/                 Your evaluation records go here
 ├── calibration/                 Calibration artifacts and results
+│   ├── gold-set/
+│   └── results/
 └── .agents/skills/              Agent skills for EAROS workflows
     ├── earos-assess/
     ├── earos-review/
@@ -341,7 +388,7 @@ Do not skip \`challenge_pass\` — this step has a second agent challenge the pr
 
 | Task | Where to start |
 |------|---------------|
-| Understand the full standard | \`standard/EAROS.md\` (if present) or \`README.md\` |
+| Understand the full standard | \`standard/EAROS.md\` |
 | Score any artifact | \`.agents/skills/earos-assess/SKILL.md\` |
 | Create a new rubric | \`.agents/skills/earos-create/SKILL.md\` |
 | Validate a rubric YAML | \`earos validate <file>\` |
@@ -352,18 +399,17 @@ Do not skip \`challenge_pass\` — this step has a second agent challenge the pr
 writeFileSync(join(assetsDir, 'AGENTS.md'), agentsMd)
 console.log('  generated AGENTS.md')
 
-// Create .claude/ directory with thin CLAUDE.md that points to AGENTS.md
+// Create .claude/ directory with thin CLAUDE.md pointer
 mkdirSync(join(assetsDir, '.claude'), { recursive: true })
 writeFileSync(
   join(assetsDir, '.claude', 'CLAUDE.md'),
   `# EAROS Project
 
-Read \`AGENTS.md\` for complete project documentation, methodology, and evaluation rules.
-
-Skills are in \`.agents/skills/\` — Claude Code will discover them automatically.
+The full project guide is in \`CLAUDE.md\` at the repository root.
+Skills are in \`.agents/skills/\`.
 `
 )
-console.log('  created .claude/CLAUDE.md (pointer to AGENTS.md)')
+console.log('  created .claude/CLAUDE.md (pointer to root CLAUDE.md)')
 
 // Create placeholder directories (empty dirs don't survive npm pack)
 for (const dir of ['evaluations', 'calibration/gold-set', 'calibration/results']) {
