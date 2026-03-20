@@ -79,15 +79,53 @@ if (args[0] === '--help' || args[0] === '-h') {
   console.log(`earos — EAROS editor and CLI
 
 Usage:
-  earos                        Open the editor in your browser
-  earos <file.yaml>            Open the editor with a file pre-loaded
-  earos init [dir]             Scaffold a new EAROS workspace (default: current dir)
-  earos validate <file.yaml>   Validate a rubric or evaluation YAML (exit 0/1)
-  earos manifest               Regenerate earos.manifest.yaml
-  earos manifest add <file>    Add a file to the manifest
-  earos manifest check         Verify manifest matches filesystem
-  earos dev                    Start Vite dev server (development only)`)
+  earos                             Open the editor in your browser
+  earos <file.yaml>                 Open the editor with a file pre-loaded
+  earos init [dir]                  Scaffold a new EAROS workspace (default: current dir)
+  earos validate <file.yaml>        Validate a rubric or evaluation YAML (exit 0/1)
+  earos export <file.yaml>          Export artifact YAML as Word document (.docx)
+  earos manifest                    Regenerate earos.manifest.yaml
+  earos manifest add <file>         Add a file to the manifest
+  earos manifest check              Verify manifest matches filesystem
+  earos dev                         Start Vite dev server (development only)`)
   process.exit(0)
+} else if (args[0] === 'export') {
+  // Export artifact YAML → Word document
+  if (!args[1]) {
+    console.error('Usage: earos export <file.yaml>')
+    process.exit(1)
+  }
+  const inputPath = resolve(args[1])
+  if (!existsSync(inputPath)) {
+    console.error(`File not found: ${inputPath}`)
+    process.exit(1)
+  }
+  let exportContent
+  try { exportContent = readFileSync(inputPath, 'utf8') } catch (e) {
+    console.error(`Cannot read file: ${e.message}`)
+    process.exit(1)
+  }
+  let artifactData
+  try { artifactData = yaml.load(exportContent) } catch (e) {
+    console.error(`YAML parse error: ${e.message}`)
+    process.exit(1)
+  }
+  if (artifactData?.kind !== 'artifact') {
+    console.error('File does not appear to be an artifact (expected kind: artifact)')
+    process.exit(1)
+  }
+  const { exportToDocx } = await import('./export-docx.js')
+  const outputPath = inputPath.replace(/\.(yaml|yml)$/i, '') + '.docx'
+  console.log('Rendering diagrams and building Word document…')
+  try {
+    const { writeFileSync } = await import('fs')
+    const buf = await exportToDocx(artifactData)
+    writeFileSync(outputPath, buf)
+    console.log(`✓ Exported → ${outputPath}`)
+  } catch (e) {
+    console.error(`Export failed: ${e.message}`)
+    process.exit(1)
+  }
 } else if (args[0] === 'init') {
   const targetDir = args[1] || '.'
   const { initWorkspace } = await import('./init.js')

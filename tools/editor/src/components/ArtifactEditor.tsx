@@ -20,6 +20,8 @@ import SaveIcon from '@mui/icons-material/Save'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
 import DownloadIcon from '@mui/icons-material/Download'
 import NoteAddIcon from '@mui/icons-material/NoteAdd'
+import ArticleIcon from '@mui/icons-material/Article'
+import CircularProgress from '@mui/material/CircularProgress'
 import QuickTipBanner from './QuickTipBanner'
 import YamlPreview from './YamlPreview'
 import StatusBar from './StatusBar'
@@ -238,6 +240,7 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [currentFile, setCurrentFile] = useState<string | null>(null)
   const [artifactSchema, setArtifactSchema] = useState<Record<string, unknown> | null>(null)
+  const [wordExporting, setWordExporting] = useState(false)
   const importRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -283,6 +286,36 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
     a.click()
     URL.revokeObjectURL(url)
     setToast('Exported')
+  }, [data])
+
+  const handleExportWord = useCallback(async () => {
+    setWordExporting(true)
+    try {
+      const resp = await fetch('/api/export/docx', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: resp.statusText }))
+        setToast(`Word export failed: ${err.error ?? resp.statusText}`)
+        return
+      }
+      const blob = await resp.blob()
+      const d = data as any
+      const filename = d.metadata?.title?.replace(/[^a-z0-9]/gi, '-').toLowerCase() ?? 'artifact'
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${filename}.docx`
+      a.click()
+      URL.revokeObjectURL(url)
+      setToast('Word document exported')
+    } catch (e) {
+      setToast(`Word export failed: ${(e as Error).message}`)
+    } finally {
+      setWordExporting(false)
+    }
   }, [data])
 
   const handleImportClick = () => importRef.current?.click()
@@ -347,7 +380,19 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
                   onClick={handleExport}
                   sx={{ ...toolbarBtnSx, mr: 0.5 }}
                 >
-                  Export
+                  Export YAML
+                </Button>
+              </Tooltip>
+              <Tooltip title="Export as Word document (.docx) — diagrams rendered via Kroki">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={wordExporting ? <CircularProgress size={14} color="inherit" /> : <ArticleIcon />}
+                  onClick={handleExportWord}
+                  disabled={wordExporting}
+                  sx={{ ...toolbarBtnSx, mr: 0.5 }}
+                >
+                  Export Word
                 </Button>
               </Tooltip>
               <Tooltip title={previewOpen ? 'Hide YAML preview' : 'Show YAML preview'}>

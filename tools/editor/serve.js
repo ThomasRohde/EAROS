@@ -9,6 +9,7 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import yaml from 'js-yaml';
 import open from 'open';
+import { exportToDocx } from './export-docx.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 function findRepoRoot() {
     const cwd = process.cwd();
@@ -114,6 +115,24 @@ export async function startServer(fileArg) {
             const content = yaml.dump(req.body, { lineWidth: 120, noRefs: true });
             writeFileSync(absPath, content, 'utf8');
             res.json({ ok: true });
+        }
+        catch (e) {
+            res.status(500).json({ error: String(e) });
+        }
+    });
+    // POST /api/export/docx  — generate a Word document from artifact JSON
+    app.post('/api/export/docx', async (req, res) => {
+        try {
+            const artifactData = req.body;
+            if (!artifactData || typeof artifactData !== 'object') {
+                res.status(400).json({ error: 'Request body must be artifact JSON' });
+                return;
+            }
+            const buf = await exportToDocx(artifactData);
+            const title = artifactData?.metadata?.title?.replace(/[^a-z0-9]/gi, '-').toLowerCase() ?? 'artifact';
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            res.setHeader('Content-Disposition', `attachment; filename="${title}.docx"`);
+            res.send(buf);
         }
         catch (e) {
             res.status(500).json({ error: String(e) });
