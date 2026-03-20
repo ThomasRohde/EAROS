@@ -506,7 +506,7 @@ The `rubric_locked: true` flag in `agent_evaluation` means an agent must not mod
 
 Before using EAROS-REFARCH-001 in a production governance process, evaluators must independently score `examples/aws-event-driven-order-processing/artifact.yaml` and achieve κ > 0.70 against the reference scores in `evaluation.yaml`. The two intentionally score-3 criteria (RA-VIEW-02 and RA-IMP-02) are calibration checkpoints — inflating these to 4 is a calibration failure.
 
-**Paired with an artifact schema:** `standard/schemas/artifact.schema.json` is derived from the rubric's `required_evidence` fields and defines the structure of a compliant reference architecture document. This pattern — rubric + artifact schema — should be replicated for each new profile. The artifact schema is usable by JSON Forms to render an artifact creation form in the editor.
+**Paired with artifact schemas:** `standard/schemas/artifact.schema.json` is derived from the rubric's `required_evidence` fields and defines the structure of a compliant reference architecture document. `standard/schemas/artifact.uischema.json` controls how JSON Forms renders that schema in the editor — splitting it into 7 tabs rather than a flat 2-tab layout. This pattern — rubric + data schema + UI schema — should be replicated for each new profile. When creating a new profile, update `artifact.schema.json` with any new required sections, then update `artifact.uischema.json` to add those sections to the appropriate tab.
 
 **Illustrative decision tree pattern** (from RA-VIEW-01):
 ```
