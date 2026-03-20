@@ -905,7 +905,7 @@ sections:
             - Native integration with many AWS services
           cons:
             - Higher cost per event than SNS (approximately 5× at high volume)
-            - Throughput limit: 10K events/second per event bus (region)
+            - "Throughput limit: 10K events/second per event bus (region)"
         - id: C
           description: Amazon MSK (Managed Kafka)
           pros:
@@ -1757,23 +1757,23 @@ sections:
       architecture or obtain an Architecture Board exception. Effective Q2 2026.
     conditions: []
     next_actions:
-      - action: Publish architecture to internal developer portal (Backstage)
+      - description: Publish architecture to internal developer portal (Backstage)
         owner: Enterprise Architecture
         target_date: "2026-04-05"
-      - action: >
+      - description: >
           Migrate Order Service v1 (monolith) to conform with this reference
           architecture (initial extraction of Order domain)
         owner: Order Platform Engineering
         target_date: "2026-06-30"
-      - action: >
+      - description: >
           Complete annual DR exercise to validate RTO 4h / RPO 1h targets
         owner: Platform SRE
         target_date: "2026-07-31"
-      - action: >
+      - description: >
           Conduct first annual PCI-DSS QSA audit against this architecture
         owner: Risk and Compliance
         target_date: "2026-09-30"
-      - action: >
+      - description: >
           Review and update this reference architecture at 6-month review
           (next_review_date: 2026-09-20)
         owner: Enterprise Architecture

@@ -51,7 +51,9 @@ async function validateFile(filePath) {
   const schemaFile =
     kind === 'evaluation'
       ? resolve(schemasDir, 'evaluation.schema.json')
-      : resolve(schemasDir, 'rubric.schema.json')
+      : kind === 'artifact'
+        ? resolve(schemasDir, 'artifact.schema.json')
+        : resolve(schemasDir, 'rubric.schema.json')
 
   const rawSchema = JSON.parse(readFileSync(schemaFile, 'utf8'))
   // Strip $schema/$id so AJV v8 doesn't try to load the draft-2020 meta-schema
