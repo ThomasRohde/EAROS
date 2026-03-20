@@ -151,7 +151,7 @@ export async function startServer(fileArg?: string): Promise<void> {
     res.sendFile(resolve(distDir, 'index.html'))
   })
 
-  const port = await findAvailablePort(3000)
+  const port = await findAvailablePort(process.env.PORT ? parseInt(process.env.PORT, 10) : 3000)
 
   app.listen(port, () => {
     const url = fileArg
