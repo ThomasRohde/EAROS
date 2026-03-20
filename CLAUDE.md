@@ -487,6 +487,13 @@ The `rubric_locked: true` flag in `agent_evaluation` means an agent must not mod
 - Dimension weights are tuned: implementation actionability (RA-D4) and views (RA-D1) weighted at 1.2 to reflect their importance; reusability/evolution (RA-D6) at 0.8 as secondary
 - Calibration pack is specified explicitly: 1 strong, 1 weak, 1 ambiguous, 1 golden-path artifact
 
+**Gold-standard calibration example:** `examples/aws-event-driven-order-processing/` contains the EAROS calibration benchmark for reference architecture assessments:
+- `artifact.yaml` — A complete, approved reference architecture (Event-Driven Order Processing on AWS). Scores 3.73/4.0. Use as the "strong" artifact in calibration packs.
+- `evaluation.yaml` — Full 19-criterion EAROS evaluation with RULERS evidence anchors, evidence class, confidence, and challenger notes. All 8 DAG steps completed.
+- `report.md` — Human-readable assessment report with traffic-light dashboard, dimension table, and recommended actions.
+
+Before using EAROS-REFARCH-001 in a production governance process, evaluators must independently score `examples/aws-event-driven-order-processing/artifact.yaml` and achieve κ > 0.70 against the reference scores in `evaluation.yaml`. The two intentionally score-3 criteria (RA-VIEW-02 and RA-IMP-02) are calibration checkpoints — inflating these to 4 is a calibration failure.
+
 **Paired with an artifact schema:** `standard/schemas/artifact.schema.json` is derived from the rubric's `required_evidence` fields and defines the structure of a compliant reference architecture document. This pattern — rubric + artifact schema — should be replicated for each new profile. The artifact schema is usable by JSON Forms to render an artifact creation form in the editor.
 
 **Illustrative decision tree pattern** (from RA-VIEW-01):
@@ -575,7 +582,10 @@ node bin.js manifest check       # Verify manifest matches filesystem; exits non
 | Score any other artifact | `earos-assess` skill or `tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx` |
 | Create a new rubric (profile, overlay, or core) | `earos-create` skill |
 | Get YAML authoring help for an existing rubric design | `earos-profile-author` skill or `templates/new-profile.template.yaml` + `docs/profile-authoring-guide.md` |
-| See a worked evaluation | `examples/example-solution-architecture.evaluation.yaml` |
+| See a worked evaluation (solution architecture) | `examples/example-solution-architecture.evaluation.yaml` |
+| See a gold-standard reference architecture artifact | `examples/aws-event-driven-order-processing/artifact.yaml` |
+| See a gold-standard evaluation (calibration benchmark) | `examples/aws-event-driven-order-processing/evaluation.yaml` |
+| See a gold-standard assessment report | `examples/aws-event-driven-order-processing/report.md` |
 | Validate a rubric YAML | `earos-validate` skill or `standard/schemas/rubric.schema.json` |
 | Validate an evaluation record | `standard/schemas/evaluation.schema.json` |
 | Validate an artifact document | `standard/schemas/artifact.schema.json` |

@@ -1,0 +1,1929 @@
+kind: artifact
+artifact_type: reference_architecture
+
+metadata:
+  title: Event-Driven Order Processing Platform on AWS
+  version: 1.0.0
+  status: approved
+  author: Thomas Rohde
+  owner: Enterprise Architecture, E-Commerce Platform Domain
+  effective_date: "2026-03-20"
+  next_review_date: "2026-09-20"
+  last_updated: "2026-03-20"
+  purpose: >
+    This reference architecture defines the target pattern for all event-driven
+    microservices implementing order processing on AWS. It supports Architecture
+    Board approval as the mandatory golden path for new e-commerce order services
+    and serves as the calibration benchmark for EAROS reference architecture
+    assessments.
+  decision_context: >
+    Architecture Board review Q1 2026. The e-commerce platform is migrating from
+    a monolithic order management system to event-driven microservices. This
+    reference architecture governs all new services built as part of that
+    migration and all future order-processing workloads on AWS.
+  stakeholders:
+    - role: Executive Sponsor
+      name: Chief Technology Officer
+      concerns: >
+        Strategic alignment, cost profile, risk posture, compliance with PCI-DSS,
+        and ability to scale to 10× current order volume without re-platforming.
+    - role: Platform Architect
+      name: Enterprise Architecture
+      concerns: >
+        Architectural soundness, pattern reusability, alignment with cloud
+        strategy, ADR rationale, and prescriptiveness classification.
+    - role: Domain Architect
+      name: E-Commerce Domain Architecture
+      concerns: >
+        Service decomposition, data model, integration patterns with upstream
+        and downstream systems, and bounded context alignment.
+    - role: Development Team Lead
+      name: Order Platform Engineering
+      concerns: >
+        Implementation guidance, IaC templates, API specs, getting-started
+        guide, and time to first deployment.
+    - role: Site Reliability Engineer
+      name: Platform SRE
+      concerns: >
+        SLOs, observability, scaling policies, DR procedures, runbooks, and
+        on-call playbooks.
+    - role: Security Architect
+      name: Information Security
+      concerns: >
+        PCI-DSS compliance, authentication, authorisation, encryption, WAF
+        configuration, and IAM least-privilege posture.
+    - role: Compliance Officer
+      name: Risk and Compliance
+      concerns: >
+        PCI-DSS Level 1 compliance mapping, audit trail completeness, data
+        residency, and exception log.
+  change_log:
+    - version: "1.0.0"
+      date: "2026-03-20"
+      author: Thomas Rohde
+      changes:
+        - Initial approved version — gold-standard EAROS calibration artifact
+        - All 5 architecture views complete (context, functional, deployment, data flow, security)
+        - 5 full ADRs with alternatives, trade-offs, and revisit conditions
+        - Complete operational model with SLOs, dashboards, scaling, and DR
+        - PCI-DSS compliance mapping covering all 12 requirements areas
+        - 6-step getting-started guide tested against sandbox environment
+
+sections:
+  reading_guide:
+    how_to_use: >
+      This document is structured so each audience can navigate directly to
+      their primary concerns. The section map below identifies the most relevant
+      sections for each stakeholder role. Cross-references between sections are
+      explicit — where a decision in one section depends on content from another,
+      a reference is provided.
+    section_map:
+      - section: Business Context
+        audience: CTO, Executive Sponsor
+        concern: Strategic alignment, business drivers, and use-case coverage
+      - section: Architecture Views — Context
+        audience: CTO, Domain Architect
+        concern: System boundary, external actors, and integration landscape
+      - section: Architecture Views — Functional
+        audience: Domain Architect, Development Team Lead
+        concern: Service decomposition, component responsibilities, and interfaces
+      - section: Architecture Views — Data Flow
+        audience: Domain Architect, Development Team Lead, Data Governance
+        concern: Runtime order-processing flow and event choreography
+      - section: Architecture Views — Deployment
+        audience: Platform SRE, Security Architect
+        concern: Infrastructure topology, multi-AZ resilience, and network design
+      - section: Architecture Views — Security
+        audience: Security Architect, Compliance Officer
+        concern: Trust boundaries, authentication, authorisation, and encryption
+      - section: Architecture Decisions (ADRs)
+        audience: Platform Architect, Domain Architect
+        concern: Decision rationale, alternatives considered, and trade-offs accepted
+      - section: Component Classification
+        audience: Development Team Lead
+        concern: Mandatory vs optional components and approved extension points
+      - section: Quality Attributes
+        audience: Platform SRE, Domain Architect
+        concern: Measurable SLO targets and validation strategies
+      - section: Operational Model
+        audience: Platform SRE
+        concern: Monitoring, alerting, scaling, and disaster recovery
+      - section: Implementation Artifacts
+        audience: Development Team Lead
+        concern: IaC templates, API specs, CI/CD pipeline, and scaffold template
+      - section: Getting Started
+        audience: Development Team Lead
+        concern: Step-by-step guide to first deployment
+      - section: RAID Log
+        audience: Platform Architect, Risk and Compliance
+        concern: Risks, design assumptions, constraints, and trade-offs
+      - section: Governance and Compliance
+        audience: Compliance Officer, Security Architect
+        concern: PCI-DSS control mapping and exception register
+      - section: Decisions and Actions
+        audience: Architecture Board, CTO
+        concern: Governance outcome, approval conditions, and next actions
+
+  scope:
+    statement: >
+      This reference architecture covers the event-driven order processing
+      platform on AWS: the full lifecycle from order submission through payment
+      authorisation, fulfilment dispatch, and customer notification. It defines
+      mandatory patterns for all new order-processing microservices in the
+      e-commerce domain.
+    in_scope:
+      - Order submission API (HTTP/REST via API Gateway)
+      - Order Service — create, validate, and persist orders
+      - Payment Service — authorise payments via external payment gateway
+      - Fulfilment Service — dispatch orders to warehouse management system
+      - Notification Service — send order status updates via email/SMS
+      - Event Bus (AWS EventBridge) — async inter-service choreography
+      - Work queues (AWS SQS) — reliable message delivery with DLQ
+      - Order data store (AWS DynamoDB) — primary persistence
+      - Identity and access (AWS Cognito) — customer and API authentication
+      - Observability stack (CloudWatch, X-Ray) — metrics, logs, and tracing
+      - Infrastructure-as-code (AWS CDK) — deployment automation
+      - CI/CD pipeline (AWS CodePipeline + CodeBuild) — delivery automation
+    out_of_scope:
+      - Customer mobile and web frontend — covered by separate UI reference architecture
+      - Payment gateway internals — third-party service; integration contract only
+      - Warehouse management system — external system; integration via adapter only
+      - Email and SMS providers — external services; notification adapter only
+      - Product catalogue and inventory — covered by separate catalogue reference architecture
+      - Analytics and reporting pipeline — covered by data platform reference architecture
+      - Corporate IAM and SSO — platform service; consumed, not owned
+      - Fraud detection scoring — consumed as a platform service via API
+    boundary_definition: >
+      The system boundary is defined at the API Gateway ingress (customer-facing)
+      and at the integration adapters for external systems (payment gateway,
+      warehouse management system, notification providers). All components inside
+      the boundary are owned and operated by the Order Platform Engineering team.
+      The C4 context diagram (Architecture Views — Context) is the authoritative
+      boundary representation.
+    assumptions:
+      - assumption: AWS is the mandated cloud provider for all new e-commerce workloads
+        consequence_if_violated: >
+          The entire IaC stack, managed services selection, and IAM model would
+          need to be replaced. Estimated re-platform effort: 6–9 months.
+      - assumption: >
+          The external payment gateway provides a REST API with SLA >= 99.9%
+          availability and supports idempotent payment authorisation
+        consequence_if_violated: >
+          Payment Service retry logic and DLQ strategy may be insufficient.
+          A synchronous fallback or alternative payment gateway would be required.
+      - assumption: Order volume is 100–1000 orders/minute sustained, peak 5000/minute
+        consequence_if_violated: >
+          Lambda concurrency limits and DynamoDB capacity units may need
+          re-provisioning. Architecture is elastic but cost model changes.
+      - assumption: PCI-DSS scope is limited to payment authorisation flow (no card data stored)
+        consequence_if_violated: >
+          Significantly broader PCI-DSS controls would apply, requiring dedicated
+          cardholder data environment (CDE) separation and additional audit scope.
+      - assumption: AWS CDK v2 is the approved IaC tool for this domain
+        consequence_if_violated: >
+          IaC templates would need to be rewritten in Terraform or CloudFormation.
+
+  drivers_and_principles:
+    drivers:
+      - id: DR-01
+        description: >
+          Scale order processing capacity 10× from 100 to 1000 sustained orders/minute
+          without architectural re-platforming, to support projected e-commerce growth
+          over the next 3 years.
+        architecture_response: >
+          Serverless compute (Lambda) and fully managed data services (DynamoDB,
+          SQS, EventBridge) provide elastic horizontal scaling. Scaling policies
+          (see Operational Model) target 1000 orders/minute sustained with 5000/minute
+          burst. ADR-003 documents the Lambda-vs-ECS trade-off for this requirement.
+      - id: DR-02
+        description: >
+          Achieve PCI-DSS Level 1 compliance for the payment authorisation flow
+          to satisfy card network requirements and enable enterprise payment volumes.
+        architecture_response: >
+          PCI-DSS compliance achieved through: Cognito + JWT for customer authentication
+          (no credentials in order data), API Gateway WAF with OWASP ruleset, KMS
+          encryption at rest and TLS 1.2+ in transit, VPC isolation for Lambda
+          functions, CloudTrail audit logging, and full compliance mapping in
+          Governance section. No card data is stored (tokenisation via payment gateway).
+      - id: DR-03
+        description: >
+          Reduce order processing latency: P99 order submission < 500ms,
+          order status query < 200ms, to support real-time customer experience.
+        architecture_response: >
+          Synchronous API Gateway → Lambda path for order submission targets
+          < 500ms P99. DynamoDB single-table design (ADR-005) with access patterns
+          optimised for order-by-id and customer-order-list queries targets < 200ms
+          P99. Lambda provisioned concurrency eliminates cold-start latency for
+          the submission path. Quality Attributes section defines fitness functions.
+      - id: DR-04
+        description: >
+          Enable independent deployment of services (order, payment, fulfilment,
+          notification) so teams can release without coordinating across service
+          boundaries.
+        architecture_response: >
+          Event-driven choreography via EventBridge (ADR-001) decouples services
+          at runtime. Each service owns its schema and deployment pipeline (see CI/CD
+          templates). Schema evolution uses EventBridge schema registry with
+          compatibility checks in CI. Services do not share databases.
+      - id: DR-05
+        description: >
+          Provide complete, immutable audit trail of all order state transitions
+          for compliance, customer support, and fraud investigation.
+        architecture_response: >
+          Every state transition publishes an event to EventBridge with correlation
+          ID, timestamp, actor, and previous/new state. Events are persisted to
+          S3 via Kinesis Firehose for 7-year retention. CloudTrail captures all
+          API-level actions. Correlation IDs thread through all service logs.
+    principles:
+      - id: PRIN-01
+        name: Event-driven by default
+        how_applied: >
+          All inter-service communication uses EventBridge async events, not
+          synchronous REST calls. Synchronous REST is used only for the customer-
+          facing submission API and for external system adapters. See ADR-001.
+      - id: PRIN-02
+        name: API-first
+        how_applied: >
+          All service interfaces are defined as OpenAPI 3.1 specifications before
+          implementation. API specs are the contract; code is the implementation.
+          See Implementation Artifacts for spec locations.
+      - id: PRIN-03
+        name: Zero-trust networking
+        how_applied: >
+          All service-to-service calls require IAM role authentication.
+          No service has a blanket "allow all within VPC" rule. Each Lambda
+          function has a least-privilege IAM role permitting only the specific
+          resources it needs. See Security View and Governance.
+      - id: PRIN-04
+        name: Infrastructure-as-code only
+        how_applied: >
+          All AWS resources are provisioned via CDK stacks. No manual console
+          changes. CloudFormation drift detection runs nightly. See ADR-003
+          and Implementation Artifacts.
+      - id: PRIN-05
+        name: Observability-first
+        how_applied: >
+          All Lambda functions emit structured JSON logs with correlation IDs.
+          X-Ray tracing is active on all functions. CloudWatch dashboards are
+          provisioned by CDK alongside the service, not added after deployment.
+
+  architecture_views:
+    context:
+      description: >
+        The Event-Driven Order Processing Platform sits at the centre of the
+        e-commerce order lifecycle. External actors interact at the boundary:
+        customers submit orders and query status via API Gateway; the Payment
+        Gateway (Stripe) authorises charges; the Warehouse Management System
+        receives fulfilment instructions; and the Notification Provider (Amazon
+        SES/SNS) delivers email and SMS. The corporate IAM platform issues
+        tokens used by internal operator tooling. The Analytics Platform
+        consumes order events from S3 for reporting.
+
+        Key boundary characteristics:
+        - Customers interact only through the API Gateway (HTTPS); no direct
+          service access.
+        - Payment Gateway integration is outbound only; no inbound webhooks
+          (polling model for authorisation status).
+        - Warehouse Management System integration uses SQS queue (decoupled;
+          WMS pulls at its own rate).
+        - All events are published to EventBridge for cross-domain consumption
+          by the Analytics Platform.
+      diagram_source: |
+        graph TD
+          Customer["Customer\n[Person]"] -->|HTTPS REST| APIGW["API Gateway\n[AWS]"]
+          Operator["Internal Operator\n[Person]"] -->|HTTPS REST| APIGW
+          APIGW --> Platform["Event-Driven Order\nProcessing Platform\n[AWS]"]
+          Platform -->|REST HTTPS| PayGW["Payment Gateway\n(Stripe)\n[External]"]
+          Platform -->|SQS| WMS["Warehouse Management\nSystem\n[External]"]
+          Platform -->|SES/SNS| NotifyProv["Notification Provider\n(Amazon SES/SNS)\n[AWS Managed]"]
+          Platform -->|S3 Events| Analytics["Analytics Platform\n[Internal]"]
+          CorpIAM["Corporate IAM\n(Cognito)\n[AWS]"] -->|JWT tokens| APIGW
+      source_type: mermaid
+
+    functional:
+      description: >
+        The platform decomposes into six primary containers plus the shared
+        event bus. Each container is a separately deployable Lambda function
+        group with its own IAM role, CloudWatch log group, and CDK stack.
+        Containers communicate exclusively through EventBridge events (async)
+        or SQS queues (work distribution). No container calls another container
+        synchronously.
+
+        Container responsibilities:
+        - API Gateway: TLS termination, Cognito JWT authorisation, request
+          routing, WAF enforcement, throttling (1000 req/s burst, 100 req/s
+          sustained per stage).
+        - Order Service: Validates order data, persists to DynamoDB, publishes
+          OrderCreated event. Exposes REST endpoints for order submission and
+          status query.
+        - Payment Service: Subscribes to OrderCreated, calls Stripe payment API,
+          publishes PaymentAuthorised or PaymentFailed event. Idempotent via
+          Stripe idempotency keys.
+        - Fulfilment Service: Subscribes to PaymentAuthorised, places fulfilment
+          message on SQS queue consumed by WMS adapter, publishes FulfilmentDispatched.
+        - Notification Service: Subscribes to OrderCreated, PaymentAuthorised,
+          PaymentFailed, FulfilmentDispatched. Sends customer-facing status
+          updates via SES (email) and SNS (SMS).
+        - Event Bus (EventBridge): Central event backbone. All inter-service
+          events pass through EventBridge with schema validation enforced.
+        - Event Archive (S3 + Firehose): All EventBridge events replayed to
+          Kinesis Firehose → S3 for audit retention (7 years) and analytics.
+      diagram_source: |
+        graph LR
+          APIGW["API Gateway\n+ WAF + Cognito\nAuthoriser"] --> OrderSvc["Order Service\nLambda\n(Node.js 20)"]
+          OrderSvc --> DDB["DynamoDB\nOrders Table\n(single-table)"]
+          OrderSvc --> EB["EventBridge\nEvent Bus"]
+          EB --> PaySvc["Payment Service\nLambda\n(Node.js 20)"]
+          EB --> FulfilSvc["Fulfilment Service\nLambda\n(Node.js 20)"]
+          EB --> NotifySvc["Notification Service\nLambda\n(Node.js 20)"]
+          PaySvc --> Stripe["Payment Gateway\n(Stripe)"]
+          PaySvc --> EB
+          FulfilSvc --> SQS["SQS Queue\nFulfilment\n+ DLQ"]
+          SQS --> WMSAdapter["WMS Adapter\nLambda\n(Node.js 20)"]
+          WMSAdapter --> WMS["Warehouse Mgmt\nSystem"]
+          FulfilSvc --> EB
+          NotifySvc --> SES["Amazon SES\n(Email)"]
+          NotifySvc --> SNS["Amazon SNS\n(SMS)"]
+          EB --> Firehose["Kinesis Firehose"]
+          Firehose --> S3["S3 Event Archive\n(7-year retention)"]
+      source_type: mermaid
+
+    deployment:
+      description: >
+        All components are deployed in a single AWS region (eu-west-1) with
+        multi-AZ resilience. Lambda functions execute across three Availability
+        Zones (AZs) by default. DynamoDB is a regional service with automatic
+        multi-AZ replication. SQS and EventBridge are regional services with
+        99.99% availability SLA.
+
+        Network topology:
+        - VPC with three private subnets (one per AZ) for Lambda functions
+          requiring VPC attachment (Payment Service and WMS Adapter).
+        - API Gateway is a managed regional endpoint outside the VPC; WAF
+          is attached at the CloudFront distribution level.
+        - DynamoDB, EventBridge, SQS, S3, SES, and SNS are accessed via
+          VPC endpoints (PrivateLink) where available; no public internet
+          egress for data traffic.
+        - NAT Gateway per AZ for Lambda functions requiring internet egress
+          (Stripe API calls from Payment Service).
+
+        Resilience model:
+        - Lambda: executes in all AZs; automatic AZ failover; no single-AZ
+          dependency.
+        - DynamoDB: multi-AZ; automatic failover; point-in-time recovery
+          (PITR) enabled; 35-day backup window.
+        - SQS: multi-AZ; messages durable across AZ failures.
+        - EventBridge: regional service; 99.99% SLA.
+
+        Disaster recovery (active-passive multi-region):
+        - Primary region: eu-west-1.
+        - DR region: eu-central-1 (warm standby).
+        - DynamoDB Global Tables replicate in near-real-time.
+        - Route 53 health checks; failover routing policy activates DR region
+          within RTO target (4 hours).
+      diagram_source: |
+        graph TB
+          subgraph "eu-west-1 (Primary)"
+            subgraph "AZ-A (eu-west-1a)"
+              LambdaA["Lambda\n(all services)\nAZ-A"]
+              SubnetA["Private Subnet A\n10.0.1.0/24"]
+            end
+            subgraph "AZ-B (eu-west-1b)"
+              LambdaB["Lambda\n(all services)\nAZ-B"]
+              SubnetB["Private Subnet B\n10.0.2.0/24"]
+            end
+            subgraph "AZ-C (eu-west-1c)"
+              LambdaC["Lambda\n(all services)\nAZ-C"]
+              SubnetC["Private Subnet C\n10.0.3.0/24"]
+            end
+            NATGW["NAT Gateway\n(per AZ)"]
+            DDB_Primary["DynamoDB\nGlobal Table\n(Primary)"]
+            APIGW_Regional["API Gateway\n(Regional)"]
+            WAF["WAF\n(CloudFront)"]
+          end
+          subgraph "eu-central-1 (DR)"
+            DDB_DR["DynamoDB\nGlobal Table\n(Replica)"]
+            Lambda_DR["Lambda\n(warm standby)"]
+          end
+          Route53["Route 53\nHealth Check\nFailover"] --> APIGW_Regional
+          Route53 -.->|"failover"| Lambda_DR
+          DDB_Primary <-->|"Global Tables\nreplication"| DDB_DR
+      source_type: mermaid
+
+    data_flow:
+      description: >
+        The primary data flow is the order processing lifecycle: a customer
+        submits an order and receives a confirmation. The flow is predominantly
+        asynchronous after order persistence, with the customer receiving a
+        202 Accepted response and subsequent status updates via notification.
+
+        Correlation ID (UUID v4) is generated at step 1 and threaded through
+        every subsequent step as an HTTP header, EventBridge detail field, SQS
+        message attribute, and DynamoDB attribute, enabling end-to-end tracing
+        via CloudWatch X-Ray.
+      narrative_steps:
+        - step: 1
+          description: >
+            Customer submits POST /orders via HTTPS to API Gateway CloudFront
+            distribution. WAF evaluates the request against OWASP Core Rule Set.
+            Cognito JWT authoriser validates the Bearer token. Throttle check
+            (100 req/s sustained per customer). A correlation ID is generated
+            and injected into the request context.
+        - step: 2
+          description: >
+            API Gateway invokes Order Service Lambda (synchronous). Request
+            payload is validated against OpenAPI schema (request validator
+            enabled). Lambda reads Cognito claims to extract customer ID.
+        - step: 3
+          description: >
+            Order Service performs business validation: checks item quantities
+            are positive, delivery address is valid, and order total is non-zero.
+            If validation fails, returns HTTP 422 with structured error response.
+        - step: 4
+          description: >
+            Order Service writes the order record to DynamoDB with status PENDING.
+            Partition key: ORDER#<orderId>. Sort key: METADATA. Includes
+            correlation ID, customer ID, items, totals, and timestamps.
+            Uses conditional write to ensure idempotency.
+        - step: 5
+          description: >
+            Order Service publishes OrderCreated event to EventBridge on the
+            order-processing bus. Event detail includes orderId, customerId,
+            totalAmount, correlationId, and timestamp. Schema is registered
+            in EventBridge Schema Registry and validated before publish.
+        - step: 6
+          description: >
+            Order Service returns HTTP 202 Accepted to API Gateway with
+            orderId and a polling URL (/orders/{orderId}/status). Customer
+            can poll this endpoint or await email/SMS notification.
+        - step: 7
+          description: >
+            EventBridge routes OrderCreated event to Payment Service Lambda
+            (event rule: source=order-service, detail-type=OrderCreated).
+            Payment Service Lambda extracts orderId and totalAmount.
+        - step: 8
+          description: >
+            Payment Service calls Stripe Charge API (POST /v1/payment_intents)
+            with idempotency key = correlationId to prevent double-charge.
+            Stripe responds synchronously within ~2s. If Stripe returns error,
+            Payment Service publishes PaymentFailed event and retries with
+            exponential backoff (max 3 attempts).
+        - step: 9
+          description: >
+            On Stripe success, Payment Service updates DynamoDB order record
+            (status → PAYMENT_AUTHORISED, stripeChargeId added). Publishes
+            PaymentAuthorised event to EventBridge. EventBridge routes the
+            event simultaneously to Fulfilment Service and Notification Service.
+        - step: 10
+          description: >
+            Fulfilment Service receives PaymentAuthorised event. Writes fulfilment
+            instruction message to SQS Fulfilment Queue (includes orderId, items,
+            delivery address). Updates DynamoDB order status to FULFILMENT_QUEUED.
+            Publishes FulfilmentDispatched event to EventBridge.
+        - step: 11
+          description: >
+            WMS Adapter Lambda polls SQS Fulfilment Queue (long polling, 20s).
+            Translates order instruction to WMS API format and calls WMS REST
+            API. On success, deletes SQS message. On WMS failure, message
+            returns to queue; after 3 attempts, routes to Dead Letter Queue.
+            SRE CloudWatch alarm fires on DLQ depth > 0.
+        - step: 12
+          description: >
+            Notification Service receives OrderCreated, PaymentAuthorised, and
+            FulfilmentDispatched events (separate EventBridge rules). For each,
+            constructs customer-facing message, sends email via SES and SMS via
+            SNS. Uses DynamoDB customer preferences table to determine channel.
+            All notifications carry correlationId for support tracing.
+
+    security:
+      description: >
+        The security architecture implements defence-in-depth across five
+        concentric trust zones. PCI-DSS controls are mapped to specific
+        architecture elements — see Governance section for full mapping.
+
+        Trust Zone 1 — Public (untrusted): CloudFront + WAF. All inbound
+        traffic from the internet enters here. WAF enforces OWASP Core Rule
+        Set v3.2, rate limiting (100 req/IP/s), and geo-blocking as required.
+        No backend service is reachable without passing WAF.
+
+        Trust Zone 2 — API perimeter: API Gateway with Cognito JWT authoriser.
+        Every request must carry a valid JWT issued by Cognito User Pool.
+        Cognito enforces MFA for operator access. Token expiry: 1 hour (access),
+        24 hours (refresh). API Gateway request validators enforce schema
+        before Lambda invocation.
+
+        Trust Zone 3 — Service mesh (VPC private subnets): Lambda functions
+        executing in VPC. No inbound internet access. Inter-service communication
+        uses EventBridge (regional, no VPC required) and SQS (VPC endpoint).
+        Lambda IAM roles are least-privilege: each function has an IAM role
+        permitting only its specific DynamoDB actions, EventBridge PutEvents
+        to its source bus, and SQS actions on its specific queue.
+
+        Trust Zone 4 — Data layer: DynamoDB, SQS, EventBridge, S3. All
+        resources are encrypted at rest with AWS KMS customer-managed keys
+        (one CMK per service, key rotation enabled). All S3 buckets have
+        public access block enabled and versioning on. DynamoDB encryption
+        uses KMS CMK; Point-in-Time Recovery enabled.
+
+        Trust Zone 5 — Audit: CloudTrail (management and data events), S3
+        event archive, VPC Flow Logs. CloudTrail logs are written to a
+        dedicated S3 bucket in a separate account with write-once (Object
+        Lock) policy.
+
+        Encryption in transit: TLS 1.2 minimum enforced by API Gateway and
+        Cognito. All SDK calls to AWS services use HTTPS. Stripe integration
+        uses TLS 1.2+. Internal Lambda-to-SQS and Lambda-to-DynamoDB calls
+        use AWS SDK over HTTPS via VPC endpoints.
+      diagram_source: |
+        graph TB
+          subgraph "Zone 1: Public"
+            Internet["Internet"] --> CF["CloudFront\n+ WAF\n(OWASP CRS)"]
+          end
+          subgraph "Zone 2: API Perimeter"
+            CF --> APIGW["API Gateway\n+ Cognito JWT\nAuthoriser"]
+          end
+          subgraph "Zone 3: Service Mesh (VPC)"
+            APIGW --> OrderLambda["Order Service\nLambda\n(IAM least-priv)"]
+            EB["EventBridge\n(schema validated)"] --> PayLambda["Payment Service\nLambda\n(IAM least-priv)"]
+            EB --> FulfilLambda["Fulfilment Service\nLambda\n(IAM least-priv)"]
+            EB --> NotifyLambda["Notification Service\nLambda\n(IAM least-priv)"]
+            OrderLambda --> EB
+            PayLambda --> Stripe["Stripe\n(TLS 1.2+)"]
+          end
+          subgraph "Zone 4: Data (KMS encrypted)"
+            DDB["DynamoDB\n(KMS CMK)"]
+            SQSq["SQS\n(KMS CMK)"]
+            S3arch["S3 Archive\n(KMS CMK)"]
+          end
+          subgraph "Zone 5: Audit"
+            CloudTrail["CloudTrail\n(write-once S3)"]
+            XRAY["X-Ray\nTracing"]
+          end
+      source_type: mermaid
+
+    element_catalog:
+      - name: API Gateway
+        type: gateway
+        technology: AWS API Gateway (Regional, REST API)
+        responsibility: >
+          TLS termination, Cognito JWT authorisation, WAF integration,
+          request schema validation, throttling, and routing to Order Service Lambda.
+        relationships:
+          - CloudFront + WAF (upstream)
+          - Cognito User Pool (authoriser)
+          - Order Service Lambda (downstream invoke)
+
+      - name: CloudFront + WAF
+        type: gateway
+        technology: AWS CloudFront with AWS WAF (OWASP CRS v3.2)
+        responsibility: >
+          Global CDN edge, DDoS mitigation, WAF rule enforcement (OWASP CRS,
+          rate limiting, geo-blocking).
+        relationships:
+          - API Gateway (origin)
+
+      - name: Cognito User Pool
+        type: service
+        technology: AWS Cognito User Pool
+        responsibility: >
+          Customer and operator identity management; JWT issuance; MFA for
+          operators; token validation for API Gateway authoriser.
+        relationships:
+          - API Gateway (authoriser)
+
+      - name: Order Service Lambda
+        type: function
+        technology: AWS Lambda, Node.js 20, ARM64
+        responsibility: >
+          Validates and persists order submissions. Exposes GET /orders/{id}
+          for status polling. Publishes OrderCreated to EventBridge.
+        relationships:
+          - API Gateway (invoked by)
+          - DynamoDB Orders Table (read/write)
+          - EventBridge Order Bus (publish OrderCreated)
+
+      - name: Payment Service Lambda
+        type: function
+        technology: AWS Lambda, Node.js 20, ARM64, VPC-attached
+        responsibility: >
+          Subscribes to OrderCreated events. Calls Stripe payment API.
+          Publishes PaymentAuthorised or PaymentFailed. Updates DynamoDB.
+        relationships:
+          - EventBridge Order Bus (subscribe OrderCreated)
+          - Stripe Payment Gateway (outbound HTTPS)
+          - DynamoDB Orders Table (write)
+          - EventBridge Order Bus (publish PaymentAuthorised, PaymentFailed)
+
+      - name: Fulfilment Service Lambda
+        type: function
+        technology: AWS Lambda, Node.js 20, ARM64
+        responsibility: >
+          Subscribes to PaymentAuthorised. Places fulfilment instruction on SQS.
+          Publishes FulfilmentDispatched. Updates DynamoDB.
+        relationships:
+          - EventBridge Order Bus (subscribe PaymentAuthorised)
+          - SQS Fulfilment Queue (send)
+          - DynamoDB Orders Table (write)
+          - EventBridge Order Bus (publish FulfilmentDispatched)
+
+      - name: WMS Adapter Lambda
+        type: function
+        technology: AWS Lambda, Node.js 20, ARM64, VPC-attached
+        responsibility: >
+          Polls SQS Fulfilment Queue; translates to WMS API format; calls WMS.
+          On WMS failure: message returns to queue (DLQ after 3 failures).
+        relationships:
+          - SQS Fulfilment Queue (consume)
+          - Warehouse Management System (outbound HTTPS)
+
+      - name: Notification Service Lambda
+        type: function
+        technology: AWS Lambda, Node.js 20, ARM64
+        responsibility: >
+          Subscribes to OrderCreated, PaymentAuthorised, PaymentFailed,
+          FulfilmentDispatched. Sends email (SES) and SMS (SNS) notifications.
+        relationships:
+          - EventBridge Order Bus (subscribe multiple events)
+          - Amazon SES (send email)
+          - Amazon SNS (send SMS)
+          - DynamoDB Customer Preferences Table (read)
+
+      - name: EventBridge Order Bus
+        type: other
+        technology: AWS EventBridge Custom Event Bus
+        responsibility: >
+          Central event backbone for all inter-service async communication.
+          Schema registry enforces event schema validation before routing.
+        relationships:
+          - All service Lambdas (publish and subscribe)
+          - Kinesis Firehose (event archive pipe)
+
+      - name: DynamoDB Orders Table
+        type: database
+        technology: AWS DynamoDB (single-table design, on-demand capacity)
+        responsibility: >
+          Primary data store for orders and customer preferences.
+          Single-table design supports order-by-id, customer-orders, and
+          status-based access patterns. PITR enabled.
+        relationships:
+          - Order Service Lambda (read/write)
+          - Payment Service Lambda (write)
+          - Fulfilment Service Lambda (write)
+
+      - name: SQS Fulfilment Queue
+        type: queue
+        technology: AWS SQS Standard Queue + Dead Letter Queue
+        responsibility: >
+          Decouples Fulfilment Service from WMS Adapter. Provides at-least-once
+          delivery with visibility timeout (30s). DLQ captures messages failing
+          after 3 receive attempts.
+        relationships:
+          - Fulfilment Service Lambda (send)
+          - WMS Adapter Lambda (consume)
+
+      - name: S3 Event Archive
+        type: storage
+        technology: AWS S3 (KMS encrypted, Object Lock, versioning)
+        responsibility: >
+          7-year immutable event archive for audit, compliance, and analytics.
+          Receives all EventBridge events via Kinesis Firehose.
+        relationships:
+          - Kinesis Firehose (write)
+          - Analytics Platform (read)
+
+  decisions:
+    - id: ADR-001
+      title: Event-driven choreography over synchronous request-response for inter-service communication
+      context: >
+        Six services (Order, Payment, Fulfilment, Notification, WMS Adapter,
+        Analytics) must coordinate to process an order. The services need to
+        be independently deployable by separate teams. DR-04 requires no
+        cross-service deployment coordination. DR-01 requires 10× scale without
+        re-platforming.
+      options:
+        - id: A
+          description: Synchronous REST — each service calls the next in the chain
+          pros:
+            - Simple to reason about; linear call trace
+            - Immediate consistency; error propagation is direct
+          cons:
+            - Tight coupling; callee changes break callers
+            - Cascading failures; one slow service blocks the chain
+            - Cannot independently deploy without coordinating all services
+            - Latency is additive across the chain
+        - id: B
+          description: Orchestration via step function (AWS Step Functions)
+          pros:
+            - Central visibility of workflow state
+            - Built-in retry and error handling
+          cons:
+            - Central orchestrator is a coupling point
+            - Teams must agree on orchestration contract changes
+            - Step Functions costs and throttle limits at high order volumes
+        - id: C
+          description: Choreography via EventBridge event bus (chosen)
+          pros:
+            - Services are fully decoupled; each publishes and subscribes independently
+            - Schema registry enforces contracts without runtime coupling
+            - EventBridge scales to millions of events/second
+            - New subscribers (analytics, fraud) added without modifying publishers
+          cons:
+            - End-to-end flow harder to trace (mitigated by X-Ray correlation IDs)
+            - Eventual consistency model requires idempotent consumers
+            - Schema evolution requires backwards-compatible changes
+      decision: Option C — EventBridge choreography
+      rationale: >
+        DR-04 (independent deployability) and DR-01 (10× scale) are best
+        served by choreography. EventBridge provides native schema enforcement,
+        eliminating the primary risk of loose coupling. X-Ray with correlation
+        IDs mitigates the observability trade-off. PRIN-01 (event-driven by
+        default) aligns with this choice.
+      tradeoffs: >
+        Accepted: harder end-to-end flow tracing (mitigated by X-Ray + correlation
+        IDs); eventual consistency requiring idempotent consumers; schema
+        evolution discipline required. Rejected: tight coupling, cascading
+        failures, deployment coordination overhead.
+      consequences: >
+        All service teams must implement idempotent consumers (DynamoDB
+        conditional writes for deduplication). EventBridge Schema Registry
+        is mandatory. X-Ray tracing is mandatory for all Lambda functions.
+        A change to an event schema requires a compatibility check in CI
+        before merge.
+      revisit_conditions: >
+        Revisit if: order event throughput exceeds 50K events/second (Step
+        Functions throttle may become attractive); or if strong consistency
+        requirements are introduced (e.g. inventory reservation); or if the
+        team size shrinks such that independent deployment is no longer a goal.
+      driver_refs: [DR-01, DR-04, DR-05]
+
+    - id: ADR-002
+      title: DynamoDB over RDS PostgreSQL as the primary order data store
+      context: >
+        Order data must support: order-by-id lookup (< 5ms), customer-order-list
+        query (< 10ms), status-update writes (< 5ms). DR-01 requires 10× scale.
+        DR-05 requires immutable audit trail. The access patterns are
+        well-defined and documented. Complex ad-hoc queries are handled by
+        the Analytics Platform (not this service).
+      options:
+        - id: A
+          description: DynamoDB single-table design with on-demand capacity (chosen)
+          pros:
+            - Scales to any throughput without provisioning
+            - Single-digit millisecond latency at any scale
+            - No connection pool management; Lambda-friendly
+            - PITR + Global Tables for DR
+          cons:
+            - No SQL; complex queries require GSI design upfront
+            - Schema changes require careful migration
+            - Relational queries (multi-entity joins) not supported
+        - id: B
+          description: RDS PostgreSQL with read replicas
+          pros:
+            - Full SQL; flexible queries without upfront access pattern design
+            - Familiar to most developers
+          cons:
+            - Connection pool limits (RDS Proxy needed for Lambda)
+            - Manual scaling; vertical scale requires downtime
+            - Not serverless — always-on cost even at zero load
+            - PITR window limited to 35 days
+        - id: C
+          description: Aurora Serverless v2 PostgreSQL
+          pros:
+            - SQL + serverless scaling
+          cons:
+            - Cold-start latency for Aurora v2 is higher than DynamoDB
+            - Still requires connection pooling for Lambda at scale
+            - Higher cost at sustained high throughput vs DynamoDB
+      decision: Option A — DynamoDB single-table design
+      rationale: >
+        Access patterns are well-defined (order-by-id, customer-order-list,
+        status queries). DynamoDB's serverless model aligns with Lambda
+        (DR-01, DR-03). No connection pool management at scale is a
+        significant operational advantage. Analytics queries (complex joins)
+        are delegated to the Analytics Platform via S3 event archive.
+        PRIN-04 (IaC only) is satisfied by CDK DynamoDB construct.
+      tradeoffs: >
+        Accepted: no SQL for ad-hoc queries; access patterns must be
+        documented and designed upfront; schema evolution requires migration
+        scripts. Gained: sub-5ms latency at any scale; zero ops overhead
+        for capacity management; serverless cost model.
+      consequences: >
+        Access pattern document (DynamoDB design appendix) must be maintained.
+        Any new query pattern requires a GSI — raise as Architecture Review
+        before implementation. Analytics queries must use S3 event archive
+        or DynamoDB exports, not direct DynamoDB scans.
+      revisit_conditions: >
+        Revisit if: complex relational queries become a product requirement
+        for the order service itself (not analytics); or if DynamoDB pricing
+        changes materially; or if the team grows to have dedicated DBA capacity
+        with preference for SQL.
+      driver_refs: [DR-01, DR-03]
+
+    - id: ADR-003
+      title: AWS Lambda over ECS Fargate for compute
+      context: >
+        Six service functions need to run on AWS. DR-01 requires elastic scale
+        to 5000 orders/minute burst. PRIN-04 requires IaC-only provisioning.
+        The team of 4 engineers cannot operate a container platform as well as
+        build services.
+      options:
+        - id: A
+          description: AWS Lambda (serverless functions) — chosen
+          pros:
+            - Zero operational overhead — no cluster management
+            - Automatic scaling from 0 to thousands of concurrent executions
+            - Pay-per-invocation; zero cost at zero load
+            - Native EventBridge and SQS triggers; no polling code
+          cons:
+            - 15-minute maximum execution time (not a constraint here)
+            - Cold-start latency (mitigated by provisioned concurrency for submission path)
+            - Package size limit 250MB unzipped (not a constraint here)
+        - id: B
+          description: ECS Fargate (containerised services)
+          pros:
+            - No cold start; consistent latency
+            - Arbitrary execution time
+            - Familiar container model
+          cons:
+            - Always-on minimum cost (min 1 task per service × 6 services)
+            - Auto-scaling is slower (minutes, not seconds)
+            - Requires more operational expertise; cluster networking
+            - Team would spend 30–40% of time on container operations
+        - id: C
+          description: EKS (Kubernetes)
+          pros:
+            - Maximum flexibility; portable
+          cons:
+            - Highest operational overhead; not appropriate for 4-person team
+            - Overkill for defined event-driven workloads
+      decision: Option A — AWS Lambda
+      rationale: >
+        The workload (event-triggered, short-duration, variable load) is the
+        canonical Lambda use case. DR-01 (10× scale) is satisfied without
+        operational overhead. PRIN-04 (IaC only) is trivially satisfied by
+        CDK Lambda construct. Provisioned concurrency on the Order Service
+        submission path addresses cold-start for DR-03 (P99 < 500ms).
+      tradeoffs: >
+        Accepted: cold-start risk (mitigated by provisioned concurrency);
+        15-minute execution limit (acceptable — order processing completes
+        in seconds); vendor lock-in to AWS Lambda. Gained: zero operational
+        overhead; automatic scaling; pay-per-use cost model.
+      consequences: >
+        Lambda package size must stay < 250MB. Lambda execution time must
+        complete within 15 minutes (monitored in CloudWatch). Provisioned
+        concurrency must be configured for Order Service (and reviewed
+        quarterly for cost vs performance).
+      revisit_conditions: >
+        Revisit if: a service requires > 15-minute execution; or team grows
+        to 10+ engineers with dedicated platform capacity; or Lambda pricing
+        changes materially relative to ECS Fargate.
+      driver_refs: [DR-01, DR-03]
+
+    - id: ADR-004
+      title: EventBridge over Amazon SNS for the event bus
+      context: >
+        An event bus is required for pub-sub between six services (ADR-001
+        selected choreography). Two candidate AWS services: SNS (topics +
+        subscriptions) and EventBridge (custom event bus with routing rules).
+      options:
+        - id: A
+          description: Amazon SNS (topics + Lambda subscriptions)
+          pros:
+            - Simpler mental model; familiar
+            - Lower per-event cost at high volume
+          cons:
+            - No content-based routing (filter by event body requires Lambda code)
+            - No schema registry; contracts enforced only in application code
+            - No built-in event replay for debugging/DR
+            - No Archive and Replay feature
+        - id: B
+          description: AWS EventBridge custom event bus with schema registry — chosen
+          pros:
+            - Content-based routing rules (filter by event source, type, and body fields)
+            - Schema registry with automatic discovery and compatibility checks
+            - Archive and Replay for debugging and DR
+            - Native integration with many AWS services
+          cons:
+            - Higher cost per event than SNS (approximately 5× at high volume)
+            - Throughput limit: 10K events/second per event bus (region)
+        - id: C
+          description: Amazon MSK (Managed Kafka)
+          pros:
+            - Extremely high throughput; replay by default
+          cons:
+            - Significant operational overhead for 4-person team
+            - Not appropriate for current order volume (< 5000/minute)
+      decision: Option B — AWS EventBridge
+      rationale: >
+        Schema registry enforcement (DR-04, PRIN-01) and content-based routing
+        provide the decoupling guarantees required. Archive and Replay
+        directly supports DR-05 (audit trail). Cost premium over SNS is
+        justified by reduced application-layer filtering code. EventBridge
+        throughput limit (10K events/s) is 120× the peak order volume
+        (5000 orders/min = ~83/s), providing ample headroom.
+      tradeoffs: >
+        Accepted: higher cost vs SNS (~5× per event); throughput ceiling of
+        10K events/s per bus (headroom: 120× current peak). Gained: schema
+        enforcement; content-based routing; Archive and Replay; no custom
+        routing logic in Lambda.
+      consequences: >
+        EventBridge Schema Registry is mandatory for all new events. Schema
+        compatibility checks must run in CI. Archive must be enabled on the
+        order-processing bus (7-day default; S3 Firehose for long-term storage).
+      revisit_conditions: >
+        Revisit if: event throughput approaches 8K events/second (80% of
+        bus limit); or cost becomes a material concern (review quarterly).
+        MSK would be the next step at sustained > 10K events/second.
+      driver_refs: [DR-04, DR-05]
+
+    - id: ADR-005
+      title: DynamoDB single-table design over multi-table design
+      context: >
+        DynamoDB was selected (ADR-002). DynamoDB supports two design approaches:
+        single-table (all entities in one table, PK/SK encoding encodes entity
+        type) and multi-table (one table per entity type, simpler model).
+        Access patterns: order-by-id, customer-orders list, orders-by-status.
+      options:
+        - id: A
+          description: Single-table design (all entities in one table) — chosen
+          pros:
+            - Single-digit ms latency for all access patterns via GSI
+            - Fewer DynamoDB tables to manage and monitor
+            - Can fetch related entities in a single request (if co-located)
+          cons:
+            - PK/SK design is non-obvious; requires documentation
+            - Harder for developers unfamiliar with DynamoDB patterns
+            - Mistakes in PK/SK design are expensive to fix post-deployment
+        - id: B
+          description: Multi-table design (one table per entity type)
+          pros:
+            - Simpler mental model; each table maps to one entity
+            - IAM policies per table are more granular
+          cons:
+            - Cross-entity queries require multiple requests or scatter-gather
+            - More tables to monitor, back up, and configure
+      decision: Option A — Single-table design
+      rationale: >
+        Access patterns are well-defined at design time. Single-table design
+        achieves all required patterns with GSIs and avoids scatter-gather
+        queries. The operational simplicity (fewer tables) outweighs the
+        design complexity given the team has DynamoDB expertise. DR-03
+        (< 200ms P99) is best served by single-table with optimised GSIs.
+      tradeoffs: >
+        Accepted: PK/SK design complexity; requires upfront access pattern
+        documentation; harder for new team members to onboard. Gained:
+        optimal query performance; all access patterns served with single-digit
+        ms latency; fewer DynamoDB resources to manage.
+      consequences: >
+        Access pattern document must be written and maintained. All DynamoDB
+        changes must be reviewed by an engineer with DynamoDB expertise.
+        New access patterns must be raised as an Architecture Decision before
+        adding GSIs.
+      revisit_conditions: >
+        Revisit if: a new access pattern cannot be served by existing GSIs
+        and would require a table scan; or if the team changes to have no
+        DynamoDB expertise.
+      driver_refs: [DR-03]
+
+  component_classification:
+    components:
+      - name: API Gateway (Regional, REST API)
+        mandate_level: mandatory
+        rationale: >
+          Mandatory entry point for all order API traffic. Provides Cognito
+          JWT authorisation, WAF integration, and request validation.
+          Replacing with a custom reverse proxy would require duplicating
+          security controls and is not permitted without Architecture Board
+          exception.
+      - name: Cognito User Pool
+        mandate_level: mandatory
+        rationale: >
+          Corporate identity standard for customer and operator authentication.
+          Provides JWT issuance, MFA, and token management. Replacing with
+          alternative IdP requires Security Architecture review.
+      - name: EventBridge Custom Event Bus
+        mandate_level: mandatory
+        rationale: >
+          Mandatory inter-service communication channel. ADR-001 and ADR-004.
+          Direct service-to-service calls are not permitted.
+      - name: DynamoDB (single-table)
+        mandate_level: mandatory
+        rationale: >
+          Mandatory for order state persistence. ADR-002. Alternative stores
+          not permitted for order data without Architecture Board review.
+      - name: Lambda (Node.js 20, ARM64)
+        mandate_level: mandatory
+        rationale: >
+          Mandatory compute platform. ADR-003. Node.js 20 is the approved
+          runtime. ARM64 selected for cost efficiency (~20% cheaper than x86).
+      - name: AWS CDK v2 (IaC)
+        mandate_level: mandatory
+        rationale: PRIN-04 (IaC only). All infrastructure must be in CDK stacks.
+      - name: CloudWatch + X-Ray (observability)
+        mandate_level: mandatory
+        rationale: >
+          PRIN-05. Structured logging, metrics, and X-Ray tracing are mandatory
+          for all Lambda functions. Correlation ID propagation is mandatory.
+      - name: KMS Customer-Managed Keys
+        mandate_level: mandatory
+        rationale: >
+          PCI-DSS requirement. All data stores must use KMS CMKs (not
+          AWS-managed keys) to satisfy PCI-DSS key management controls.
+      - name: SQS (work queues with DLQ)
+        mandate_level: recommended
+        rationale: >
+          Recommended for all work-queue patterns (e.g. WMS adapter).
+          Not mandatory for direct Lambda event triggers from EventBridge.
+      - name: Kinesis Firehose → S3 (event archive)
+        mandate_level: recommended
+        rationale: >
+          Recommended for all event buses where audit retention > 7 days is
+          required. Mandatory only if DR-05 (7-year audit) applies to the
+          specific domain.
+      - name: Lambda Provisioned Concurrency
+        mandate_level: recommended
+        rationale: >
+          Recommended for latency-sensitive synchronous paths (order submission).
+          Optional for asynchronous event handlers where cold-start is acceptable.
+      - name: CloudFront + WAF
+        mandate_level: mandatory
+        rationale: >
+          All public-facing API traffic must traverse CloudFront + WAF.
+          Mandatory for PCI-DSS (network security controls) and DDoS mitigation.
+      - name: Notification channel (SES/SNS vs third-party)
+        mandate_level: optional
+        rationale: >
+          Teams may substitute SES/SNS with an approved third-party notification
+          provider (e.g. Twilio) if product requirements dictate. Must use
+          the Notification Service adapter pattern; no direct notification
+          calls from other services.
+    extension_points:
+      - name: Notification provider
+        description: >
+          The Notification Service uses an adapter pattern. Teams may substitute
+          the SES/SNS implementation with any approved notification provider
+          by implementing the NotificationAdapter interface.
+        guidance: >
+          Acceptable: Twilio, SendGrid, or any provider integrated via AWS
+          Lambda. Provider must support at-least-once delivery guarantees
+          and must not require storing customer contact data outside AWS.
+        examples: Twilio SMS adapter, SendGrid email adapter
+      - name: Payment gateway
+        description: >
+          The Payment Service uses a payment gateway adapter. Teams may
+          substitute Stripe with another approved payment gateway.
+        guidance: >
+          New gateway must support idempotent charge requests (via idempotency
+          key or equivalent). Must undergo Security Architecture review before
+          substitution.
+        examples: Adyen adapter, Braintree adapter
+      - name: Programming language (Lambda runtime)
+        description: >
+          Node.js 20 is the approved default runtime. Teams may use Python 3.12
+          or Java 21 if the team has demonstrably stronger expertise in that
+          language and the performance characteristics are validated.
+        guidance: >
+          Must use the AWS Lambda Powertools library for the chosen runtime.
+          Non-Node.js choices require Architecture Board approval and must
+          demonstrate equivalent structured logging and X-Ray integration.
+        examples: Python 3.12 with Lambda Powertools for Python
+
+  quality_attributes:
+    - attribute: Availability
+      target: 99.95% measured monthly
+      measurement: Synthetic monitoring probes every 30 seconds via CloudWatch
+        Synthetics Canary. Probe hits POST /orders with a test payload.
+        SLO measured as proportion of successful probe responses over rolling
+        30-day window.
+      validation_strategy: >
+        Chaos engineering quarterly (AWS Fault Injection Simulator): simulate
+        single-AZ failure, Lambda throttling, DynamoDB throttling. Verify
+        automatic recovery within 5 minutes. Load test monthly in staging
+        at 150% of peak load (7500 orders/minute).
+      fitness_function: >
+        CloudWatch alarm fires if availability drops below 99.95% in any
+        rolling 24-hour window. Alarm triggers PagerDuty P1. CDK deploys
+        the alarm alongside the service stack.
+      quality_scenario: >
+        Stimulus: AZ failure in eu-west-1. Source: AWS infrastructure.
+        Environment: Production, peak load 1000 orders/minute.
+        Response: Lambda automatically routes traffic to remaining two AZs.
+        Response measure: Zero failed order submissions; recovery within 2
+        minutes; monthly availability remains >= 99.95%.
+
+    - attribute: Latency P99 (order submission)
+      target: < 500ms end-to-end from API Gateway receipt to 202 response
+      measurement: CloudWatch API Gateway P99 latency metric (IntegrationLatency).
+        X-Ray service map shows breakdown per segment.
+      validation_strategy: >
+        Gatling load test at 1000 concurrent users, sustained 10 minutes.
+        Test runs in staging CI before every production deployment.
+      fitness_function: >
+        Gatling test fails the CI build if P99 > 500ms at 1000 concurrent
+        users. CloudWatch alarm on P99 > 400ms in production (warning);
+        P99 > 500ms (critical, PagerDuty P2).
+      quality_scenario: >
+        Stimulus: 1000 concurrent order submissions. Source: Load test /
+        production peak. Environment: Normal operating conditions.
+        Response: API Gateway routes to Order Service Lambda (provisioned
+        concurrency). Response measure: P99 <= 500ms for >= 99% of requests.
+
+    - attribute: Latency P99 (order status query)
+      target: < 200ms end-to-end from API Gateway receipt to 200 response
+      measurement: CloudWatch API Gateway P99 latency (GetOrderStatus endpoint).
+      validation_strategy: >
+        Gatling load test at 5000 concurrent status queries (read-heavy
+        production pattern). DynamoDB GSI query measured separately.
+      fitness_function: >
+        Gatling test fails CI if P99 > 200ms at 5000 concurrent reads.
+      quality_scenario: >
+        Stimulus: 5000 concurrent status queries. Response measure:
+        P99 <= 200ms; DynamoDB read latency <= 5ms.
+
+    - attribute: Throughput (sustained)
+      target: 1000 orders/minute sustained; 5000 orders/minute burst (5 minutes)
+      measurement: >
+        CloudWatch metric: OrderCreated events/minute on EventBridge.
+        Lambda concurrency utilisation dashboard.
+      validation_strategy: >
+        Monthly load test at 1000 orders/minute for 30 minutes in staging.
+        Quarterly burst test at 5000 orders/minute for 5 minutes.
+      fitness_function: >
+        Load test step in CodePipeline deployment pipeline. Fails if
+        < 1000 orders/minute throughput sustained or > 5% error rate.
+
+    - attribute: Error rate
+      target: < 0.1% of order submissions result in a 5xx error
+      measurement: CloudWatch API Gateway 5xxError metric as percentage of total requests.
+      validation_strategy: >
+        Continuous production monitoring. Monthly chaos injection (Lambda
+        function errors, DynamoDB errors) to validate error handling.
+      fitness_function: >
+        CloudWatch alarm on 5xx error rate > 0.1% over rolling 5-minute
+        window. PagerDuty P2 alert.
+
+    - attribute: Recovery Time Objective (RTO)
+      target: 4 hours (full service restoration after catastrophic failure)
+      measurement: DR test: time from incident declaration to full order submission capacity.
+      validation_strategy: >
+        Annual DR exercise: simulate eu-west-1 complete unavailability.
+        Execute failover runbook to eu-central-1. Measure time to first
+        successful order in DR region.
+      fitness_function: N/A — manual DR exercise with timer.
+      quality_scenario: >
+        Stimulus: eu-west-1 region failure. Source: AWS infrastructure.
+        Environment: Production. Response: Route 53 failover activates
+        eu-central-1 warm standby. Response measure: Full order submission
+        capability restored within 4 hours.
+
+    - attribute: Recovery Point Objective (RPO)
+      target: 1 hour (maximum data loss in catastrophic failure scenario)
+      measurement: DynamoDB Global Tables replication lag monitoring. Target: < 1s typical.
+      validation_strategy: >
+        Annual DR exercise: confirm DynamoDB Global Tables replica in
+        eu-central-1 has all orders from the 60 minutes preceding the
+        simulated failure.
+
+    - attribute: Security (PCI-DSS compliance)
+      target: PCI-DSS Level 1 compliant (annual QSA audit pass)
+      measurement: Annual PCI-DSS QSA audit. Quarterly internal penetration test.
+      validation_strategy: >
+        Monthly automated compliance scan (AWS Security Hub, PCI-DSS standard).
+        Quarterly penetration test by approved security vendor.
+        Annual QSA audit.
+      fitness_function: >
+        AWS Security Hub PCI-DSS standard enabled; findings of HIGH or
+        CRITICAL severity block deployment via CodePipeline gate.
+
+  operational_model:
+    slos:
+      - name: Order API availability
+        target: "99.95%"
+        measurement_window: rolling 30 days
+        error_budget: "21.9 minutes/month (99.95% availability)"
+      - name: Order submission P99 latency
+        target: "< 500ms"
+        measurement_window: rolling 24 hours
+        error_budget: "< 0.1% of requests may exceed 500ms"
+      - name: Order status query P99 latency
+        target: "< 200ms"
+        measurement_window: rolling 24 hours
+        error_budget: "< 0.1% of requests may exceed 200ms"
+      - name: Payment authorisation success rate
+        target: "> 99.5% (excluding card declines)"
+        measurement_window: rolling 24 hours
+        error_budget: "< 0.5% of authorisation attempts may fail due to system error"
+      - name: Fulfilment dispatch success rate
+        target: "> 99.9%"
+        measurement_window: rolling 24 hours
+        error_budget: "< 0.1% of fulfilment instructions may end in DLQ"
+
+    monitoring:
+      strategy: >
+        Three-signal observability: metrics (CloudWatch), structured logs
+        (CloudWatch Logs Insights), and distributed traces (X-Ray). All Lambda
+        functions emit structured JSON logs with correlation ID on every
+        invocation. X-Ray active tracing on all Lambda functions. CloudWatch
+        Container Insights for DynamoDB and SQS. On-call via PagerDuty
+        with escalation policy (P1: immediate, P2: 30-minute SLA).
+        CloudWatch dashboards provisioned by CDK alongside each service stack.
+      metrics:
+        - Order submission rate (orders/minute) — EventBridge PutEvents count
+        - Order submission P99 latency — API Gateway IntegrationLatency P99
+        - Payment authorisation success rate — Payment Service custom metric
+        - Fulfilment DLQ depth — SQS ApproximateNumberOfMessagesNotVisible on DLQ
+        - Lambda error rate (%) — Lambda Errors / Lambda Invocations per function
+        - Lambda duration P99 — Lambda Duration P99 per function
+        - Lambda concurrent executions — Lambda ConcurrentExecutions
+        - DynamoDB read/write throttle events — DynamoDB ThrottledRequests
+        - EventBridge throttled rules — EventBridge ThrottledRules
+        - API Gateway 4xx and 5xx error rates
+        - SQS message age (P99) — SQS ApproximateAgeOfOldestMessage
+      dashboards: >
+        CloudWatch dashboard templates provisioned by CDK in /infra/monitoring/.
+        Dashboards: Order Platform Overview (SLO status), Service Health
+        (per-Lambda metrics), Data Layer (DynamoDB + SQS), Security
+        (WAF blocked requests, CloudTrail anomalies). Runbook links embedded
+        in dashboard widgets.
+      alerting_rules: >
+        Alert configuration in /infra/monitoring/alerts.ts (CDK). Rules:
+        P1 (immediate PagerDuty): availability < 99.9% (5-min window),
+        DLQ depth > 10, payment success rate < 99%.
+        P2 (30-min SLA): P99 latency > 400ms, Lambda error rate > 0.5%,
+        DynamoDB throttle > 10 events/min.
+        P3 (business hours): Lambda concurrent executions > 80% of limit,
+        SQS message age > 5 minutes.
+
+    scaling:
+      policies:
+        - >
+          Lambda: default concurrency 100 per function (soft limit). Reserved
+          concurrency on Order Service: 500 (prevents throttling on burst).
+          Provisioned concurrency on Order Service: 20 (eliminates cold starts
+          on submission path). Lambda auto-scales to account concurrency limit
+          (3000 default in eu-west-1).
+        - >
+          DynamoDB: on-demand capacity mode (no provisioning required).
+          Auto-scales to required throughput. Monitor for throttle events
+          in CloudWatch; if sustained throttle > 5 minutes, review access
+          patterns for hot partition.
+        - >
+          SQS: scales transparently. WMS Adapter Lambda concurrency set to
+          50 to match WMS API rate limit.
+        - >
+          API Gateway: regional endpoint; scales to 10K requests/second by
+          default. Throttle limits: 1000 burst, 100 steady-state per stage.
+          Increase by support request if DR-01 targets are approached.
+      capacity_planning_notes: >
+        Current production peak: ~200 orders/minute. Architecture is sized
+        for 1000 orders/minute sustained without any provisioning changes.
+        For 10× (10K orders/minute), Lambda concurrency limits and API Gateway
+        throttle limits would require AWS support request. DynamoDB on-demand
+        scales automatically. Review capacity quarterly using CloudWatch
+        utilisation metrics.
+
+    disaster_recovery:
+      rto: 4 hours
+      rpo: 1 hour
+      failover_procedures: >
+        1. Incident declared by on-call SRE via PagerDuty.
+        2. SRE confirms eu-west-1 is unavailable (Route 53 health checks fail).
+        3. SRE executes DR runbook: update Route 53 weighted routing to
+           100% eu-central-1. Estimated time: 15 minutes.
+        4. CDK stacks in eu-central-1 are pre-deployed (warm standby).
+           Activate by running cdk deploy --context env=dr.
+        5. DynamoDB Global Table in eu-central-1 is the new primary.
+           Verify data freshness (CloudWatch replication lag metric).
+        6. Smoke test: submit test order in eu-central-1. Verify 202 response
+           and event flow.
+        7. Notify stakeholders. Begin post-incident review.
+        8. Recovery to eu-west-1: reverse Route 53 after region confirmed stable.
+           Re-sync DynamoDB Global Table. Estimated total recovery time: 4 hours.
+      runbook_ref: ops/runbooks/dr-failover-eu-central-1.md
+
+  implementation_artifacts:
+    iac_templates:
+      - name: Order Platform CDK Stack
+        type: cdk
+        location: infra/stacks/order-platform-stack.ts
+        description: >
+          Main CDK stack deploying all Lambda functions, DynamoDB tables,
+          EventBridge bus, SQS queues, API Gateway, Cognito User Pool,
+          CloudWatch dashboards, and alarms. Single cdk deploy command
+          provisions the full stack.
+      - name: Networking CDK Stack
+        type: cdk
+        location: infra/stacks/networking-stack.ts
+        description: >
+          VPC with three private subnets, NAT Gateways (one per AZ),
+          VPC endpoints for DynamoDB, SQS, EventBridge, S3, KMS.
+      - name: Security CDK Stack
+        type: cdk
+        location: infra/stacks/security-stack.ts
+        description: >
+          KMS CMKs (one per service), IAM roles (least-privilege per Lambda),
+          WAF WebACL with OWASP CRS, CloudTrail configuration.
+      - name: DR CDK Stack (eu-central-1)
+        type: cdk
+        location: infra/stacks/dr-stack.ts
+        description: >
+          Warm standby stack for eu-central-1. Deploys all Lambda functions
+          in standby mode; DynamoDB Global Tables replica; Route 53
+          failover configuration.
+    api_specifications:
+      - name: Order API (OpenAPI 3.1)
+        spec_type: openapi
+        location: api/order-api.openapi.yaml
+      - name: Order Events (AsyncAPI 2.6)
+        spec_type: asyncapi
+        location: api/order-events.asyncapi.yaml
+    cicd_templates:
+      - name: Order Platform Pipeline
+        platform: other
+        location: pipeline/order-platform-pipeline.ts
+        description: >
+          AWS CodePipeline: Source (CodeCommit) → Build (CodeBuild, unit tests,
+          CDK synth) → Deploy to staging → Integration tests (Postman/Newman)
+          → Load test (Gatling, fails if SLO targets missed) → Manual approval
+          → Deploy to production (blue/green via CodeDeploy Lambda alias shift).
+    scaffold_template:
+      name: New Order Service Scaffold
+      type: other
+      location: scaffold/new-service/
+      description: >
+        Cookiecutter template generating a new Lambda function project with:
+        pre-configured Lambda Powertools (structured logging, X-Ray tracing,
+        correlation ID middleware), CDK construct stub, OpenAPI spec stub,
+        AsyncAPI event stub, unit test harness, and Postman collection.
+        Run: cookiecutter scaffold/new-service/ to generate a new service.
+    sample_application:
+      name: Order Processing Sample Application
+      location: sample-app/
+      description: >
+        Fully functional reference implementation of the complete order processing
+        flow. Deployable to a sandbox AWS account in under 1 hour using the
+        getting-started guide. Includes all six Lambda functions, CDK stacks,
+        OpenAPI and AsyncAPI specs, and a React-based test UI.
+
+  getting_started:
+    estimated_time_to_first_deployment: >
+      4 hours for engineers with AWS CDK experience; 8 hours for engineers
+      new to CDK. A sandbox deployment (sample-app/) is achievable in 1 hour
+      using the scaffold template and pre-configured CDK stacks.
+    prerequisites:
+      - AWS account with AdministratorAccess (sandbox) or specific IAM role (see infra/iam/deployer-policy.json)
+      - AWS CLI v2 configured with appropriate credentials
+      - Node.js 20 and npm installed
+      - AWS CDK v2 installed globally (npm install -g aws-cdk)
+      - Docker Desktop (for CDK asset bundling)
+      - Git access to the platform repository
+      - Postman (for API testing, optional)
+    steps:
+      - step: 1
+        title: Clone the repository and install dependencies
+        description: Clone the platform repository and install Node.js dependencies.
+        command: >
+          git clone https://git.internal/platform/order-platform.git &&
+          cd order-platform && npm ci
+      - step: 2
+        title: Bootstrap the CDK environment
+        description: >
+          Bootstrap CDK in your target AWS account and region. Only required
+          once per account/region pair. Provisions S3 bucket and IAM roles
+          for CDK deployment.
+        command: >
+          npx cdk bootstrap aws://ACCOUNT_ID/eu-west-1
+      - step: 3
+        title: Configure environment variables
+        description: >
+          Copy the example environment file and set your environment-specific
+          values (account ID, VPC CIDR, Cognito domain prefix).
+        command: cp infra/config/sandbox.env.example infra/config/sandbox.env
+      - step: 4
+        title: Deploy the sample application
+        description: >
+          Deploy all CDK stacks to your sandbox account. This provisions VPC,
+          Lambda functions, DynamoDB, API Gateway, Cognito, EventBridge, SQS,
+          CloudWatch dashboards, and alarms. Expect ~15 minutes.
+        command: >
+          npx cdk deploy --all --context env=sandbox --require-approval never
+      - step: 5
+        title: Smoke test the deployment
+        description: >
+          Run the provided Postman collection against the deployed API Gateway
+          endpoint. Collection tests order submission, status query, and
+          error responses.
+        command: >
+          newman run postman/order-platform-smoke-test.json
+          --env-var baseUrl=$(npx cdk outputs --json | jq -r '.OrderPlatformStack.ApiGatewayUrl')
+      - step: 6
+        title: Review CloudWatch dashboard
+        description: >
+          Open the Order Platform Overview CloudWatch dashboard. Confirm all
+          metrics are populating after the smoke test. Dashboard URL is output
+          by cdk deploy.
+    troubleshooting:
+      - symptom: cdk deploy fails with "Unable to resolve AWS account"
+        cause: AWS CLI not configured or credentials expired
+        resolution: Run "aws configure" or refresh credentials. Run "aws sts get-caller-identity" to verify.
+      - symptom: Lambda function deployment fails with "Package exceeds 250MB limit"
+        cause: node_modules not pruned; dev dependencies included
+        resolution: Ensure CDK bundling uses --omit=dev. Check infra/stacks/order-platform-stack.ts bundling config.
+      - symptom: Postman smoke test fails on POST /orders with 401
+        cause: Cognito User Pool not yet propagated or test user not created
+        resolution: Wait 2 minutes after deploy. Run "npm run create-test-user" to create a Cognito test user.
+      - symptom: DLQ depth alarm fires after smoke test
+        cause: WMS Adapter cannot reach WMS (no WMS in sandbox)
+        resolution: Expected in sandbox. WMS Adapter is configured with a mock WMS stub in sandbox environment.
+
+  raid:
+    risks:
+      - id: RISK-01
+        description: >
+          DynamoDB hot partition: if a single order ID prefix dominates writes
+          (e.g. all orders from a single promotion), a hot partition could
+          cause write throttling, degrading P99 latency above 500ms target.
+        likelihood: low
+        impact: high
+        mitigation: >
+          DynamoDB partition key uses UUID v4 (random, uniformly distributed).
+          CloudWatch alarm on ThrottledRequests metric. Access pattern review
+          required before any bulk import or promotional campaign.
+        owner: Platform SRE
+        residual_risk: low
+
+      - id: RISK-02
+        description: >
+          Lambda cold-start latency spike: during a burst after a quiet period
+          (e.g. Monday morning), Lambda may experience cold starts on the
+          Order Service submission path, causing P99 > 500ms.
+        likelihood: medium
+        impact: medium
+        mitigation: >
+          Provisioned concurrency of 20 on Order Service Lambda, pre-warming
+          the function. CloudWatch Lambda cold-start metric monitored.
+          Provisioned concurrency level reviewed quarterly (cost vs performance).
+        owner: Platform SRE
+        residual_risk: low
+
+      - id: RISK-03
+        description: >
+          Stripe payment gateway outage: Stripe is an external dependency.
+          If Stripe is unavailable, PaymentFailed events will be published
+          and orders will not be authorised, degrading fulfilment.
+        likelihood: low
+        impact: high
+        mitigation: >
+          Retry logic with exponential backoff (3 attempts, 1s/2s/4s) in
+          Payment Service. SQS-backed retry queue for failed payment events.
+          Stripe SLA 99.99% — incidents < 1 per year historically.
+          Runbook for Stripe incident: ops/runbooks/stripe-incident.md.
+          Customer notification sent on PaymentFailed to reduce support load.
+        owner: Order Platform Engineering
+        residual_risk: medium
+
+      - id: RISK-04
+        description: >
+          Schema evolution breaking change: a service publishes an updated
+          event schema removing a field that a subscriber depends on,
+          causing subscriber Lambda errors and DLQ accumulation.
+        likelihood: medium
+        impact: medium
+        mitigation: >
+          EventBridge Schema Registry with backward compatibility check in CI
+          (fails build if breaking change detected). Schema versioning:
+          major version bump required for breaking changes; new event type
+          published in parallel until all subscribers migrated.
+        owner: Enterprise Architecture
+        residual_risk: low
+
+      - id: RISK-05
+        description: >
+          PCI-DSS scope creep: a developer inadvertently stores card data
+          in DynamoDB or logs, widening PCI-DSS scope and triggering a
+          compliance remediation.
+        likelihood: low
+        impact: high
+        mitigation: >
+          No card data accepted by the Order API — only payment tokens.
+          API Gateway request validator rejects payloads containing card
+          number patterns (WAF custom rule). Developer training on PCI-DSS
+          scope in onboarding. Quarterly code review by Security Architecture.
+        owner: Information Security
+        residual_risk: low
+
+      - id: RISK-06
+        description: >
+          WMS integration failure accumulation: WMS system maintenance or
+          API changes cause WMS Adapter Lambda failures to accumulate in
+          DLQ, delaying fulfilment for many orders.
+        likelihood: medium
+        impact: medium
+        mitigation: >
+          DLQ depth alarm (P1 if > 10 messages). Ops runbook for DLQ
+          reprocessing after WMS recovery. WMS Adapter uses circuit breaker
+          pattern — if WMS fails > 50% of calls in 1 minute, stops calling
+          WMS and sends alert to WMS team.
+        owner: Platform SRE
+        residual_risk: medium
+
+    assumptions:
+      - assumption: >
+          EventBridge event delivery is at-least-once (AWS guarantee);
+          consumers are designed to be idempotent.
+        consequence_if_violated: >
+          Duplicate order processing possible. All consumers use DynamoDB
+          conditional writes to reject already-processed events.
+      - assumption: >
+          DynamoDB on-demand capacity can absorb 10× sustained throughput
+          increase without pre-warming.
+        consequence_if_violated: >
+          DynamoDB may throttle on sudden 10× spike. Mitigation: monitor
+          throttle events; switch to provisioned capacity with auto-scaling
+          if on-demand throughput ramp-up is too slow.
+      - assumption: >
+          The WMS API is stable and does not change its request format
+          without advance notice to the Platform team.
+        consequence_if_violated: >
+          WMS Adapter Lambda will fail and DLQ will accumulate. Runbook:
+          ops/runbooks/wms-api-change.md.
+
+    constraints:
+      - type: regulatory
+        description: PCI-DSS Level 1 compliance is mandatory for the payment authorisation flow.
+        implication: >
+          No card data may be stored or logged anywhere in the platform.
+          All data at rest must be encrypted with KMS CMKs. All API traffic
+          must use TLS 1.2+. Annual QSA audit required.
+      - type: organisational
+        description: AWS is the mandated cloud provider; no multi-cloud or on-premises compute.
+        implication: >
+          All services must use AWS managed services. No Kubernetes, no
+          on-premises databases, no third-party compute.
+      - type: technical
+        description: >
+          Maximum Lambda package size is 250MB unzipped. Maximum Lambda
+          execution time is 15 minutes.
+        implication: >
+          Lambda functions must have lean dependency trees. Any processing
+          requiring > 15 minutes must be decomposed into smaller functions
+          chained via EventBridge or SQS.
+      - type: organisational
+        description: Team size is 4 engineers; no dedicated DBA or platform operator.
+        implication: >
+          Architecture must minimise operational overhead. Fully managed
+          services preferred. No self-managed databases or container clusters.
+      - type: financial
+        description: Monthly AWS spend budget for order platform: $8,000/month at steady state.
+        implication: >
+          Lambda (pay-per-use) and DynamoDB (on-demand) chosen to minimise
+          cost at current volumes. Cost review quarterly via AWS Cost Explorer.
+
+    tradeoffs:
+      - decision_ref: ADR-001
+        description: Event choreography vs synchronous REST
+        what_was_sacrificed: Immediate consistency and simple linear call tracing
+        what_was_gained: >
+          Service decoupling, independent deployability (DR-04), elastic scale (DR-01),
+          immutable audit trail (DR-05)
+      - decision_ref: ADR-002
+        description: DynamoDB vs RDS PostgreSQL
+        what_was_sacrificed: >
+          SQL query flexibility; complex ad-hoc queries not possible
+          in the order service
+        what_was_gained: >
+          Sub-5ms latency at any scale; zero ops overhead; serverless
+          cost model (DR-01, DR-03)
+      - decision_ref: ADR-003
+        description: Lambda vs ECS Fargate
+        what_was_sacrificed: >
+          Always-on latency consistency; container model familiarity
+        what_was_gained: >
+          Zero operational overhead; automatic scale to 0; pay-per-use
+          cost model; no cluster management
+      - decision_ref: ADR-004
+        description: EventBridge vs SNS
+        what_was_sacrificed: Lower per-event cost (SNS is cheaper at very high volume)
+        what_was_gained: >
+          Schema registry enforcement; content-based routing; Archive
+          and Replay (DR-05); no custom routing logic in application code
+      - decision_ref: ADR-005
+        description: DynamoDB single-table vs multi-table
+        what_was_sacrificed: >
+          Simpler mental model; easier developer onboarding for DynamoDB newcomers
+        what_was_gained: >
+          Optimal query performance for all defined access patterns;
+          single-digit ms reads via GSI; fewer tables to manage
+
+  governance:
+    applicable_standards:
+      - id: PCI-DSS
+        name: Payment Card Industry Data Security Standard Level 1
+        relevance: >
+          The payment authorisation flow processes payment tokens and interacts
+          with Stripe. PCI-DSS Level 1 applies to all systems that transmit
+          cardholder data or interact with payment processing systems.
+      - id: ISO-27001
+        name: ISO/IEC 27001:2022 Information Security Management
+        relevance: >
+          Enterprise security standard. Applies to all production systems.
+          Controls implemented via IAM least-privilege, KMS encryption,
+          CloudTrail audit logging, and WAF.
+      - id: GDPR
+        name: General Data Protection Regulation (EU) 2016/679
+        relevance: >
+          Customer order data includes PII (name, address, email). GDPR
+          applies to all processing of EU customer data. Data residency
+          in eu-west-1 (Ireland) satisfies Chapter V transfers.
+      - id: ESS-01
+        name: Enterprise Security Standard 01 — Encryption in Transit
+        relevance: Requires TLS 1.2+ for all API traffic. Satisfied by API Gateway.
+      - id: ESS-03
+        name: Enterprise Security Standard 03 — Encryption at Rest
+        relevance: >
+          Requires KMS CMK encryption for all data stores containing
+          customer or payment data.
+    compliance_mapping:
+      - control: "PCI-DSS Requirement 1: Network security controls"
+        design_element: >
+          CloudFront + WAF (OWASP CRS v3.2); VPC with private subnets;
+          no direct internet access to Lambda or DynamoDB; VPC endpoints
+          for all AWS service traffic.
+        evidence: Architecture Views — Deployment; Architecture Views — Security
+        owner: Information Security
+
+      - control: "PCI-DSS Requirement 2: Secure configurations"
+        design_element: >
+          All infrastructure defined in CDK (PRIN-04); no manual console
+          changes; CloudFormation drift detection nightly; Lambda functions
+          have no inbound network access except via API Gateway.
+        evidence: Implementation Artifacts — IaC templates; Architecture Decisions ADR-003
+        owner: Platform SRE
+
+      - control: "PCI-DSS Requirement 3: Protect stored account data"
+        design_element: >
+          No card data stored anywhere in the platform. Order API accepts
+          payment tokens only (Stripe tokenisation). WAF custom rule rejects
+          payloads containing card number patterns. DynamoDB stores order
+          reference and Stripe charge ID only.
+        evidence: Architecture Views — Security; RAID Constraints (PCI-DSS); ADR-002
+        owner: Information Security
+
+      - control: "PCI-DSS Requirement 4: Protect cardholder data in transit"
+        design_element: >
+          TLS 1.2+ enforced by API Gateway (minimum TLS policy). Stripe
+          integration uses TLS 1.2+. All internal AWS SDK calls use HTTPS
+          via VPC endpoints.
+        evidence: Architecture Views — Security (Trust Zone 1–3)
+        owner: Information Security
+
+      - control: "PCI-DSS Requirement 6: Develop and maintain secure systems"
+        design_element: >
+          AWS Security Hub PCI-DSS standard enabled; HIGH/CRITICAL findings
+          block CodePipeline deployment. Quarterly penetration testing.
+          OWASP CRS on WAF addresses OWASP Top 10.
+        evidence: Quality Attributes — Security; Implementation Artifacts — CI/CD
+        owner: Information Security
+
+      - control: "PCI-DSS Requirement 7: Restrict access to system components"
+        design_element: >
+          Each Lambda function has a least-privilege IAM role permitting
+          only its specific resource actions. Cognito JWT authorisation on
+          all API endpoints. No shared service accounts.
+        evidence: Architecture Views — Security (Trust Zone 3); Component Classification
+        owner: Information Security
+
+      - control: "PCI-DSS Requirement 8: Identify users and authenticate access"
+        design_element: >
+          Cognito User Pool with MFA for operator access. JWT tokens with
+          1-hour expiry. Customer authentication via Cognito. No shared
+          credentials.
+        evidence: Architecture Views — Security (Trust Zone 2); element catalog (Cognito)
+        owner: Information Security
+
+      - control: "PCI-DSS Requirement 10: Log and monitor all access"
+        design_element: >
+          CloudTrail (management and data events) with write-once S3 Object
+          Lock. Structured JSON logs from all Lambda functions with correlation
+          IDs. X-Ray distributed tracing. CloudWatch alarms for anomalous
+          activity.
+        evidence: Architecture Views — Security (Trust Zone 5); Operational Model — Monitoring
+        owner: Platform SRE
+
+      - control: "PCI-DSS Requirement 12: Support information security with policies"
+        design_element: >
+          Architecture Board governance process. Annual QSA audit. Quarterly
+          internal penetration testing. Exception register maintained (this document).
+        evidence: Governance and Compliance (this section); Decisions and Actions
+        owner: Risk and Compliance
+
+      - control: "GDPR Article 5: Data minimisation"
+        design_element: >
+          Order data schema includes only fields necessary for order processing.
+          No free-text fields that could contain unexpected PII. Schema
+          enforced by API Gateway request validator and EventBridge schema.
+        evidence: API specification (api/order-api.openapi.yaml)
+        owner: Risk and Compliance
+
+      - control: "GDPR Article 25: Data protection by design"
+        design_element: >
+          Customer data encrypted at rest (KMS CMK) and in transit (TLS 1.2+).
+          Minimum data retention: orders deleted after 7 years per tax law
+          (S3 lifecycle policy). Access to order data restricted by IAM.
+        evidence: Architecture Views — Security; RAID Constraints
+        owner: Risk and Compliance
+
+      - control: "ESS-01: Encryption in transit"
+        design_element: >
+          API Gateway minimum TLS 1.2 policy. VPC endpoints for internal
+          traffic (no public internet for data plane). Stripe TLS 1.2+.
+        evidence: Architecture Views — Security
+        owner: Information Security
+
+      - control: "ESS-03: Encryption at rest"
+        design_element: >
+          DynamoDB KMS CMK. SQS KMS CMK. S3 KMS CMK. EventBridge does not
+          store event data at rest beyond delivery. CloudTrail KMS CMK.
+        evidence: Architecture Views — Security (Trust Zone 4); element catalog
+        owner: Information Security
+    exceptions: []
+
+  decisions_and_actions:
+    governance_outcome: approved
+    decision_statement: >
+      This reference architecture is approved as the mandatory pattern for
+      all event-driven order processing microservices in the e-commerce domain
+      on AWS. All new order processing services must conform to this reference
+      architecture or obtain an Architecture Board exception. Effective Q2 2026.
+    conditions: []
+    next_actions:
+      - action: Publish architecture to internal developer portal (Backstage)
+        owner: Enterprise Architecture
+        target_date: "2026-04-05"
+      - action: >
+          Migrate Order Service v1 (monolith) to conform with this reference
+          architecture (initial extraction of Order domain)
+        owner: Order Platform Engineering
+        target_date: "2026-06-30"
+      - action: >
+          Complete annual DR exercise to validate RTO 4h / RPO 1h targets
+        owner: Platform SRE
+        target_date: "2026-07-31"
+      - action: >
+          Conduct first annual PCI-DSS QSA audit against this architecture
+        owner: Risk and Compliance
+        target_date: "2026-09-30"
+      - action: >
+          Review and update this reference architecture at 6-month review
+          (next_review_date: 2026-09-20)
+        owner: Enterprise Architecture
+        target_date: "2026-09-20"
+
+  evolution:
+    version: "1.0.0"
+    known_limitations:
+      - >
+          GraphQL API not yet supported — add as extension point in v1.1
+          if product teams require GraphQL for mobile clients.
+      - >
+          Multi-region active-active not yet supported — active-passive DR
+          only. Active-active requires conflict resolution strategy for
+          DynamoDB Global Tables write conflicts.
+      - >
+          Observability does not yet include real-time business metrics
+          (order conversion rate, cart abandonment). Add in v1.1 via
+          EventBridge → Kinesis → real-time dashboard.
+    roadmap:
+      - version: "1.1.0"
+        planned_date: "2026-09-20"
+        planned_changes:
+          - Add GraphQL API extension point (API Gateway + AppSync variant)
+          - Add real-time business metrics (Kinesis + QuickSight)
+          - Add fraud detection service integration (platform service adapter)
+          - Update getting-started guide for Backstage Software Template
+      - version: "2.0.0"
+        planned_date: "2027-Q1"
+        planned_changes:
+          - Evaluate active-active multi-region (DynamoDB Global Tables v2)
+          - Evaluate Lambda SnapStart for Java runtime variant
+          - Incorporate AWS Bedrock for order anomaly detection
+    deprecation_strategy: >
+      When a major version (2.0.0) is published, v1.x will remain supported
+      for 12 months. Adopting teams will receive migration guidance
+      (migration/v1-to-v2.md) and 6 months advance notice. After 12 months,
+      v1.x is deprecated and services must be migrated.
+    feedback_channel: >
+      Submit issues and feedback via the platform GitHub repository
+      (Issues labelled "reference-architecture"). Architecture Board reviews
+      feedback at quarterly governance meeting. SREs report operational
+      issues via PagerDuty post-incident reviews.
+
+glossary:
+  - term: API Gateway
+    definition: >
+      AWS managed service providing REST API endpoint, TLS termination,
+      Cognito JWT authorisation, and request validation.
+  - term: CDK (Cloud Development Kit)
+    definition: >
+      AWS Cloud Development Kit v2 — TypeScript-based IaC framework that
+      synthesises to CloudFormation templates.
+  - term: Choreography
+    definition: >
+      Event-driven coordination pattern where services react to events
+      published by other services without a central orchestrator.
+  - term: Cognito
+    definition: >
+      AWS managed identity service providing user pools (authentication),
+      JWT issuance, and MFA.
+  - term: Correlation ID
+    definition: >
+      UUID v4 generated at order submission and threaded through all
+      subsequent processing steps, logs, events, and database records
+      for end-to-end tracing.
+  - term: DLQ (Dead Letter Queue)
+    definition: >
+      SQS queue that receives messages failing processing after the
+      maximum receive count (3 attempts). Used for error isolation
+      and manual reprocessing.
+  - term: DynamoDB
+    definition: >
+      AWS managed NoSQL key-value and document database with single-digit
+      millisecond latency at any scale.
+  - term: EventBridge
+    definition: >
+      AWS managed serverless event bus with content-based routing rules
+      and schema registry.
+  - term: Fitness Function
+    definition: >
+      Automated test or check in CI/CD that continuously validates a
+      quality attribute target.
+  - term: Golden Path
+    definition: >
+      Spotify-coined term for a well-lit, well-supported, easy-to-follow
+      implementation path that reduces decision fatigue for development teams.
+  - term: GSI (Global Secondary Index)
+    definition: >
+      DynamoDB index on non-primary-key attributes, enabling efficient
+      queries by alternate access patterns.
+  - term: IAM (Identity and Access Management)
+    definition: >
+      AWS service managing permissions. Each Lambda function has a
+      least-privilege IAM role.
+  - term: Idempotent
+    definition: >
+      An operation that produces the same result regardless of how many
+      times it is executed with the same input. Required for all
+      EventBridge subscribers to handle at-least-once delivery.
+  - term: KMS (Key Management Service)
+    definition: >
+      AWS managed encryption key service. Customer-managed keys (CMKs)
+      provide full key lifecycle control.
+  - term: Lambda
+    definition: >
+      AWS serverless function-as-a-service compute. Executes code in
+      response to events (API Gateway, EventBridge, SQS) with automatic
+      scaling and pay-per-invocation billing.
+  - term: PCI-DSS
+    definition: >
+      Payment Card Industry Data Security Standard. Level 1 applies to
+      systems processing > 6 million card transactions per year.
+  - term: Provisioned Concurrency
+    definition: >
+      Lambda feature that pre-initialises a specified number of function
+      instances, eliminating cold-start latency.
+  - term: RPO (Recovery Point Objective)
+    definition: Maximum acceptable data loss measured in time (target: 1 hour).
+  - term: RTO (Recovery Time Objective)
+    definition: Maximum acceptable time to restore service after an incident (target: 4 hours).
+  - term: RULERS
+    definition: >
+      EAROS evidence-anchoring protocol: for each criterion, extract a
+      direct quote or reference from the artifact before assigning a score.
+  - term: Schema Registry
+    definition: >
+      EventBridge feature that stores and validates event schemas,
+      ensuring publishers and subscribers agree on event structure.
+  - term: Single-table design
+    definition: >
+      DynamoDB design pattern where multiple entity types coexist in
+      one table, encoded via composite PK/SK patterns.
+  - term: SLO (Service Level Objective)
+    definition: >
+      Internal target for service reliability (availability, latency).
+      Distinct from SLA (contractual commitment with customers).
+  - term: VPC (Virtual Private Cloud)
+    definition: >
+      AWS isolated network environment. Lambda functions in private
+      VPC subnets have no direct internet access.
+  - term: WAF (Web Application Firewall)
+    definition: >
+      AWS managed firewall enforcing OWASP Core Rule Set v3.2 on all
+      inbound API traffic.
+  - term: WMS (Warehouse Management System)
+    definition: >
+      External fulfilment system consuming order dispatch instructions
+      from the SQS Fulfilment Queue via the WMS Adapter Lambda.
+  - term: X-Ray
+    definition: >
+      AWS distributed tracing service. Active tracing on all Lambda
+      functions provides end-to-end request traces with correlation IDs.

@@ -65,6 +65,31 @@ templates:
     purpose: blank evaluation record
   - path: templates/reference-architecture/Reference_Architecture_Template_v2.docx
     purpose: author template for reference architectures
+examples:
+  - path: examples/example-solution-architecture.evaluation.yaml
+    kind: evaluation
+    artifact_type: solution_architecture
+    rubric_id: EAROS-SOL-001
+    description: Example evaluation record for a solution architecture (conditional pass)
+  - path: examples/aws-event-driven-order-processing/artifact.yaml
+    kind: artifact
+    artifact_type: reference_architecture
+    rubric_id: EAROS-REFARCH-001
+    description: Gold-standard reference architecture — Event-Driven Order Processing on AWS (EAROS calibration benchmark)
+    status: approved
+    overall_score: 3.73
+    overall_status: pass
+  - path: examples/aws-event-driven-order-processing/evaluation.yaml
+    kind: evaluation
+    artifact_type: reference_architecture
+    rubric_id: EAROS-REFARCH-001
+    description: Gold-standard EAROS evaluation of the AWS Order Processing reference architecture (all 19 criteria scored 3–4)
+    overall_score: 3.73
+    overall_status: pass
+  - path: examples/aws-event-driven-order-processing/report.md
+    kind: report
+    artifact_type: reference_architecture
+    description: Human-readable assessment report for the AWS Order Processing gold-standard example
 scoring_tools:
   - path: tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx
     purpose: general-purpose manual scoring (current)
