@@ -16,7 +16,7 @@ function ensureMermaidInit() {
   }
 }
 
-export const mermaidTester = rankWith(10, scopeEndIs('diagram'))
+export const mermaidTester = rankWith(10, scopeEndIs('diagram_source'))
 
 function MermaidRendererComponent({ data, handleChange, path, label, schema }: ControlProps) {
   const [showPreview, setShowPreview] = useState(true)
