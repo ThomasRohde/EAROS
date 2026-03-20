@@ -58,6 +58,11 @@ schemas:
   - path: standard/schemas/evaluation.schema.json
     validates:
       - evaluation
+  - path: standard/schemas/artifact.schema.json
+    validates:
+      - artifact
+  - path: standard/schemas/artifact.uischema.json
+    purpose: JSON Forms UI schema for the artifact editor — 7-tab Categorization layout
 templates:
   - path: templates/new-profile.template.yaml
     purpose: scaffold for new profiles

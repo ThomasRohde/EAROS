@@ -32,7 +32,7 @@ import type { ValidationResult } from '../utils/validate'
 import { saveRepoFile } from '../manifest'
 import { loadSchema } from '../utils/schemaLoader'
 
-const ARTIFACT_UISCHEMA = {
+const FALLBACK_UISCHEMA = {
   type: 'Categorization',
   elements: [
     {
@@ -241,11 +241,22 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [currentFile, setCurrentFile] = useState<string | null>(null)
   const [artifactSchema, setArtifactSchema] = useState<Record<string, unknown> | null>(null)
+  const [artifactUiSchema, setArtifactUiSchema] = useState<object | null>(null)
+  const [schemasLoading, setSchemasLoading] = useState(true)
   const [wordExporting, setWordExporting] = useState(false)
   const importRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    loadSchema('artifact').then((s) => { if (s) setArtifactSchema(s) })
+    Promise.all([
+      loadSchema('artifact'),
+      fetch('/api/file/standard/schemas/artifact.uischema.json')
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null),
+    ]).then(([schema, uiSchema]) => {
+      if (schema) setArtifactSchema(schema)
+      if (uiSchema) setArtifactUiSchema(uiSchema)
+      setSchemasLoading(false)
+    })
   }, [])
 
   useEffect(() => {
@@ -426,14 +437,21 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
           <>
             {/* Form panel */}
             <Paper sx={{ flex: 1, overflow: 'auto', p: 2 }}>
-              <JsonForms
-                schema={(artifactSchema ?? {}) as any}
-                uischema={ARTIFACT_UISCHEMA as any}
-                data={data}
-                renderers={[...materialRenderers, ...customRenderers]}
-                cells={materialCells}
-                onChange={({ data: d }) => { if (d !== undefined) setData(d) }}
-              />
+              {schemasLoading ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, gap: 2 }}>
+                  <CircularProgress size={24} sx={{ color: '#e65100' }} />
+                  <Typography variant="body2" color="text.secondary">Loading schemas…</Typography>
+                </Box>
+              ) : (
+                <JsonForms
+                  schema={(artifactSchema ?? {}) as any}
+                  uischema={(artifactUiSchema ?? FALLBACK_UISCHEMA) as any}
+                  data={data}
+                  renderers={[...materialRenderers, ...customRenderers]}
+                  cells={materialCells}
+                  onChange={({ data: d }) => { if (d !== undefined) setData(d) }}
+                />
+              )}
             </Paper>
 
             {/* YAML preview panel */}

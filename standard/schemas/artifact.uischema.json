@@ -1,0 +1,65 @@
+{
+  "type": "Categorization",
+  "elements": [
+    {
+      "type": "Category",
+      "label": "Overview & Metadata",
+      "elements": [
+        { "type": "Control", "scope": "#/properties/kind" },
+        { "type": "Control", "scope": "#/properties/artifact_type" },
+        { "type": "Control", "scope": "#/properties/metadata" },
+        { "type": "Control", "scope": "#/properties/sections/properties/reading_guide" }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Business Context",
+      "elements": [
+        { "type": "Control", "scope": "#/properties/sections/properties/scope" },
+        { "type": "Control", "scope": "#/properties/sections/properties/drivers_and_principles" }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Architecture Views",
+      "elements": [
+        { "type": "Control", "scope": "#/properties/sections/properties/architecture_views" }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Decisions & Crosscutting",
+      "elements": [
+        { "type": "Control", "scope": "#/properties/sections/properties/decisions" },
+        { "type": "Control", "scope": "#/properties/sections/properties/component_classification" },
+        { "type": "Control", "scope": "#/properties/sections/properties/raid" }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Quality & Operations",
+      "elements": [
+        { "type": "Control", "scope": "#/properties/sections/properties/quality_attributes" },
+        { "type": "Control", "scope": "#/properties/sections/properties/operational_model" }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Implementation",
+      "elements": [
+        { "type": "Control", "scope": "#/properties/sections/properties/implementation_artifacts" },
+        { "type": "Control", "scope": "#/properties/sections/properties/getting_started" }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Governance & Glossary",
+      "elements": [
+        { "type": "Control", "scope": "#/properties/sections/properties/governance" },
+        { "type": "Control", "scope": "#/properties/sections/properties/decisions_and_actions" },
+        { "type": "Control", "scope": "#/properties/sections/properties/glossary" },
+        { "type": "Control", "scope": "#/properties/sections/properties/evolution" }
+      ]
+    }
+  ]
+}
