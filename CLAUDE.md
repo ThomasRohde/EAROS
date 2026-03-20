@@ -148,9 +148,10 @@ EAROS/
 │   ├── EAROS.md                  Canonical standard (read this first for deep understanding)
 │   ├── EAROS_Standard_v2.docx       Word version
 │   └── schemas/
-│       ├── rubric.schema.json    JSON Schema for all rubric/profile/overlay YAML files
-│       ├── evaluation.schema.json JSON Schema for evaluation record output files
-│       └── artifact.schema.json  JSON Schema for architecture artifact documents (NEW)
+│       ├── rubric.schema.json      JSON Schema for all rubric/profile/overlay YAML files
+│       ├── evaluation.schema.json  JSON Schema for evaluation record output files
+│       ├── artifact.schema.json    JSON Schema for architecture artifact documents
+│       └── artifact.uischema.json  UI Schema for artifact editor form layout (7 tabs)
 │
 ├── core/
 │   └── core-meta-rubric.yaml    The universal foundation (EAROS-CORE-002)
@@ -274,15 +275,24 @@ Overlays use `kind: overlay` and `artifact_type: any`. Their `scoring.method` is
 
 ### Schema Validation
 
-Three JSON Schemas live in `standard/schemas/`:
+Four schemas live in `standard/schemas/`:
 
-| Schema | Validates | Kind discriminator |
-|--------|-----------|--------------------|
-| `rubric.schema.json` | Core rubrics, profiles, overlays | `kind: core_rubric`, `profile`, `overlay` |
-| `evaluation.schema.json` | Evaluation records | `kind: evaluation` |
-| `artifact.schema.json` | Architecture artifact documents | `kind: artifact` |
+| Schema | Purpose | Kind discriminator |
+|--------|---------|--------------------|
+| `rubric.schema.json` | **Data schema** — validates rubric definitions (core, profiles, overlays) | `kind: core_rubric`, `profile`, `overlay` |
+| `evaluation.schema.json` | **Data schema** — validates evaluation records | `kind: evaluation` |
+| `artifact.schema.json` | **Data schema** — validates architecture artifact documents | `kind: artifact` |
+| `artifact.uischema.json` | **UI schema** — controls how the artifact editor renders the form (7 tabs) | N/A (presentation only) |
 
-**Derivation chain:** Rubric → Artifact Schema → Template. The `artifact.schema.json` is derived directly from the `required_evidence` fields of the core meta-rubric and profiles. Each section in the artifact schema maps to the evidence a rubric criterion requires. When a profile adds criteria with new `required_evidence`, the corresponding artifact schema should be updated to add those sections. This chain means a well-completed artifact document will satisfy the evidence requirements for its rubric criteria.
+**Derivation chain:** Rubric → Artifact Schema → Artifact UI Schema → Template. The `artifact.schema.json` is derived directly from the `required_evidence` fields of the core meta-rubric and profiles. Each section in the artifact schema maps to the evidence a rubric criterion requires. When a profile adds criteria with new `required_evidence`, the corresponding artifact schema should be updated to add those sections. This chain means a well-completed artifact document will satisfy the evidence requirements for its rubric criteria.
+
+**Data Schema vs UI Schema:** JSON Forms (used by the EAROS editor) separates concerns into two schemas:
+- **Data Schema** (`artifact.schema.json`) — defines what data exists and its structure. Used for validation. Changing it changes the data model.
+- **UI Schema** (`artifact.uischema.json`) — defines how the data is presented in the editor form. Controls tab grouping, field ordering, and layout. Changing it only affects the editor experience, not the data.
+
+The artifact UI Schema splits the editor into 7 tabs: Overview & Metadata, Business Context, Architecture Views, Decisions & Crosscutting, Quality & Operations, Implementation, and Governance & Glossary. Without the UI Schema, JSON Forms would create only 2 tabs (one per top-level property: `metadata` and `sections`).
+
+This pattern should be replicated when rubric or evaluation editors need better tab layouts: create a `rubric.uischema.json` or `evaluation.uischema.json` to control the form layout.
 
 Rubric YAML files must validate against `rubric.schema.json`. Required top-level fields: `rubric_id`, `version`, `kind`, `title`, `artifact_type`, `dimensions`, `scoring`, `outputs`.
 
