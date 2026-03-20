@@ -1,6 +1,6 @@
 /**
- * Build step: bundle EAROS framework files into scaffold/ so they ship with the npm package.
- * Run via: npm run build:scaffold
+ * Build step: copy EAROS framework files into assets/init/ so they ship with the npm package.
+ * Run via: npm run build:assets
  */
 import { cpSync, mkdirSync, existsSync, rmSync, writeFileSync, readFileSync } from 'fs'
 import { join, resolve, dirname } from 'path'
@@ -8,19 +8,19 @@ import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const repoRoot = resolve(__dirname, '..', '..', '..')
-const scaffoldDir = resolve(__dirname, '..', 'scaffold')
+const assetsDir = resolve(__dirname, '..', 'assets', 'init')
 
 // Clean and recreate
-if (existsSync(scaffoldDir)) {
-  rmSync(scaffoldDir, { recursive: true })
+if (existsSync(assetsDir)) {
+  rmSync(assetsDir, { recursive: true })
 }
-mkdirSync(scaffoldDir, { recursive: true })
+mkdirSync(assetsDir, { recursive: true })
 
 // Copy framework directories
 for (const dir of ['core', 'profiles', 'overlays', 'templates']) {
   const src = join(repoRoot, dir)
   if (existsSync(src)) {
-    cpSync(src, join(scaffoldDir, dir), { recursive: true })
+    cpSync(src, join(assetsDir, dir), { recursive: true })
     console.log(`  copied ${dir}/`)
   } else {
     console.warn(`  warning: ${src} not found, skipping`)
@@ -30,21 +30,21 @@ for (const dir of ['core', 'profiles', 'overlays', 'templates']) {
 // Copy schemas
 const schemasSrc = join(repoRoot, 'standard', 'schemas')
 if (existsSync(schemasSrc)) {
-  cpSync(schemasSrc, join(scaffoldDir, 'standard', 'schemas'), { recursive: true })
+  cpSync(schemasSrc, join(assetsDir, 'standard', 'schemas'), { recursive: true })
   console.log('  copied standard/schemas/')
 }
 
 // Copy manifest
 const manifestSrc = join(repoRoot, 'earos.manifest.yaml')
 if (existsSync(manifestSrc)) {
-  cpSync(manifestSrc, join(scaffoldDir, 'earos.manifest.yaml'))
+  cpSync(manifestSrc, join(assetsDir, 'earos.manifest.yaml'))
   console.log('  copied earos.manifest.yaml')
 }
 
 // Copy skills to .agents/skills/ (agent-agnostic location, works with any AI coding agent)
 const skillsSrc = join(repoRoot, '.claude', 'skills')
 if (existsSync(skillsSrc)) {
-  cpSync(skillsSrc, join(scaffoldDir, '.agents', 'skills'), { recursive: true })
+  cpSync(skillsSrc, join(assetsDir, '.agents', 'skills'), { recursive: true })
   console.log('  copied skills → .agents/skills/')
 }
 
@@ -59,7 +59,7 @@ if (existsSync(readmeSrc)) {
       /The `\.agents\/skills\/` directory contains 10 Claude agent skills/,
       'The `.agents/skills/` directory contains 10 agent skills'
     )
-  writeFileSync(join(scaffoldDir, 'README.md'), readme)
+  writeFileSync(join(assetsDir, 'README.md'), readme)
   console.log('  copied README.md (patched .agents/skills/)')
 }
 
@@ -349,13 +349,13 @@ Do not skip \`challenge_pass\` — this step has a second agent challenge the pr
 | Check manifest consistency | \`earos manifest check\` |
 `
 
-writeFileSync(join(scaffoldDir, 'AGENTS.md'), agentsMd)
+writeFileSync(join(assetsDir, 'AGENTS.md'), agentsMd)
 console.log('  generated AGENTS.md')
 
 // Create .claude/ directory with thin CLAUDE.md that points to AGENTS.md
-mkdirSync(join(scaffoldDir, '.claude'), { recursive: true })
+mkdirSync(join(assetsDir, '.claude'), { recursive: true })
 writeFileSync(
-  join(scaffoldDir, '.claude', 'CLAUDE.md'),
+  join(assetsDir, '.claude', 'CLAUDE.md'),
   `# EAROS Project
 
 Read \`AGENTS.md\` for complete project documentation, methodology, and evaluation rules.
@@ -367,14 +367,14 @@ console.log('  created .claude/CLAUDE.md (pointer to AGENTS.md)')
 
 // Create placeholder directories (empty dirs don't survive npm pack)
 for (const dir of ['evaluations', 'calibration/gold-set', 'calibration/results']) {
-  mkdirSync(join(scaffoldDir, dir), { recursive: true })
-  writeFileSync(join(scaffoldDir, dir, '.gitkeep'), '')
+  mkdirSync(join(assetsDir, dir), { recursive: true })
+  writeFileSync(join(assetsDir, dir, '.gitkeep'), '')
 }
 
 // Create a .gitignore for new workspaces
 writeFileSync(
-  join(scaffoldDir, '.gitignore'),
+  join(assetsDir, '.gitignore'),
   'node_modules/\ndist/\n*.tgz\n.DS_Store\nThumbs.db\n'
 )
 
-console.log(`✓ Scaffold built: ${scaffoldDir}`)
+console.log(`✓ Assets built: ${assetsDir}`)

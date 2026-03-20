@@ -7,11 +7,11 @@ const __dirname = dirname(__filename)
 
 export function initWorkspace(targetDir: string): void {
   const target = resolve(process.cwd(), targetDir)
-  // When compiled, init.js sits in tools/editor/ alongside scaffold/
-  const scaffoldDir = join(__dirname, 'scaffold')
+  // When compiled, init.js sits in tools/editor/ alongside assets/
+  const assetsDir = join(__dirname, 'assets', 'init')
 
-  if (!existsSync(scaffoldDir)) {
-    console.error('Scaffold directory not found. Run npm run build first.')
+  if (!existsSync(assetsDir)) {
+    console.error('Asset directory not found. Run npm run build first.')
     process.exit(1)
   }
 
@@ -23,7 +23,7 @@ export function initWorkspace(targetDir: string): void {
   }
 
   mkdirSync(target, { recursive: true })
-  cpSync(scaffoldDir, target, { recursive: true })
+  cpSync(assetsDir, target, { recursive: true })
 
   const isCurrentDir = targetDir === '.' || targetDir === './'
   const cdStep = isCurrentDir ? '' : `  cd ${targetDir}\n`
