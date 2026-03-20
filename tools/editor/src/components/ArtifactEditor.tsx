@@ -22,6 +22,7 @@ import DownloadIcon from '@mui/icons-material/Download'
 import NoteAddIcon from '@mui/icons-material/NoteAdd'
 import ArticleIcon from '@mui/icons-material/Article'
 import CircularProgress from '@mui/material/CircularProgress'
+import { customRenderers } from '../renderers'
 import QuickTipBanner from './QuickTipBanner'
 import YamlPreview from './YamlPreview'
 import StatusBar from './StatusBar'
@@ -429,7 +430,7 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
                 schema={(artifactSchema ?? {}) as any}
                 uischema={ARTIFACT_UISCHEMA as any}
                 data={data}
-                renderers={materialRenderers}
+                renderers={[...materialRenderers, ...customRenderers]}
                 cells={materialCells}
                 onChange={({ data: d }) => { if (d !== undefined) setData(d) }}
               />

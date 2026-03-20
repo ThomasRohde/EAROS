@@ -50,6 +50,7 @@
     "docx": "^9.6.1",
     "express": "^4.22.1",
     "js-yaml": "^4.1.0",
+    "mermaid": "^11.13.0",
     "open": "^10.1.0"
   },
   "devDependencies": {

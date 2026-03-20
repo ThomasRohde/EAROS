@@ -29,6 +29,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CodeIcon from '@mui/icons-material/Code'
 import SaveIcon from '@mui/icons-material/Save'
 import AddIcon from '@mui/icons-material/Add'
+import { customRenderers } from '../renderers'
 import QuickTipBanner from './QuickTipBanner'
 import type { Kind } from './KindSelector'
 import YamlPreview from './YamlPreview'
@@ -569,7 +570,7 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
             schema={((kind === 'evaluation' ? evalSchema : rubricSchema) ?? {}) as any}
             uischema={uischemaFor(kind) as any}
             data={data}
-            renderers={materialRenderers}
+            renderers={[...materialRenderers, ...customRenderers]}
             cells={materialCells}
             onChange={({ data: d }) => { if (d !== undefined) setData(d) }}
           />
