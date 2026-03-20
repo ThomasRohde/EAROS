@@ -63,7 +63,9 @@
       "Bash(grep -E \"\\\\.\\(json|mjs|ts\\)$\")",
       "Bash(node bin.js validate ../../examples/aws-event-driven-order-processing/artifact.yaml)",
       "Bash(git config:*)",
-      "Bash(ls C:/Users/thoma/Projects/EAROS/*.md)"
+      "Bash(ls C:/Users/thoma/Projects/EAROS/*.md)",
+      "Bash(node -e \"const core = require\\(''''./node_modules/@jsonforms/core/src/index.js''''\\); console.log\\(Object.keys\\(core\\).filter\\(k => k.includes\\(''''scope''''\\) || k.includes\\(''''schema''''\\) || k.includes\\(''''rank''''\\) || k.includes\\(''''and''''\\) || k.includes\\(''''type''''\\)\\)\\)\")",
+      "Bash(wc -l tools/editor/src/renderers/*.tsx)"
     ]
   }
 }
