@@ -1,6 +1,6 @@
 ---
 name: earos-profile-author
-description: Technical YAML authoring guide for EAROS profiles and overlays. Use this skill when someone has already completed rubric design (criteria defined, design method chosen) and needs help with the YAML structure, v2 field requirements, or schema compliance. Also triggers when someone asks "what are the 5 design methods", "how do I write a criterion", "what fields does a v2 criterion need", or "how do I structure overlay YAML". NOTE: For creating new rubrics from scratch — where the criteria are not yet defined — use earos-create instead. This skill focuses on the technical details of profile YAML authoring after rubric design is complete.
+description: "Technical YAML authoring guide for EAROS profiles and overlays. Use this skill when someone has already completed rubric design (criteria defined, design method chosen) and needs help with the YAML structure, v2 field requirements, or schema compliance. Also triggers when someone asks \"what are the 5 design methods\", \"how do I write a criterion\", \"what fields does a v2 criterion need\", or \"how do I structure overlay YAML\". NOTE: For creating new rubrics from scratch — where the criteria are not yet defined — use earos-create instead. This skill focuses on the technical details of profile YAML authoring after rubric design is complete."
 ---
 
 # EAROS Profile Author Skill

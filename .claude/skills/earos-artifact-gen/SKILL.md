@@ -1,6 +1,6 @@
 ---
 name: earos-artifact-gen
-description: Create architecture documents through guided interview. Triggers on "create an architecture document", "generate a reference architecture", "help me write a solution architecture", "document my architecture", "new architecture document", or any request to create/write/generate architecture artifacts.
+description: "Create architecture documents through guided interview. Triggers on \"create an architecture document\", \"generate a reference architecture\", \"help me write a solution architecture\", \"document my architecture\", \"new architecture document\", or any request to create/write/generate architecture artifacts."
 ---
 
 # SKILL: earos-artifact-gen

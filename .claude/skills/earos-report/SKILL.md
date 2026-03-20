@@ -1,6 +1,6 @@
 ---
 name: earos-report
-description: Generate executive reports from EAROS evaluation records. Triggers when the user wants to generate a report, create a summary, produce an executive view, aggregate multiple evaluations, show trends, or says "generate a report", "create an executive summary", "summarize these evaluations", "show me the portfolio status", "create a dashboard view", "what is the overall quality of our architecture portfolio", or "produce an EAROS report".
+description: "Generate executive reports from EAROS evaluation records. Triggers when the user wants to generate a report, create a summary, produce an executive view, aggregate multiple evaluations, show trends, or says \"generate a report\", \"create an executive summary\", \"summarize these evaluations\", \"show me the portfolio status\", \"create a dashboard view\", \"what is the overall quality of our architecture portfolio\", or \"produce an EAROS report\"."
 ---
 
 # EAROS Report — Executive Report Generator

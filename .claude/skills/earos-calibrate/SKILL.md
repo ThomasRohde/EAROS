@@ -1,6 +1,6 @@
 ---
 name: earos-calibrate
-description: Run EAROS calibration exercises to validate rubric reliability before production use. Use this skill whenever someone wants to calibrate a rubric, validate inter-rater reliability, compare scores against gold-standard artifacts, measure scoring consistency, or says "calibrate this rubric", "run calibration", "check if the rubric is reliable", "compare my scores to the gold set", "test this profile against examples", "is this rubric ready for production", "what is our kappa", "measure agreement between reviewers", "validate a new profile", or "how well does the rubric score consistently". Calibration is required before any new profile can move from draft to candidate status.
+description: "Run EAROS calibration exercises to validate rubric reliability before production use. Use this skill whenever someone wants to calibrate a rubric, validate inter-rater reliability, compare scores against gold-standard artifacts, measure scoring consistency, or says \"calibrate this rubric\", \"run calibration\", \"check if the rubric is reliable\", \"compare my scores to the gold set\", \"test this profile against examples\", \"is this rubric ready for production\", \"what is our kappa\", \"measure agreement between reviewers\", \"validate a new profile\", or \"how well does the rubric score consistently\". Calibration is required before any new profile can move from draft to candidate status."
 ---
 
 # EAROS Calibrate Skill

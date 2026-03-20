@@ -1,6 +1,6 @@
 ---
 name: earos-assess
-description: Run a full EAROS evaluation on an architecture artifact. Triggers when the user wants to assess, evaluate, score, or review an architecture document using the EAROS framework. Also triggers for "score this architecture", "evaluate this ADR", "run EAROS on this", "assess this capability map", "review this solution design", "is this architecture any good", "quality check this design", "grade this document", "what score would this get", or any request to evaluate, rate, or assess the quality of an architecture artifact.
+description: "Run a full EAROS evaluation on an architecture artifact. Triggers when the user wants to assess, evaluate, score, or review an architecture document using the EAROS framework. Also triggers for \"score this architecture\", \"evaluate this ADR\", \"run EAROS on this\", \"assess this capability map\", \"review this solution design\", \"is this architecture any good\", \"quality check this design\", \"grade this document\", \"what score would this get\", or any request to evaluate, rate, or assess the quality of an architecture artifact."
 ---
 
 # EAROS Assessment Skill

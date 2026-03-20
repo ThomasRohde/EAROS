@@ -1,6 +1,6 @@
 ---
 name: earos-remediate
-description: Generate a prioritized improvement plan from an EAROS evaluation. Triggers on "how do I fix this", "improve this artifact", "remediation plan", "how to pass EAROS", "fix the assessment", "improvement plan", "what's wrong with my architecture", "how to get a better score", or any request to improve an artifact based on evaluation results.
+description: "Generate a prioritized improvement plan from an EAROS evaluation. Triggers on \"how do I fix this\", \"improve this artifact\", \"remediation plan\", \"how to pass EAROS\", \"fix the assessment\", \"improvement plan\", \"what's wrong with my architecture\", \"how to get a better score\", or any request to improve an artifact based on evaluation results."
 ---
 
 # SKILL: earos-remediate
