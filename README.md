@@ -459,7 +459,7 @@ Use `kind: overlay` and `artifact_type: any`. Overlays use `scoring.method: appe
 
 ## Glossary
 
-New to EAROS terminology? The standard uses precise vocabulary from statistics, architecture practice, and the EAROS framework itself. See [Section 34 of the EAROS standard](standard/EAROS.md#34-glossary) for definitions of all key terms, organized into three categories:
+New to EAROS terminology? The standard uses precise vocabulary from statistics, architecture practice, and the EAROS framework itself. See [`docs/terminology.md`](docs/terminology.md) for definitions of all key terms, organized into three categories:
 
 - **Statistical and calibration terms** — Cohen's kappa, weighted kappa, ICC, Spearman's rho, Wasserstein distance, inter-rater reliability, calibration
 - **EAROS-specific terms** — core meta-rubric, profile, overlay, gate, evidence anchor, evidence class, RULERS protocol, DAG evaluation flow, challenge pass, rubric locking, decision tree

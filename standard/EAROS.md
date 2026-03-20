@@ -4,6 +4,8 @@
 Status: Draft for review
 Audience: Enterprise architects, architecture boards, design authorities, reviewers, and LLM/automation teams*
 
+> See [docs/terminology.md](../docs/terminology.md) for definitions of all technical terms used in this standard.
+
 ## 1. Purpose
 
 This document defines an operational standard for creating, governing, extending, and applying rubrics to enterprise architecture artifacts and related architecture work products.

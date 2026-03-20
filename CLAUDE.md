@@ -577,7 +577,7 @@ node bin.js manifest check       # Verify manifest matches filesystem; exits non
 
 ## 13. Key Terms (Glossary)
 
-The full glossary is in `standard/EAROS.md`, Section 34. Below are the most important terms for day-to-day work in this repository.
+The full glossary is in [`docs/terminology.md`](docs/terminology.md). It covers statistical & calibration terms (Cohen's kappa, Wasserstein distance, IRR), EAROS-specific terms (gate, overlay, RULERS protocol, DAG evaluation flow), and architecture terms as used in EAROS (viewpoint, concern, quality attribute, ADR, golden path). Below are the most important terms for day-to-day work in this repository.
 
 | Term | Definition |
 |------|------------|
