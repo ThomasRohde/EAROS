@@ -12,7 +12,8 @@
     "build:assets": "node scripts/build-assets.js",
     "postbuild": "node scripts/postbuild.mjs",
     "preview": "vite preview",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "prepare": "cd ../.. && git config core.hooksPath tools || true"
   },
   "files": [
     "dist/",

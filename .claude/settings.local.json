@@ -58,7 +58,12 @@
       "Bash(node ../tools/editor/bin.js manifest check)",
       "Bash(cmd.exe /c \"rmdir /s /q C:\\\\Users\\\\thoma\\\\Projects\\\\EAROS\\\\tmp-test-workspace\")",
       "Bash(node bin.js init ../../tmp-test)",
-      "Bash(node bin.js validate ../../tmp-test/core/core-meta-rubric.yaml)"
+      "Bash(node bin.js validate ../../tmp-test/core/core-meta-rubric.yaml)",
+      "Bash(node -e \"const yaml = require\\(''js-yaml''\\); const fs = require\\(''fs''\\); try { yaml.load\\(fs.readFileSync\\(''../../examples/aws-event-driven-order-processing/artifact.yaml'', ''utf8''\\)\\); console.log\\(''YAML OK''\\); } catch\\(e\\) { console.error\\(''YAML ERROR:'', e.message\\); }\")",
+      "Bash(grep -E \"\\\\.\\(json|mjs|ts\\)$\")",
+      "Bash(node bin.js validate ../../examples/aws-event-driven-order-processing/artifact.yaml)",
+      "Bash(git config:*)",
+      "Bash(ls C:/Users/thoma/Projects/EAROS/*.md)"
     ]
   }
 }

@@ -43,6 +43,8 @@ One global rubric is too generic; fully bespoke rubrics are ungovernable. This l
 
 ## 2. Key Concepts
 
+For definitions of all technical terms used in EAROS, see `docs/terminology.md`.
+
 ### 2.1 Scoring Model — 0–4 Ordinal + N/A
 
 | Score | Label | Meaning |
@@ -570,6 +572,33 @@ node bin.js manifest check       # Verify manifest matches filesystem; exits non
 - `earos-assess` — reads manifest first to discover available profiles and overlays
 - `earos-create` — updates manifest as the final step of rubric creation
 - `earos-validate` — Check 8 validates manifest-filesystem consistency
+
+---
+
+## 13. Key Terms (Glossary)
+
+The full glossary is in `standard/EAROS.md`, Section 34. Below are the most important terms for day-to-day work in this repository.
+
+| Term | Definition |
+|------|------------|
+| **Core meta-rubric** | Universal foundation rubric (`EAROS-CORE-002`): 9 dimensions, 10 criteria, applied to every artifact |
+| **Profile** | Artifact-type extension of the core (5–12 extra criteria). Declares `inherits: [EAROS-CORE-002]` |
+| **Overlay** | Cross-cutting concern extension (e.g. security). Applied by context, not artifact type. Uses `append_to_base_rubric` scoring |
+| **Gate** | Criterion-level control that blocks a passing status regardless of average. Types: `none`, `advisory`, `major`, `critical` |
+| **Evidence anchor** | Specific reference (section, page, diagram ID) in the artifact supporting a score. Required by RULERS protocol |
+| **Evidence class** | `observed` (directly stated), `inferred` (interpreted), or `external` (from outside the artifact) |
+| **RULERS protocol** | Rubric Unification, Locking, and Evidence-anchored Robust Scoring — prevents LLM scoring drift via locked rubrics + mandatory evidence citation |
+| **DAG evaluation flow** | 8-step evaluation sequence: structural validation → content extraction → criterion scoring → cross-reference validation → dimension aggregation → challenge pass → calibration → status determination |
+| **Challenge pass** | Step 6 of the DAG: evaluator challenges their own highest and lowest scores for weak evidence or over-scoring |
+| **Rubric locking** | Compiling rubrics into immutable specs before evaluation (`rubric_locked: true`). Changes require a version bump |
+| **Decision tree** | IF/THEN scoring logic per criterion. Helps evaluators and agents resolve ambiguous cases consistently |
+| **Cohen's kappa (κ)** | Inter-rater reliability measure. 0 = chance, 1 = perfect. EAROS target: κ > 0.70 (well-defined), > 0.50 (subjective) |
+| **Weighted kappa** | Kappa variant for ordinal scales — treats adjacent disagreements (2 vs 3) as less severe than distant ones (1 vs 4) |
+| **Wasserstein distance** | Metric used in RULERS calibration to align AI agent score distributions with human reviewer distributions |
+| **Quality attribute** | Measurable system characteristic (e.g. "99.95% availability", "P99 < 200ms"). Must be quantified, not adjectival |
+| **Fitness function** | Automated test/check that validates an architecture meets a quality attribute target. Used in CI/CD |
+| **ADR** | Architecture Decision Record — captures a decision with context, options, rationale, consequences, and revisit triggers |
+| **Golden path** | Opinionated, fully supported implementation path for a reference architecture pattern |
 
 ---
 

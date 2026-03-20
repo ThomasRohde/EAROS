@@ -1,29 +1,59 @@
 #!/bin/sh
-# EAROS pre-commit hook: validates staged YAML and SKILL.md frontmatter
-REPO_ROOT=$(git rev-parse --show-toplevel)
-STAGED=$(git diff --cached --name-only --diff-filter=ACM)
-YAML_FILES=$(echo "$STAGED" | grep '\.yaml$' || true)
-MD_FILES=$(echo "$STAGED" | grep 'SKILL\.md$' || true)
+# EAROS pre-commit hook — validates all staged YAML files and SKILL.md frontmatter
+# Activated via: git config core.hooksPath tools  (or sh tools/setup-hooks.sh)
 
-if [ -z "$YAML_FILES" ] && [ -z "$MD_FILES" ]; then
+REPO_ROOT=$(git rev-parse --show-toplevel)
+VALIDATOR="$REPO_ROOT/tools/validate-yaml.js"
+
+# Skip gracefully if Node.js is not available
+if ! command -v node >/dev/null 2>&1; then
+  echo "EAROS pre-commit: node not found, skipping YAML validation"
   exit 0
 fi
 
-ERRORS=0
-for f in $YAML_FILES; do
-  [ -f "$f" ] || continue
-  node -e "const y=require('$REPO_ROOT/tools/editor/node_modules/js-yaml');const fs=require('fs');try{y.load(fs.readFileSync('$f','utf8'))}catch(e){console.error('YAML ERROR: $f');console.error('  '+e.message.split('\n')[0]);process.exit(1)}" 2>&1
-  [ $? -ne 0 ] && ERRORS=$((ERRORS+1))
-done
-
-for f in $MD_FILES; do
-  [ -f "$f" ] || continue
-  node -e "const y=require('$REPO_ROOT/tools/editor/node_modules/js-yaml');const fs=require('fs');const c=fs.readFileSync('$f','utf8');const m=c.match(/^---\n([\s\S]*?)\n---/);if(!m)process.exit(0);try{y.load(m[1])}catch(e){console.error('FRONTMATTER ERROR: $f');console.error('  '+e.message.split('\n')[0]);process.exit(1)}" 2>&1
-  [ $? -ne 0 ] && ERRORS=$((ERRORS+1))
-done
-
-if [ $ERRORS -gt 0 ]; then
-  echo ""; echo "Commit blocked: $ERRORS file(s) failed YAML validation."
-  echo "Common fix: quote strings containing colons"; exit 1
+# Skip gracefully if the validator itself is missing
+if [ ! -f "$VALIDATOR" ]; then
+  echo "EAROS pre-commit: tools/validate-yaml.js not found, skipping"
+  exit 0
 fi
-echo "YAML validation passed."
+
+# Collect staged files
+STAGED_YAML=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.ya?ml$')
+STAGED_MD=$(git diff --cached --name-only --diff-filter=ACM | grep 'SKILL\.md$')
+
+if [ -z "$STAGED_YAML" ] && [ -z "$STAGED_MD" ]; then
+  exit 0
+fi
+
+echo "EAROS: Validating staged YAML files..."
+
+ERRORS=0
+CHECKED=0
+
+for file in $STAGED_YAML; do
+  abs="$REPO_ROOT/$file"
+  [ -f "$abs" ] || continue
+  if ! node "$VALIDATOR" "$abs"; then
+    ERRORS=$((ERRORS + 1))
+  fi
+  CHECKED=$((CHECKED + 1))
+done
+
+for file in $STAGED_MD; do
+  abs="$REPO_ROOT/$file"
+  [ -f "$abs" ] || continue
+  if ! node "$VALIDATOR" --frontmatter "$abs"; then
+    ERRORS=$((ERRORS + 1))
+  fi
+  CHECKED=$((CHECKED + 1))
+done
+
+if [ "$ERRORS" -gt 0 ]; then
+  echo ""
+  echo "EAROS: $ERRORS file(s) failed YAML validation. Commit blocked."
+  echo "   Fix the errors above, stage the corrected files, then retry."
+  exit 1
+fi
+
+echo "EAROS: $CHECKED file(s) validated successfully."
+exit 0

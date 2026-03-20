@@ -1286,6 +1286,107 @@ Score each dimension independently using dedicated prompts, then combine scores 
 Every rubric should be designed with calibration in mind from the start. This means including boundary-case examples, documenting expected score distributions, and defining the inter-rater reliability targets that the rubric must meet before operational deployment.
 
 
+## 34. Glossary
+
+This glossary defines terms used throughout the EAROS standard. It is organized into three categories: statistical and calibration terms, EAROS-specific concepts, and architecture terms as used in this standard.
+
+---
+
+### 34.1 Statistical and Calibration Terms
+
+**Calibration**
+The process of adjusting rubric criteria, level descriptors, and scoring guidance until different raters (human or AI) produce consistent results on the same artifacts. Calibration is considered complete when inter-rater reliability reaches the target threshold (κ > 0.70 for well-defined criteria). Calibration is a governance requirement in EAROS — no rubric may be used in a live review process without prior calibration.
+
+**Cohen's kappa (κ)**
+A statistical measure of inter-rater reliability that corrects for chance agreement. Ranges from 0 (agreement no better than chance) to 1 (perfect agreement). Negative values indicate systematic disagreement. EAROS targets: κ > 0.70 for well-defined criteria, κ > 0.50 for criteria requiring subjective judgment. Named after Jacob Cohen (1960). See also: *weighted kappa*.
+
+**Intraclass Correlation Coefficient (ICC)**
+A reliability measure for ordinal or continuous ratings when more than two raters assess the same artifact. Unlike Cohen's kappa (pairwise), ICC captures consistency across the full rater panel. Preferred when a calibration exercise involves three or more reviewers.
+
+**Inter-rater reliability**
+The degree to which different raters — human reviewers or AI agents — produce consistent scores when independently evaluating the same artifact against the same rubric criteria. High inter-rater reliability indicates the rubric is unambiguous and the scoring guidance is effective. Measured using Cohen's κ, weighted κ, or ICC depending on the evaluation context.
+
+**Spearman's rho (ρ)**
+A rank correlation coefficient measuring how well two sets of rankings agree. Unlike Pearson correlation, it makes no assumption about linear relationships between scores and is robust to outliers. EAROS target: ρ > 0.80 for overall assessment correlation between human and agent evaluators.
+
+**Wasserstein distance**
+A metric that measures the difference between two probability distributions — specifically, the minimum "work" needed to transform one distribution into the other (also called the Earth Mover's Distance). Used in the RULERS calibration step to align AI agent score distributions with human reviewer distributions, correcting for systematic over- or under-scoring biases across the 0–4 scale.
+
+**Weighted kappa**
+A variant of Cohen's kappa that treats disagreements between adjacent score levels (e.g., 2 vs. 3) as less severe than disagreements between distant levels (e.g., 1 vs. 4). More appropriate than unweighted kappa for ordinal scales where partial agreement is meaningful. Quadratic-weighted kappa (QWK) penalizes larger disagreements proportionally to the square of the distance. EAROS uses weighted kappa as its primary inter-rater reliability metric.
+
+---
+
+### 34.2 EAROS-Specific Terms
+
+**Challenge pass**
+Step 6 of the DAG evaluation flow. A deliberate self-review in which the evaluator (human or agent) challenges their own highest and lowest scores, checking for weak evidence, over-scoring relative to the level descriptors, under-cited evidence, or evidence class errors. The challenge pass must be recorded in the evaluation record. It is not optional — skipping it invalidates the evaluation.
+
+**Core meta-rubric**
+The universal foundation rubric (`core/core-meta-rubric.yaml`, rubric ID `EAROS-CORE-002`) that defines nine dimensions and ten criteria applying to every architecture artifact regardless of type. All profiles inherit from it. It establishes the scoring model, gate model, and output requirements that govern all EAROS evaluations.
+
+**DAG evaluation flow**
+The eight-step Directed Acyclic Graph that structures agentic (and recommended human) evaluation: `structural_validation → content_extraction → criterion_scoring → cross_reference_validation → dimension_aggregation → challenge_pass → calibration → status_determination`. The DAG is sequential and must not be reordered. Each step produces outputs consumed by the next.
+
+**Decision tree**
+An IF/THEN disambiguation logic block attached to each rubric criterion to help evaluators (especially AI agents) resolve ambiguous cases consistently. Decision trees reduce interpretive load by converting open-ended judgment into observable feature counts and branches. Example pattern: *"Count distinct views: IF < 2 THEN score 0-1. IF 2-3 views THEN score 2. IF 4+ views AND data flow narrative exists THEN score 3."*
+
+**Evidence anchor**
+A specific, traceable reference to content in the artifact that supports a score assignment — for example, a section heading, page number, paragraph ID, or diagram label (e.g., "Section 3.2, deployment diagram on p. 8"). Required by the RULERS protocol for every score. Evidence anchors enable human reviewers to verify, challenge, or override any agent judgment.
+
+**Evidence class**
+A mandatory classification of the type of evidence supporting a score:
+- `observed` — directly stated or shown in the artifact (highest credibility)
+- `inferred` — a reasonable interpretation not explicitly stated
+- `external` — judgment based on a standard, policy, or source outside the artifact (lowest credibility, must be declared)
+
+Evidence class must be recorded for every criterion score in an evaluation record.
+
+**Gate**
+A criterion-level control that can block a passing status regardless of the overall weighted average. Gates prevent weak scores on critical criteria from being diluted by strong scores elsewhere. Four gate types exist: `none` (no gate), `advisory` (recommendation triggered), `major` (status capped at `conditional_pass`), and `critical` (failure forces `reject` status). Gates are checked before averages are computed.
+
+**Overlay**
+A cross-cutting concern extension that appends additional criteria on top of any core+profile combination. Overlays use `scoring.method: append_to_base_rubric` and `artifact_type: any` — they are not tied to a specific artifact type and are applied based on context (e.g., apply the security overlay whenever the artifact touches authentication or personal data). Overlays are additive: they cannot weaken or remove gates from the base rubric.
+
+**Profile**
+An artifact-type-specific extension of the core meta-rubric. Profiles add 5–12 criteria for a particular artifact type (e.g., reference architecture adds 9 criteria across 6 dimensions). Every profile declares `inherits: [EAROS-CORE-002]` and is evaluated together with the core. The reference architecture profile (`EAROS-REFARCH-001`) is the reference implementation for how profiles should be constructed.
+
+**RULERS protocol**
+**R**ubric **U**nification, **L**ocking, and **E**vidence-anchored **R**obust **S**coring. A framework for preventing LLM scoring drift through three mechanisms: (1) locked rubrics compiled into immutable specifications before evaluation, (2) mandatory evidence citation (evidence anchor per criterion), and (3) Wasserstein-based calibration to align agent score distributions with human reviewer distributions. Defined in arXiv 2601.08654 (January 2026) [R8]. All EAROS agent evaluations implement the RULERS protocol.
+
+**Rubric locking**
+The practice of compiling rubrics into fixed, versioned specifications before evaluation begins and preventing any modification during an evaluation run (`rubric_locked: true` in agent metadata). Rubric locking prevents interpretation drift — the tendency for LLM judges to subtly reinterpret criteria across evaluation runs, undermining reproducibility. Changes to a locked rubric require a version bump and governance approval.
+
+---
+
+### 34.3 Architecture Terms (as used in EAROS)
+
+**Architecture artifact**
+Any document, model, diagram, or structured record that describes, decides, or governs aspects of an enterprise architecture. Examples: solution architecture document, Architecture Decision Record, capability map, reference architecture, technology roadmap. Each artifact type has a matching EAROS profile that extends the core rubric for that artifact's specific evidence requirements.
+
+**Architecture Decision Record (ADR)**
+A document that captures a single architectural decision along with its context, the options considered, the decision made, the rationale, the consequences, and triggers for revisiting the decision. ADRs are a first-class artifact type in EAROS with their own profile (`profiles/adr.yaml`).
+
+**Concern**
+A specific interest, requirement, or question that a stakeholder has about the architecture — for example, "Can the system handle 10× traffic growth?" or "How does data leave the trust boundary?" Concerns are the fundamental driver of architecture evaluation in EAROS (Principle 1: concern-driven, not document-driven). A rubric criterion is essentially a concern formalized into a scorable question.
+
+**Fitness function**
+An automated test, check, or metric that validates whether an architecture continues to meet a specific quality attribute target. Used in CI/CD pipelines for continuous architecture validation — for example, a latency test that fails if P99 response time exceeds 200ms. Fitness functions make quality attributes measurable and enforceable rather than aspirational.
+
+**Golden path**
+An opinionated, fully supported implementation path for a reference architecture pattern. A golden path reduces setup time, ensures teams follow proven patterns, and provides pre-built integrations for the most common use cases. The EAROS reference architecture profile (`EAROS-REFARCH-001`) includes a dedicated criterion for golden path provision.
+
+**Quality attribute**
+A measurable characteristic of a system or architecture that is distinct from its functional behaviour — for example, availability (target: 99.95%), latency (P99 < 200ms), or throughput (10,000 req/s). In EAROS, quality attributes must be quantified and scoped, not expressed as adjectives. "The system is highly available" does not constitute a quality attribute statement; "the system achieves 99.95% availability measured monthly" does.
+
+**Quality attribute scenario**
+A structured description of a quality requirement using a six-part format: source (who or what generates the stimulus), stimulus (the event), artifact (the system element affected), environment (operating conditions), response (system behaviour), and response measure (quantified target). Derived from the TOGAF and SEI ATAM frameworks. Quality attribute scenarios are the required format for quality attribute claims in EAROS-evaluated artifacts.
+
+**Viewpoint**
+A perspective from which an architecture is examined, defined by the concerns of a stakeholder group. Common viewpoints include: context (system boundary and external actors), functional (component decomposition), deployment (infrastructure and topology), data flow (information movement), and security (trust boundaries and controls). The EAROS reference architecture profile requires at least four viewpoints for a passing score.
+
+---
+
 ## References
 
 * **[R1] ISO/IEC/IEEE 42010 architecture description overview** — ISO Online Browsing Platform. Describes architecture description in terms of stakeholders, concerns, viewpoints, and model kinds.
