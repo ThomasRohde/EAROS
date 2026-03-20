@@ -5,10 +5,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 export function initWorkspace(targetDir) {
     const target = resolve(process.cwd(), targetDir);
-    // When compiled, init.js sits in tools/editor/ alongside scaffold/
-    const scaffoldDir = join(__dirname, 'scaffold');
-    if (!existsSync(scaffoldDir)) {
-        console.error('Scaffold directory not found. Run npm run build first.');
+    // When compiled, init.js sits in tools/editor/ alongside assets/
+    const assetsDir = join(__dirname, 'assets', 'init');
+    if (!existsSync(assetsDir)) {
+        console.error('Asset directory not found. Run npm run build first.');
         process.exit(1);
     }
     if (existsSync(join(target, 'earos.manifest.yaml'))) {
@@ -16,7 +16,7 @@ export function initWorkspace(targetDir) {
         process.exit(1);
     }
     mkdirSync(target, { recursive: true });
-    cpSync(scaffoldDir, target, { recursive: true });
+    cpSync(assetsDir, target, { recursive: true });
     const isCurrentDir = targetDir === '.' || targetDir === './';
     const cdStep = isCurrentDir ? '' : `  cd ${targetDir}\n`;
     console.log(`
