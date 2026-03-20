@@ -5,11 +5,10 @@
  * Chromium required).  If Kroki is unreachable the diagram placeholder is
  * replaced with an italic note rather than failing the entire export.
  */
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, ImageRun, AlignmentType, WidthType, BorderStyle, PageBreak, Header, Footer, SectionType, SimpleField, } from 'docx';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, ImageRun, AlignmentType, WidthType, BorderStyle, PageBreak, Header, Footer, SectionType, SimpleField, TableOfContents, } from 'docx';
 // ─── Kroki Mermaid rendering ──────────────────────────────────────────────────
 const KROKI_URL = 'https://kroki.io/mermaid/png';
-const PLACEHOLDER_PNG = Buffer.alloc(0); // sentinel — real empty buffer
-async function renderMermaidDiagram(diagram) {
+async function renderMermaidDiagram(diagram, label) {
     try {
         const response = await fetch(KROKI_URL, {
             method: 'POST',
@@ -17,16 +16,24 @@ async function renderMermaidDiagram(diagram) {
             body: diagram.trim(),
             signal: AbortSignal.timeout(30_000),
         });
-        if (!response.ok)
+        if (!response.ok) {
+            console.warn(`[export-docx] Diagram render failed for "${label}": HTTP ${response.status}`);
             return null;
+        }
         const arr = await response.arrayBuffer();
-        return Buffer.from(arr);
+        const buf = Buffer.from(arr);
+        if (buf.length === 0) {
+            console.warn(`[export-docx] Diagram render returned empty buffer for "${label}"`);
+            return null;
+        }
+        return buf;
     }
-    catch {
+    catch (err) {
+        console.warn(`[export-docx] Diagram render error for "${label}":`, err);
         return null;
     }
 }
-function extractDiagrams(obj, path = '') {
+function extractDiagrams(obj, path = '', label = '') {
     if (!obj || typeof obj !== 'object')
         return [];
     const refs = [];
@@ -34,14 +41,15 @@ function extractDiagrams(obj, path = '') {
     const DIAGRAM_FIELDS = new Set(['diagram_source', 'diagram', 'mermaid', 'mermaid_source']);
     for (const [k, v] of Object.entries(obj)) {
         const p = path ? `${path}.${k}` : k;
+        const l = label ? `${label} › ${k}` : k;
         if (DIAGRAM_FIELDS.has(k) && typeof v === 'string' && v.trim()) {
-            refs.push({ key: p, source: v.trim() });
+            refs.push({ key: p, source: v.trim(), label: l });
         }
         else if (Array.isArray(v)) {
-            v.forEach((item, i) => refs.push(...extractDiagrams(item, `${p}[${i}]`)));
+            v.forEach((item, i) => refs.push(...extractDiagrams(item, `${p}[${i}]`, `${l}[${i}]`)));
         }
         else if (typeof v === 'object' && v !== null) {
-            refs.push(...extractDiagrams(v, p));
+            refs.push(...extractDiagrams(v, p, l));
         }
     }
     return refs;
@@ -77,6 +85,7 @@ function h3(text) {
 }
 function body(text, indent = 0) {
     return new Paragraph({
+        style: 'Normal',
         children: [
             new TextRun({
                 text,
@@ -98,6 +107,7 @@ function bullet(text, level = 0) {
 }
 function label(key, value) {
     return new Paragraph({
+        style: 'Normal',
         children: [
             new TextRun({ text: `${key}: `, font: 'Arial', size: 20, bold: true, color: DARK_GREY }),
             new TextRun({ text: value, font: 'Arial', size: 20, color: DARK_GREY }),
@@ -107,15 +117,26 @@ function label(key, value) {
 }
 function italicNote(text) {
     return new Paragraph({
+        style: 'Normal',
         children: [new TextRun({ text, font: 'Arial', size: 18, italics: true, color: MID_GREY })],
         spacing: { before: 60, after: 60 },
     });
 }
+/** Indented consequence line under an assumption bullet */
+function consequence(text) {
+    return new Paragraph({
+        style: 'Normal',
+        children: [new TextRun({ text: `→ ${text}`, font: 'Arial', size: 18, italics: true, color: MID_GREY })],
+        indent: { left: 720 },
+        spacing: { before: 20, after: 40 },
+    });
+}
 function pageBreak() {
-    return new Paragraph({ children: [new PageBreak()] });
+    return new Paragraph({ style: 'Normal', children: [new PageBreak()] });
 }
 function horizontalRule() {
     return new Paragraph({
+        style: 'Normal',
         border: { bottom: { color: 'CCCCCC', space: 1, style: BorderStyle.SINGLE, size: 6 } },
         spacing: { before: 200, after: 200 },
         children: [],
@@ -123,6 +144,7 @@ function horizontalRule() {
 }
 function diagImage(pngBuffer) {
     return new Paragraph({
+        style: 'Normal',
         children: [
             new ImageRun({
                 data: pngBuffer,
@@ -142,11 +164,11 @@ function kvTable(pairs) {
             children: [
                 new TableCell({
                     width: { size: 25, type: WidthType.PERCENTAGE },
-                    children: [new Paragraph({ children: [new TextRun({ text: k, bold: true, font: 'Arial', size: 18 })] })],
+                    children: [new Paragraph({ style: 'Normal', children: [new TextRun({ text: k, bold: true, font: 'Arial', size: 18 })] })],
                 }),
                 new TableCell({
                     width: { size: 75, type: WidthType.PERCENTAGE },
-                    children: [new Paragraph({ children: [new TextRun({ text: v, font: 'Arial', size: 18 })] })],
+                    children: [new Paragraph({ style: 'Normal', children: [new TextRun({ text: v, font: 'Arial', size: 18 })] })],
                 }),
             ],
         })),
@@ -160,6 +182,7 @@ function dataTable(headers, rows) {
             shading: { fill: NAVY },
             children: [
                 new Paragraph({
+                    style: 'Normal',
                     children: [new TextRun({ text: h, bold: true, font: 'Arial', size: 18, color: 'FFFFFF' })],
                 }),
             ],
@@ -169,6 +192,7 @@ function dataTable(headers, rows) {
         children: row.map((cell) => new TableCell({
             children: [
                 new Paragraph({
+                    style: 'Normal',
                     children: [new TextRun({ text: cell ?? '', font: 'Arial', size: 18 })],
                 }),
             ],
@@ -179,6 +203,7 @@ function dataTable(headers, rows) {
         rows: [headerRow, ...dataRows],
     });
 }
+// ─── Section renderers ────────────────────────────────────────────────────────
 function str(v) {
     if (v == null)
         return '';
@@ -263,12 +288,12 @@ function renderScope(data, children) {
             const text = typeof a === 'string' ? a : str(a.assumption);
             children.push(bullet(text));
             if (a.consequence_if_violated)
-                children.push(body(`→ ${str(a.consequence_if_violated)}`, 1));
+                children.push(consequence(str(a.consequence_if_violated)));
         }
     }
 }
 function renderDriversAndPrinciples(data, children) {
-    children.push(h1('Drivers and Principles'));
+    children.push(h1('Business Context and Drivers'));
     if (Array.isArray(data.drivers) && data.drivers.length) {
         children.push(h2('Business Drivers'));
         for (const d of data.drivers) {
@@ -286,8 +311,8 @@ function renderDriversAndPrinciples(data, children) {
         children.push(dataTable(['ID', 'Principle', 'How Applied'], data.principles.map((p) => [str(p.id), str(p.name), str(p.how_applied)])));
     }
 }
-function renderView(name, data, children, diagramImages, diagramKey) {
-    children.push(h2(name));
+function renderView(viewLabel, data, children, diagramImages, diagramKey) {
+    children.push(h2(viewLabel));
     const desc = data.description ?? data.narrative ?? data.overview;
     if (desc)
         children.push(body(str(desc)));
@@ -296,8 +321,8 @@ function renderView(name, data, children, diagramImages, diagramKey) {
     if (imgBuf && imgBuf.length > 0) {
         children.push(diagImage(imgBuf));
     }
-    else if (data.diagram_source || data.diagram || data.mermaid) {
-        children.push(italicNote('[Diagram could not be rendered — Kroki API may be unavailable]'));
+    else if (data.diagram_source || data.diagram || data.mermaid || data.mermaid_source) {
+        children.push(italicNote(`[${viewLabel} diagram could not be rendered — Kroki API may be unavailable]`));
     }
     // Narrative steps (data flow view)
     if (Array.isArray(data.narrative_steps)) {
@@ -318,9 +343,9 @@ function renderArchitectureViews(data, children, diagramImages) {
     for (const [key, viewData] of Object.entries(data)) {
         if (typeof viewData !== 'object' || viewData === null)
             continue;
-        const label = VIEW_LABELS[key] ?? key.replace(/_/g, ' ');
+        const viewLabel = VIEW_LABELS[key] ?? key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
         const diagramKey = `sections.architecture_views.${key}.diagram_source`;
-        renderView(label, viewData, children, diagramImages, diagramKey);
+        renderView(viewLabel, viewData, children, diagramImages, diagramKey);
     }
 }
 function renderCrosscuttingConcerns(data, children) {
@@ -367,17 +392,59 @@ function renderArchitectureDecisions(data, children) {
             children.push(h3('Decision'));
             children.push(body(str(adr.decision)));
         }
+        if (adr.rationale) {
+            children.push(h3('Rationale'));
+            children.push(body(str(adr.rationale)));
+        }
         if (adr.consequences) {
             children.push(h3('Consequences'));
             children.push(body(str(adr.consequences)));
         }
-        if (Array.isArray(adr.alternatives_considered) && adr.alternatives_considered.length) {
-            children.push(h3('Alternatives Considered'));
-            for (const alt of adr.alternatives_considered) {
-                if (typeof alt === 'string')
+        // Trade-offs (structured or string)
+        if (adr.trade_offs) {
+            children.push(h3('Trade-offs'));
+            if (typeof adr.trade_offs === 'string') {
+                children.push(body(str(adr.trade_offs)));
+            }
+            else if (typeof adr.trade_offs === 'object') {
+                if (Array.isArray(adr.trade_offs.benefits) && adr.trade_offs.benefits.length) {
+                    children.push(body('Benefits:'));
+                    renderStringList(adr.trade_offs.benefits, children);
+                }
+                if (Array.isArray(adr.trade_offs.drawbacks) && adr.trade_offs.drawbacks.length) {
+                    children.push(body('Drawbacks:'));
+                    renderStringList(adr.trade_offs.drawbacks, children);
+                }
+            }
+        }
+        if (adr.revisit_trigger) {
+            children.push(h3('Revisit Trigger'));
+            children.push(body(str(adr.revisit_trigger)));
+        }
+        // Handle both 'alternatives_considered' and 'options' field names
+        const alternatives = adr.alternatives_considered ?? adr.options;
+        if (Array.isArray(alternatives) && alternatives.length) {
+            children.push(h3('Options Considered'));
+            for (const alt of alternatives) {
+                if (typeof alt === 'string') {
                     children.push(bullet(alt));
-                else
-                    children.push(bullet(`${str(alt.option || alt.name || '')}: ${str(alt.reason || alt.rationale || '')}`));
+                }
+                else {
+                    const id = str(alt.id ?? alt.option ?? alt.name ?? '');
+                    const desc = str(alt.description ?? alt.reason ?? alt.rationale ?? '');
+                    const optTitle = id && desc ? `Option ${id}: ${desc}` : id || desc;
+                    children.push(bullet(optTitle));
+                    if (Array.isArray(alt.pros) && alt.pros.length) {
+                        children.push(body('Pros:', 1));
+                        for (const p of alt.pros)
+                            children.push(bullet(str(p), 1));
+                    }
+                    if (Array.isArray(alt.cons) && alt.cons.length) {
+                        children.push(body('Cons:', 1));
+                        for (const c of alt.cons)
+                            children.push(bullet(str(c), 1));
+                    }
+                }
             }
         }
     }
@@ -410,29 +477,57 @@ function renderOperationalModel(data, children) {
             renderStringList(data[f], children);
         }
     }
-    // Forward any sub-objects we haven't explicitly handled
+    // Sub-objects not explicitly handled above
     for (const [key, value] of Object.entries(data)) {
         if ([...STRING_FIELDS, ...LIST_FIELDS].includes(key))
             continue;
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
             children.push(h2(key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())));
             for (const [k, v] of Object.entries(value)) {
-                if (typeof v === 'string')
+                if (typeof v === 'string') {
                     children.push(label(k.replace(/_/g, ' '), v));
-                else if (Array.isArray(v))
+                }
+                else if (Array.isArray(v)) {
+                    children.push(h3(k.replace(/_/g, ' ')));
                     renderStringList(v, children);
+                }
             }
+        }
+        else if (Array.isArray(value) && value.length) {
+            children.push(h2(key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())));
+            renderStringList(value, children);
         }
     }
 }
 function renderImplementationGuidance(data, children) {
-    children.push(h1('Implementation Guidance'));
+    children.push(h1('Implementation'));
     for (const [key, value] of Object.entries(data)) {
         children.push(h2(key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())));
         if (typeof value === 'string')
             children.push(body(value));
-        else if (Array.isArray(value))
-            renderStringList(value, children);
+        else if (Array.isArray(value)) {
+            // If array of objects with name/description, render as sub-items
+            for (const item of value) {
+                if (typeof item === 'string') {
+                    children.push(bullet(item));
+                }
+                else if (typeof item === 'object' && item !== null) {
+                    const name = str(item.name ?? item.title ?? item.id ?? '');
+                    const desc = str(item.description ?? item.purpose ?? '');
+                    if (name)
+                        children.push(h3(name));
+                    if (desc)
+                        children.push(body(desc));
+                    // Remaining string fields as labels
+                    for (const [k, v] of Object.entries(item)) {
+                        if (k === 'name' || k === 'title' || k === 'id' || k === 'description' || k === 'purpose')
+                            continue;
+                        if (typeof v === 'string')
+                            children.push(label(k.replace(/_/g, ' '), v));
+                    }
+                }
+            }
+        }
         else if (typeof value === 'object' && value !== null) {
             for (const [k, v] of Object.entries(value)) {
                 children.push(h3(k.replace(/_/g, ' ')));
@@ -461,6 +556,181 @@ function renderGovernance(data, children) {
     if (data.review_cadence) {
         children.push(h2('Review Cadence'));
         children.push(body(str(data.review_cadence)));
+    }
+    // Remaining object sub-sections
+    for (const [key, value] of Object.entries(data)) {
+        if (['compliance_mapping', 'risk_register', 'review_cadence'].includes(key))
+            continue;
+        children.push(h2(key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())));
+        if (typeof value === 'string')
+            children.push(body(value));
+        else if (Array.isArray(value))
+            renderStringList(value, children);
+        else if (typeof value === 'object' && value !== null) {
+            for (const [k, v] of Object.entries(value)) {
+                if (typeof v === 'string')
+                    children.push(label(k.replace(/_/g, ' '), v));
+                else if (Array.isArray(v))
+                    renderStringList(v, children);
+            }
+        }
+    }
+}
+function renderRaid(data, children) {
+    children.push(h1('RAID Register'));
+    const SECTION_LABELS = {
+        risks: 'Risks',
+        assumptions: 'Assumptions',
+        issues: 'Issues',
+        dependencies: 'Dependencies',
+    };
+    for (const [key, value] of Object.entries(data)) {
+        if (!Array.isArray(value) || !value.length)
+            continue;
+        const sectionTitle = SECTION_LABELS[key] ?? key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+        children.push(h2(sectionTitle));
+        for (const item of value) {
+            if (typeof item === 'string') {
+                children.push(bullet(item));
+                continue;
+            }
+            if (typeof item !== 'object' || !item)
+                continue;
+            const id = str(item.id ?? '');
+            const desc = str(item.description ?? item.statement ?? item.text ?? '');
+            const heading = id ? `${id}: ${desc.substring(0, 80)}` : desc.substring(0, 80);
+            if (heading)
+                children.push(h3(heading));
+            if (desc && desc.length > 80)
+                children.push(body(desc));
+            const FIELD_LABELS = {
+                likelihood: 'Likelihood',
+                impact: 'Impact',
+                owner: 'Owner',
+                residual_risk: 'Residual Risk',
+                status: 'Status',
+                due_date: 'Due Date',
+                dependency_type: 'Dependency Type',
+                source: 'Source',
+            };
+            for (const [f, l] of Object.entries(FIELD_LABELS)) {
+                if (item[f])
+                    children.push(label(l, str(item[f])));
+            }
+            if (item.mitigation) {
+                children.push(h3('Mitigation'));
+                children.push(body(str(item.mitigation), 1));
+            }
+            if (item.resolution) {
+                children.push(h3('Resolution'));
+                children.push(body(str(item.resolution), 1));
+            }
+        }
+    }
+}
+function renderDecisionsAndActions(data, children) {
+    children.push(h1('Governance Decision'));
+    if (data.governance_outcome) {
+        children.push(label('Outcome', str(data.governance_outcome)));
+    }
+    if (data.decision_statement) {
+        children.push(h2('Decision Statement'));
+        children.push(body(str(data.decision_statement)));
+    }
+    if (Array.isArray(data.conditions) && data.conditions.length) {
+        children.push(h2('Conditions'));
+        renderStringList(data.conditions, children);
+    }
+    if (Array.isArray(data.next_actions) && data.next_actions.length) {
+        children.push(h2('Next Actions'));
+        children.push(dataTable(['Action', 'Owner', 'Target Date'], data.next_actions.map((a) => [str(a.action), str(a.owner), str(a.target_date)])));
+    }
+}
+function renderGettingStarted(data, children) {
+    children.push(h1('Getting Started'));
+    if (data.estimated_time_to_first_deployment) {
+        children.push(body(str(data.estimated_time_to_first_deployment)));
+    }
+    if (Array.isArray(data.prerequisites) && data.prerequisites.length) {
+        children.push(h2('Prerequisites'));
+        renderStringList(data.prerequisites, children);
+    }
+    if (Array.isArray(data.steps) && data.steps.length) {
+        children.push(h2('Deployment Steps'));
+        for (const step of data.steps) {
+            if (typeof step === 'string') {
+                children.push(bullet(step));
+                continue;
+            }
+            if (typeof step !== 'object' || !step)
+                continue;
+            const stepTitle = str(step.title ?? step.name ?? `Step ${step.step ?? ''}`);
+            children.push(h3(stepTitle));
+            if (step.description)
+                children.push(body(str(step.description)));
+            if (step.command) {
+                children.push(italicNote(str(step.command)));
+            }
+            if (step.validation) {
+                children.push(body(`Validation: ${str(step.validation)}`, 1));
+            }
+        }
+    }
+    if (Array.isArray(data.troubleshooting) && data.troubleshooting.length) {
+        children.push(h2('Troubleshooting'));
+        for (const t of data.troubleshooting) {
+            if (typeof t === 'string') {
+                children.push(bullet(t));
+            }
+            else if (typeof t === 'object' && t) {
+                children.push(h3(str(t.symptom ?? '')));
+                if (t.cause)
+                    children.push(label('Cause', str(t.cause)));
+                if (t.resolution)
+                    children.push(body(str(t.resolution), 1));
+            }
+        }
+    }
+    // Any remaining fields
+    for (const [key, value] of Object.entries(data)) {
+        if (['estimated_time_to_first_deployment', 'prerequisites', 'steps', 'troubleshooting'].includes(key))
+            continue;
+        children.push(h2(key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())));
+        if (typeof value === 'string')
+            children.push(body(value));
+        else if (Array.isArray(value))
+            renderStringList(value, children);
+    }
+}
+function renderEvolution(data, children) {
+    children.push(h1('Evolution Roadmap'));
+    if (data.version)
+        children.push(label('Current Version', str(data.version)));
+    if (Array.isArray(data.known_limitations) && data.known_limitations.length) {
+        children.push(h2('Known Limitations'));
+        renderStringList(data.known_limitations, children);
+    }
+    if (Array.isArray(data.roadmap) && data.roadmap.length) {
+        children.push(h2('Roadmap'));
+        for (const milestone of data.roadmap) {
+            if (typeof milestone !== 'object' || !milestone)
+                continue;
+            const milestoneTitle = `v${str(milestone.version)} — ${str(milestone.planned_date)}`;
+            children.push(h3(milestoneTitle));
+            if (Array.isArray(milestone.planned_changes)) {
+                renderStringList(milestone.planned_changes, children);
+            }
+        }
+    }
+    // Remaining fields
+    for (const [key, value] of Object.entries(data)) {
+        if (['version', 'known_limitations', 'roadmap'].includes(key))
+            continue;
+        children.push(h2(key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())));
+        if (typeof value === 'string')
+            children.push(body(value));
+        else if (Array.isArray(value))
+            renderStringList(value, children);
     }
 }
 function renderGlossary(data, children) {
@@ -511,7 +781,6 @@ function renderComponentSection(title, data, children) {
         ]);
         children.push(dataTable(headers, rows));
     }
-    // Also render any non-component string fields
     if (data.mandatory_components) {
         children.push(h2('Mandatory Components'));
         renderStringList(data.mandatory_components, children);
@@ -528,34 +797,64 @@ const KNOWN_SECTIONS = {
     drivers_and_principles: (d, c) => renderDriversAndPrinciples(d, c),
     architecture_views: (d, c, imgs) => renderArchitectureViews(d, c, imgs),
     crosscutting_concerns: (d, c) => renderCrosscuttingConcerns(d, c),
+    decisions: (d, c) => renderArchitectureDecisions(d, c),
     architecture_decisions: (d, c) => renderArchitectureDecisions(d, c),
     quality_attributes: (d, c) => renderQualityAttributes(d, c),
     operational_model: (d, c) => renderOperationalModel(d, c),
     implementation_guidance: (d, c) => renderImplementationGuidance(d, c),
     implementation_artifacts: (d, c) => renderImplementationGuidance(d, c),
     governance: (d, c) => renderGovernance(d, c),
+    raid: (d, c) => renderRaid(d, c),
+    decisions_and_actions: (d, c) => renderDecisionsAndActions(d, c),
+    getting_started: (d, c) => renderGettingStarted(d, c),
+    evolution: (d, c) => renderEvolution(d, c),
     glossary: (d, c) => renderGlossary(d, c),
     component_classification: (d, c) => renderComponentSection('Component Classification', d, c),
     components: (d, c) => renderComponentSection('Components', d, c),
 };
+// Logical reading order — decisions before quality/operational, RAID after governance
+const SECTION_ORDER = [
+    'reading_guide',
+    'scope',
+    'drivers_and_principles',
+    'architecture_views',
+    'crosscutting_concerns',
+    'component_classification',
+    'components',
+    'decisions',
+    'architecture_decisions',
+    'quality_attributes',
+    'operational_model',
+    'implementation_guidance',
+    'implementation_artifacts',
+    'governance',
+    'raid',
+    'decisions_and_actions',
+    'getting_started',
+    'evolution',
+    'glossary',
+];
 function titlePage(meta) {
     const title = str(meta.title) || 'Architecture Artifact';
     const subtitle = str(meta.artifact_type ?? '')
         .replace(/_/g, ' ')
         .replace(/\b\w/g, (c) => c.toUpperCase());
     return [
-        new Paragraph({ children: [], spacing: { before: 2000 } }),
+        new Paragraph({ style: 'Normal', children: [], spacing: { before: 2000 } }),
         new Paragraph({
+            style: 'Title',
             children: [new TextRun({ text: title, font: 'Arial', size: 56, bold: true, color: NAVY })],
             alignment: AlignmentType.CENTER,
             spacing: { before: 0, after: 200 },
         }),
         new Paragraph({
+            style: 'Normal',
             children: [new TextRun({ text: subtitle, font: 'Arial', size: 28, color: MID_GREY })],
             alignment: AlignmentType.CENTER,
             spacing: { before: 0, after: 400 },
         }),
         new Paragraph({
+            style: 'Normal',
             children: [
                 new TextRun({ text: `Version ${str(meta.version) || '—'}`, font: 'Arial', size: 22, color: DARK_GREY }),
             ],
@@ -563,16 +862,19 @@ function titlePage(meta) {
             spacing: { before: 0, after: 80 },
         }),
         new Paragraph({
+            style: 'Normal',
             children: [new TextRun({ text: `Status: ${str(meta.status) || '—'}`, font: 'Arial', size: 22, color: DARK_GREY })],
             alignment: AlignmentType.CENTER,
             spacing: { before: 0, after: 80 },
         }),
         new Paragraph({
+            style: 'Normal',
             children: [new TextRun({ text: `Owner: ${str(meta.owner) || '—'}`, font: 'Arial', size: 22, color: DARK_GREY })],
             alignment: AlignmentType.CENTER,
             spacing: { before: 0, after: 80 },
         }),
         new Paragraph({
+            style: 'Normal',
             children: [
                 new TextRun({
                     text: str(meta.effective_date) ? `Effective: ${str(meta.effective_date)}` : '',
@@ -597,7 +899,7 @@ export async function exportToDocx(artifactData) {
     const BATCH = 10;
     for (let i = 0; i < diagRefs.length; i += BATCH) {
         const batch = diagRefs.slice(i, i + BATCH);
-        const results = await Promise.all(batch.map((r) => renderMermaidDiagram(r.source)));
+        const results = await Promise.all(batch.map((r) => renderMermaidDiagram(r.source, r.label)));
         batch.forEach((r, idx) => diagramImages.set(r.key, results[idx]));
     }
     // 3. Build document body
@@ -610,25 +912,16 @@ export async function exportToDocx(artifactData) {
         renderMetadata(meta, children);
         children.push(horizontalRule());
     }
+    // Table of Contents (after metadata, before content)
+    children.push(pageBreak());
+    children.push(new TableOfContents('Table of Contents', {
+        hyperlink: true,
+        headingStyleRange: '1-3',
+    }));
+    children.push(pageBreak());
     // Sections — known first (in preferred order), then unknowns
-    const sectionOrder = [
-        'reading_guide',
-        'scope',
-        'drivers_and_principles',
-        'architecture_views',
-        'crosscutting_concerns',
-        'component_classification',
-        'components',
-        'architecture_decisions',
-        'quality_attributes',
-        'operational_model',
-        'implementation_guidance',
-        'implementation_artifacts',
-        'governance',
-        'glossary',
-    ];
     const rendered = new Set();
-    for (const key of sectionOrder) {
+    for (const key of SECTION_ORDER) {
         if (key in sections) {
             const renderer = KNOWN_SECTIONS[key];
             if (renderer) {
@@ -638,10 +931,32 @@ export async function exportToDocx(artifactData) {
             }
         }
     }
-    // Unknown sections (anything not in sectionOrder or KNOWN_SECTIONS)
+    // Unknown sections (anything not in SECTION_ORDER or KNOWN_SECTIONS)
     for (const [key, value] of Object.entries(sections)) {
         if (!rendered.has(key)) {
             children.push(pageBreak());
+            const renderer = KNOWN_SECTIONS[key];
+            if (renderer) {
+                renderer(value, children, diagramImages);
+            }
+            else {
+                const title = key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+                renderGenericSection(title, value, children);
+            }
+            rendered.add(key);
+        }
+    }
+    // Top-level keys outside of sections (e.g. glossary in some artifact formats)
+    const TOP_LEVEL_SKIP = new Set(['kind', 'artifact_type', 'metadata', 'sections']);
+    for (const [key, value] of Object.entries(artifactData)) {
+        if (TOP_LEVEL_SKIP.has(key) || rendered.has(key))
+            continue;
+        children.push(pageBreak());
+        const renderer = KNOWN_SECTIONS[key];
+        if (renderer) {
+            renderer(value, children, diagramImages);
+        }
+        else {
             const title = key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
             renderGenericSection(title, value, children);
         }
@@ -671,6 +986,7 @@ export async function exportToDocx(artifactData) {
                     default: new Header({
                         children: [
                             new Paragraph({
+                                style: 'Normal',
                                 children: [
                                     new TextRun({ text: title, font: 'Arial', size: 16, color: MID_GREY }),
                                     new TextRun({ text: '\t', font: 'Arial', size: 16 }),
@@ -685,10 +1001,13 @@ export async function exportToDocx(artifactData) {
                     default: new Footer({
                         children: [
                             new Paragraph({
+                                style: 'Normal',
                                 alignment: AlignmentType.CENTER,
                                 children: [
                                     new TextRun({ text: 'Page ', font: 'Arial', size: 16, color: MID_GREY }),
                                     new SimpleField('PAGE'),
+                                    new TextRun({ text: ' of ', font: 'Arial', size: 16, color: MID_GREY }),
+                                    new SimpleField('NUMPAGES'),
                                 ],
                                 border: { top: { color: 'CCCCCC', space: 1, style: BorderStyle.SINGLE, size: 4 } },
                             }),
