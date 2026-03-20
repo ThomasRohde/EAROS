@@ -1164,7 +1164,7 @@ sections:
 
     - attribute: Recovery Time Objective (RTO)
       target: 4 hours (full service restoration after catastrophic failure)
-      measurement: DR test: time from incident declaration to full order submission capacity.
+      measurement: "DR test: time from incident declaration to full order submission capacity."
       validation_strategy: >
         Annual DR exercise: simulate eu-west-1 complete unavailability.
         Execute failover runbook to eu-central-1. Measure time to first
@@ -1178,7 +1178,7 @@ sections:
 
     - attribute: Recovery Point Objective (RPO)
       target: 1 hour (maximum data loss in catastrophic failure scenario)
-      measurement: DynamoDB Global Tables replication lag monitoring. Target: < 1s typical.
+      measurement: "DynamoDB Global Tables replication lag monitoring. Target: < 1s typical."
       validation_strategy: >
         Annual DR exercise: confirm DynamoDB Global Tables replica in
         eu-central-1 has all orders from the 60 minutes preceding the
@@ -1574,7 +1574,7 @@ sections:
           Architecture must minimise operational overhead. Fully managed
           services preferred. No self-managed databases or container clusters.
       - type: financial
-        description: Monthly AWS spend budget for order platform: $8,000/month at steady state.
+        description: "Monthly AWS spend budget for order platform: $8,000/month at steady state."
         implication: >
           Lambda (pay-per-use) and DynamoDB (on-demand) chosen to minimise
           cost at current volumes. Cost review quarterly via AWS Cost Explorer.
@@ -1892,9 +1892,9 @@ glossary:
       Lambda feature that pre-initialises a specified number of function
       instances, eliminating cold-start latency.
   - term: RPO (Recovery Point Objective)
-    definition: Maximum acceptable data loss measured in time (target: 1 hour).
+    definition: "Maximum acceptable data loss measured in time (target: 1 hour)."
   - term: RTO (Recovery Time Objective)
-    definition: Maximum acceptable time to restore service after an incident (target: 4 hours).
+    definition: "Maximum acceptable time to restore service after an incident (target: 4 hours)."
   - term: RULERS
     definition: >
       EAROS evidence-anchoring protocol: for each criterion, extract a

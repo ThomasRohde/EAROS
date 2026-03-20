@@ -897,10 +897,8 @@ overall_score: 3.73
 confidence: high
 
 evidence_gaps:
-  - RA-VIEW-02: No unified architecture model (Structurizr DSL workspace) generating
-    all views. Mermaid diagrams are independent source files.
-  - RA-IMP-02: Getting-started time 4–8 hours for CDK-new engineers exceeds the
-    < 1-hour automated onboarding target for score 4. Backstage template planned v1.1.
+  - "RA-VIEW-02: No unified architecture model (Structurizr DSL workspace) generating all views. Mermaid diagrams are independent source files."
+  - "RA-IMP-02: Getting-started time 4-8 hours for CDK-new engineers exceeds the < 1-hour automated onboarding target for score 4. Backstage template planned v1.1."
 
 recommended_actions:
   - Migrate architecture diagrams from independent Mermaid files to a Structurizr DSL

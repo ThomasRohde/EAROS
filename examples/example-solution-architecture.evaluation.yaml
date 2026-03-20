@@ -2,6 +2,8 @@ kind: evaluation
 evaluation_id: EVAL-SOL-0001
 rubric_id: EAROS-SOL-001
 rubric_version: 1.0.0
+artifact_id: SOL-ART-042
+artifact_type: solution_architecture
 artifact_ref:
   id: SOL-ART-042
   title: Payments API Modernization Solution Architecture
@@ -9,17 +11,18 @@ artifact_ref:
   owner: Payments Domain Architecture
   uri: repo://architecture/payments/solution-architecture.md
 evaluation_date: '2026-03-16'
-evaluators:
-- name: EA reviewer
-  role: domain architect
-  mode: human
-- name: EAROS evaluator
-  role: rubric-evaluator
-  mode: agent
-- name: EAROS challenger
-  role: rubric-challenger
-  mode: challenge-agent
-status: conditional_pass
+evaluation_mode: hybrid
+evaluated_by:
+- role: evaluator
+  actor: human
+  identity: EA reviewer
+- role: evaluator
+  actor: agent
+  identity: EAROS evaluator
+- role: challenger
+  actor: agent
+  identity: EAROS challenger
+overall_status: conditional_pass
 overall_score: 3.0
 gate_failures: []
 criterion_results:
@@ -95,18 +98,23 @@ criterion_results:
 dimension_results:
 - dimension_id: D1
   score: 3.0
+  weighted_score: 3.0
   summary: Purpose and audience are clear, but concern mapping needs improvement.
 - dimension_id: D2
   score: 3.0
+  weighted_score: 3.0
   summary: Scope is reviewable and bounded.
 - dimension_id: D4
   score: 2.0
+  weighted_score: 2.0
   summary: Traceability is the main weakness.
 - dimension_id: SD1
   score: 3.0
+  weighted_score: 3.0
   summary: Alternatives and rationale are present.
 - dimension_id: SD2
   score: 2.0
+  weighted_score: 2.0
   summary: NFR treatment is insufficiently concrete for a strong pass.
 summary:
   strengths:
