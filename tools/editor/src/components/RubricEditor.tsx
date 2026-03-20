@@ -537,8 +537,12 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
       />
 
       <QuickTipBanner
-        tipKey="rubric-editor"
-        message="Each criterion needs a scoring guide, examples, and a decision tree for AI agents to apply it consistently."
+        tipKey={autoNew ? 'create-rubric' : 'edit-rubric'}
+        message={
+          autoNew
+            ? 'Every criterion needs: scoring guide (all 5 levels), examples (good + bad), decision tree, anti-patterns, and remediation hints. Or use earos-create in your AI agent.'
+            : 'Use the YAML preview panel to check your changes. The editor validates against the schema in real-time. Or use earos-profile-author in your AI agent for YAML authoring help.'
+        }
       />
 
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', p: 1, gap: 1 }}>

@@ -367,8 +367,12 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
       <ArtifactInfoBar data={data} currentFile={currentFile} onSave={saveToRepo} />
 
       <QuickTipBanner
-        tipKey="artifact-editor"
-        message="Each section maps to an EAROS criterion. Fill them all to maximize your assessment score."
+        tipKey={initialMode === 'new' ? 'create-artifact' : 'edit-artifact'}
+        message={
+          initialMode === 'new'
+            ? 'Each section maps to an EAROS criterion. The more sections you complete thoroughly, the higher your assessment score. Or use earos-artifact-gen in your AI agent.'
+            : 'Check the EAROS assessment mapping — each section supports specific criteria. Use earos-remediate in your AI agent to get a prioritized fix list from an evaluation record.'
+        }
       />
 
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', p: 1, gap: 1 }}>

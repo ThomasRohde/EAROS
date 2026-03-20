@@ -472,7 +472,7 @@ export default function AssessmentForm({ manifest, preloaded, onBack }: Props) {
 
       <QuickTipBanner
         tipKey="assessment-form"
-        message="Every score needs evidence from the artifact — cite specific sections, pages, or diagrams."
+        message="RULERS protocol: extract evidence before scoring. Cite sections, quotes, or diagrams. 'The artifact seems to address this' is not evidence. Or use earos-assess in your AI agent."
       />
 
       {/* Main scrollable area */}

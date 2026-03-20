@@ -22,6 +22,7 @@ import {
   Chip,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import QuickTipBanner from './QuickTipBanner'
 import type { ManifestData, ManifestEntry } from '../manifest'
 import { fetchRepoFile } from '../manifest'
 import type { PreloadedAssessment, DimWithSource, ArtifactMeta } from '../types'
@@ -496,6 +497,11 @@ export default function AssessmentWizard({ manifest, onBack, onStart }: Props) {
           </Typography>
         </Toolbar>
       </AppBar>
+
+      <QuickTipBanner
+        tipKey="new-assessment"
+        message="The wizard assembles your rubric set. Pick a core rubric, then add a profile for your artifact type and overlays for cross-cutting concerns. Or use earos-assess in your AI agent to skip the form entirely."
+      />
 
       {/* Main content */}
       <Box

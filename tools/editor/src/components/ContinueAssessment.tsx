@@ -19,6 +19,7 @@ import {
   Divider,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import QuickTipBanner from './QuickTipBanner'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
 import type { ManifestData } from '../manifest'
@@ -312,6 +313,11 @@ export default function ContinueAssessment({ manifest, onBack, onLoad }: Props) 
           </Typography>
         </Toolbar>
       </AppBar>
+
+      <QuickTipBanner
+        tipKey="continue-assessment"
+        message="Select an evaluation from the list or import a .evaluation.yaml file. Use earos-report in your AI agent to generate executive reports from completed evaluations."
+      />
 
       {/* Main content */}
       <Box

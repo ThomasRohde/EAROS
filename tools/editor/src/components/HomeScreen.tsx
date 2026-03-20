@@ -14,6 +14,7 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import NoteAddIcon from '@mui/icons-material/NoteAdd'
 import EditNoteIcon from '@mui/icons-material/EditNote'
 import type { AppMode } from '../App'
+import QuickTipBanner from './QuickTipBanner'
 
 interface Props {
   onSelectMode: (mode: AppMode) => void
@@ -103,16 +104,21 @@ export default function HomeScreen({ onSelectMode }: Props) {
       sx={{
         minHeight: '100vh',
         bgcolor: 'background.default',
-        backgroundImage: isDark 
+        backgroundImage: isDark
           ? 'radial-gradient(ellipse at 15% 50%, rgba(6, 249, 249, 0.08), transparent 35%), radial-gradient(ellipse at 85% 30%, rgba(139, 92, 246, 0.08), transparent 35%)'
           : 'radial-gradient(ellipse at 15% 50%, rgba(2, 132, 199, 0.06), transparent 35%), radial-gradient(ellipse at 85% 30%, rgba(99, 102, 241, 0.06), transparent 35%)',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 4,
       }}
     >
+      <QuickTipBanner
+        tipKey="home"
+        message="EAROS works best with AI agents. Open this project in Claude Code or Cursor to access 10 automated assessment skills — earos-assess, earos-create, earos-artifact-gen, and more."
+      />
+
+      {/* Centred content */}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 4 }}>
+
       {/* Header */}
       <Box sx={{ textAlign: 'center', mb: 7 }}>
         <Typography 
@@ -215,6 +221,8 @@ export default function HomeScreen({ onSelectMode }: Props) {
           </Box>
         ))}
       </Box>
+
+      </Box> {/* end centred content */}
     </Box>
   )
 }
