@@ -52,7 +52,13 @@
       "Bash(node tools/editor/bin.js validate core/core-meta-rubric.yaml)",
       "Bash(node tools/editor/bin.js --help)",
       "Bash(timeout 8 node -e \":*)",
-      "Bash(find C:UsersthomaProjectsEAROStoolseditor -not -path */node_modules/* -type f)"
+      "Bash(find C:UsersthomaProjectsEAROStoolseditor -not -path */node_modules/* -type f)",
+      "Bash(node bin.js init ../../tmp-test-workspace)",
+      "Bash(node bin.js validate ../../tmp-test-workspace/core/core-meta-rubric.yaml)",
+      "Bash(node ../tools/editor/bin.js manifest check)",
+      "Bash(cmd.exe /c \"rmdir /s /q C:\\\\Users\\\\thoma\\\\Projects\\\\EAROS\\\\tmp-test-workspace\")",
+      "Bash(node bin.js init ../../tmp-test)",
+      "Bash(node bin.js validate ../../tmp-test/core/core-meta-rubric.yaml)"
     ]
   }
 }
