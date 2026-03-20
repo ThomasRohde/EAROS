@@ -1,0 +1,29 @@
+#!/bin/sh
+# EAROS pre-commit hook: validates staged YAML and SKILL.md frontmatter
+REPO_ROOT=$(git rev-parse --show-toplevel)
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+YAML_FILES=$(echo "$STAGED" | grep '\.yaml$' || true)
+MD_FILES=$(echo "$STAGED" | grep 'SKILL\.md$' || true)
+
+if [ -z "$YAML_FILES" ] && [ -z "$MD_FILES" ]; then
+  exit 0
+fi
+
+ERRORS=0
+for f in $YAML_FILES; do
+  [ -f "$f" ] || continue
+  node -e "const y=require('$REPO_ROOT/tools/editor/node_modules/js-yaml');const fs=require('fs');try{y.load(fs.readFileSync('$f','utf8'))}catch(e){console.error('YAML ERROR: $f');console.error('  '+e.message.split('\n')[0]);process.exit(1)}" 2>&1
+  [ $? -ne 0 ] && ERRORS=$((ERRORS+1))
+done
+
+for f in $MD_FILES; do
+  [ -f "$f" ] || continue
+  node -e "const y=require('$REPO_ROOT/tools/editor/node_modules/js-yaml');const fs=require('fs');const c=fs.readFileSync('$f','utf8');const m=c.match(/^---\n([\s\S]*?)\n---/);if(!m)process.exit(0);try{y.load(m[1])}catch(e){console.error('FRONTMATTER ERROR: $f');console.error('  '+e.message.split('\n')[0]);process.exit(1)}" 2>&1
+  [ $? -ne 0 ] && ERRORS=$((ERRORS+1))
+done
+
+if [ $ERRORS -gt 0 ]; then
+  echo ""; echo "Commit blocked: $ERRORS file(s) failed YAML validation."
+  echo "Common fix: quote strings containing colons"; exit 1
+fi
+echo "YAML validation passed."
