@@ -1,6 +1,6 @@
 ---
 name: earos-validate
-description: Run a project health check on the EAROS repository. Validates all YAML rubric files against schemas, checks ID uniqueness, verifies cross-references, detects missing v2 fields, and reports on documentation accuracy. Triggers when the user wants to validate the EAROS repo, check rubric health, run a consistency check, verify schemas, find missing fields, or says "validate the rubrics", "check the EAROS repo", "run a health check", "check for schema errors", "find inconsistencies", or "is the rubric set valid".
+description: 'Run a project health check on the EAROS repository. Validates all YAML rubric files against schemas, checks ID uniqueness, verifies cross-references, detects missing v2 fields, and reports on documentation accuracy. Triggers when the user wants to validate the EAROS repo, check rubric health, run a consistency check, verify schemas, find missing fields, or says "validate the rubrics", "check the EAROS repo", "run a health check", "check for schema errors", "find inconsistencies", or "is the rubric set valid".'
 ---
 
 # EAROS Validate — Repository Health Check
