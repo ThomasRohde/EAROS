@@ -62,12 +62,12 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
   }, [data, renderMermaid])
 
   const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }) }
-  const openFullscreen = () => { resetView(); setFullscreen(true) }
+  const openFullscreen = () => { setZoom(1.5); setPan({ x: 0, y: 0 }); setFullscreen(true) }
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault()
     const delta = e.deltaY > 0 ? 0.9 : 1.1
-    setZoom(z => Math.max(0.1, Math.min(5, z * delta)))
+    setZoom(z => Math.max(0.1, Math.min(20, z * delta)))
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -181,7 +181,7 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
         open={fullscreen}
         onClose={() => setFullscreen(false)}
         fullScreen
-        PaperProps={{ sx: { bgcolor: '#0d1117', display: 'flex', flexDirection: 'column' } }}
+        PaperProps={{ sx: { bgcolor: 'background.default', display: 'flex', flexDirection: 'column' } }}
       >
         {/* Toolbar */}
         <Box sx={{
@@ -190,22 +190,23 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
           gap: 0.5,
           px: 2,
           py: 1,
-          bgcolor: '#161b22',
-          borderBottom: '1px solid #30363d',
+          bgcolor: 'background.paper',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
           flexShrink: 0,
         }}>
-          <Typography variant="subtitle2" sx={{ color: '#8b949e' }}>
+          <Typography variant="subtitle2" color="text.secondary">
             {label || schema?.title || 'Diagram Preview'}
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Tooltip title="Zoom out">
-            <IconButton size="small" onClick={() => setZoom(z => Math.max(0.1, z * 0.9))} sx={{ color: '#8b949e' }}>
+            <IconButton size="small" onClick={() => setZoom(z => Math.max(0.1, z * 0.8))} color="inherit">
               <ZoomOutIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Tooltip>
           <Typography variant="caption" sx={{
-            color: '#8b949e',
-            minWidth: 44,
+            color: 'text.secondary',
+            minWidth: 50,
             textAlign: 'center',
             fontFamily: 'monospace',
             fontSize: '0.78rem',
@@ -213,17 +214,17 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
             {Math.round(zoom * 100)}%
           </Typography>
           <Tooltip title="Zoom in">
-            <IconButton size="small" onClick={() => setZoom(z => Math.min(5, z * 1.1))} sx={{ color: '#8b949e' }}>
+            <IconButton size="small" onClick={() => setZoom(z => Math.min(20, z * 1.25))} color="inherit">
               <ZoomInIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Reset view (double-click canvas)">
-            <IconButton size="small" onClick={resetView} sx={{ color: '#8b949e' }}>
+          <Tooltip title="Fit to screen (double-click canvas to reset)">
+            <IconButton size="small" onClick={resetView} color="inherit">
               <FitScreenIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Tooltip>
           <Tooltip title="Close">
-            <IconButton size="small" onClick={() => setFullscreen(false)} sx={{ color: '#8b949e', ml: 1 }}>
+            <IconButton size="small" onClick={() => setFullscreen(false)} color="inherit" sx={{ ml: 1 }}>
               <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Tooltip>
@@ -245,6 +246,7 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
             alignItems: 'center',
             justifyContent: 'center',
             userSelect: 'none',
+            bgcolor: 'background.default',
           }}
         >
           {svg ? (
@@ -258,7 +260,7 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
               }}
             />
           ) : (
-            <Typography sx={{ color: '#8b949e' }}>No diagram to display</Typography>
+            <Typography color="text.disabled">No diagram to display</Typography>
           )}
         </Box>
       </Dialog>
