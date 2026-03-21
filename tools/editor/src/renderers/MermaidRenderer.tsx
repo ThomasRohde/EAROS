@@ -32,6 +32,8 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
   const dragStart = useRef({ x: 0, y: 0 })
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const idRef = useRef(`mermaid-${Math.random().toString(36).slice(2, 10)}`)
+  const fullscreenCanvasRef = useRef<HTMLDivElement | null>(null)
+  const fullscreenSvgRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     ensureMermaidInit()
@@ -61,8 +63,85 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
     }
   }, [data, renderMermaid])
 
-  const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }) }
-  const openFullscreen = () => { setZoom(1.5); setPan({ x: 0, y: 0 }); setFullscreen(true) }
+  const getSvgMetrics = useCallback(() => {
+    const svgElement = fullscreenSvgRef.current?.querySelector<SVGSVGElement>('svg')
+    if (!svgElement) return null
+
+    const viewBox = svgElement.viewBox?.baseVal
+    const renderedRect = svgElement.getBoundingClientRect()
+    if (renderedRect.width <= 0 || renderedRect.height <= 0) return null
+
+    if (viewBox && viewBox.width > 0 && viewBox.height > 0) {
+      try {
+        const contentBox = svgElement.getBBox()
+        if (contentBox.width > 0 && contentBox.height > 0) {
+          const scaleX = renderedRect.width / viewBox.width
+          const scaleY = renderedRect.height / viewBox.height
+          const viewBoxCenterX = viewBox.x + viewBox.width / 2
+          const viewBoxCenterY = viewBox.y + viewBox.height / 2
+          const contentCenterX = contentBox.x + contentBox.width / 2
+          const contentCenterY = contentBox.y + contentBox.height / 2
+
+          return {
+            width: Math.max(contentBox.width * scaleX, 1),
+            height: Math.max(contentBox.height * scaleY, 1),
+            offsetX: (contentCenterX - viewBoxCenterX) * scaleX,
+            offsetY: (contentCenterY - viewBoxCenterY) * scaleY,
+          }
+        }
+      } catch {
+        // Fall back to full SVG bounds if the browser cannot compute the content bbox.
+      }
+    }
+
+    const widthAttr = Number.parseFloat(svgElement.getAttribute('width') ?? '')
+    const heightAttr = Number.parseFloat(svgElement.getAttribute('height') ?? '')
+    if (Number.isFinite(widthAttr) && Number.isFinite(heightAttr) && widthAttr > 0 && heightAttr > 0) {
+      return { width: widthAttr, height: heightAttr, offsetX: 0, offsetY: 0 }
+    }
+
+    return { width: renderedRect.width, height: renderedRect.height, offsetX: 0, offsetY: 0 }
+  }, [])
+
+  const fitToScreen = useCallback(() => {
+    const canvas = fullscreenCanvasRef.current
+    const metrics = getSvgMetrics()
+    if (!canvas || !metrics) return
+
+    const padding = 48
+    const canvasRect = canvas.getBoundingClientRect()
+    const availableWidth = Math.max(canvasRect.width - padding * 2, 1)
+    const availableHeight = Math.max(canvasRect.height - padding * 2, 1)
+    const fittedZoom = Math.max(0.1, Math.min(20, Math.min(
+      availableWidth / metrics.width,
+      availableHeight / metrics.height,
+    )))
+
+    setPan({
+      x: -metrics.offsetX * fittedZoom,
+      y: -metrics.offsetY * fittedZoom,
+    })
+    setZoom(fittedZoom)
+  }, [getSvgMetrics])
+
+  const openFullscreen = () => {
+    setZoom(1)
+    setPan({ x: 0, y: 0 })
+    setFullscreen(true)
+  }
+
+  useEffect(() => {
+    if (!fullscreen || !svg) return
+
+    const rafId = window.requestAnimationFrame(() => fitToScreen())
+    const handleResize = () => fitToScreen()
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.cancelAnimationFrame(rafId)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [fitToScreen, fullscreen, svg])
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault()
@@ -84,6 +163,7 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
 
   const showCode = viewMode === 'split' || viewMode === 'code'
   const showPreview = viewMode === 'split' || viewMode === 'preview'
+  const inlinePreviewHeight = viewMode === 'split' ? 300 : 420
 
   const previewContent = renderError ? (
     <Typography variant="caption" color="error" sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
@@ -93,7 +173,13 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
     <Box
       dangerouslySetInnerHTML={{ __html: svg }}
       onClick={openFullscreen}
-      sx={{ maxWidth: '100%', cursor: 'zoom-in', '& svg': { maxWidth: '100%', height: 'auto' } }}
+      sx={{
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        cursor: 'zoom-in',
+        '& svg': { display: 'block', maxWidth: '100%', height: 'auto' },
+      }}
     />
   ) : (
     <Typography variant="caption" color="text.disabled">
@@ -156,7 +242,7 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
           <Box
             sx={{
               flex: 1,
-              minHeight: 300,
+              height: inlinePreviewHeight,
               border: '1px solid',
               borderColor: 'divider',
               borderRadius: 1,
@@ -164,7 +250,7 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
               bgcolor: 'background.paper',
               overflow: 'auto',
               display: 'flex',
-              alignItems: 'center',
+              alignItems: svg ? 'flex-start' : 'center',
               justifyContent: 'center',
             }}
           >
@@ -218,8 +304,8 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
               <ZoomInIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Fit to screen (double-click canvas to reset)">
-            <IconButton size="small" onClick={resetView} color="inherit">
+          <Tooltip title="Fit to screen (double-click canvas to refit)">
+            <IconButton size="small" onClick={fitToScreen} color="inherit">
               <FitScreenIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Tooltip>
@@ -232,12 +318,13 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
 
         {/* Pan/zoom canvas */}
         <Box
+          ref={fullscreenCanvasRef}
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          onDoubleClick={resetView}
+          onDoubleClick={fitToScreen}
           sx={{
             flex: 1,
             cursor: dragging ? 'grabbing' : 'grab',
@@ -251,6 +338,7 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
         >
           {svg ? (
             <Box
+              ref={fullscreenSvgRef}
               dangerouslySetInnerHTML={{ __html: svg }}
               sx={{
                 transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,

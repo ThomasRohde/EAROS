@@ -535,30 +535,54 @@ sections:
         uses TLS 1.2+. Internal Lambda-to-SQS and Lambda-to-DynamoDB calls
         use AWS SDK over HTTPS via VPC endpoints.
       diagram_source: |
-        graph TB
+        graph LR
           subgraph "Zone 1: Public"
-            Internet["Internet"] --> CF["CloudFront\n+ WAF\n(OWASP CRS)"]
+            direction TB
+            Internet["Internet"]
+            CF["CloudFront\n+ WAF\n(OWASP CRS)"]
           end
           subgraph "Zone 2: API Perimeter"
-            CF --> APIGW["API Gateway\n+ Cognito JWT\nAuthoriser"]
+            direction TB
+            APIGW["API Gateway\n+ Cognito JWT\nAuthoriser"]
           end
           subgraph "Zone 3: Service Mesh (VPC)"
-            APIGW --> OrderLambda["Order Service\nLambda\n(IAM least-priv)"]
-            EB["EventBridge\n(schema validated)"] --> PayLambda["Payment Service\nLambda\n(IAM least-priv)"]
-            EB --> FulfilLambda["Fulfilment Service\nLambda\n(IAM least-priv)"]
-            EB --> NotifyLambda["Notification Service\nLambda\n(IAM least-priv)"]
-            OrderLambda --> EB
-            PayLambda --> Stripe["Stripe\n(TLS 1.2+)"]
+            direction TB
+            OrderLambda["Order Service\nLambda\n(IAM least-priv)"]
+            EB["EventBridge\n(schema validated)"]
+            PayLambda["Payment Service\nLambda\n(IAM least-priv)"]
+            FulfilLambda["Fulfilment Service\nLambda\n(IAM least-priv)"]
+            NotifyLambda["Notification Service\nLambda\n(IAM least-priv)"]
+            Stripe["Stripe\n(TLS 1.2+)"]
           end
           subgraph "Zone 4: Data (KMS encrypted)"
+            direction TB
             DDB["DynamoDB\n(KMS CMK)"]
             SQSq["SQS\n(KMS CMK)"]
             S3arch["S3 Archive\n(KMS CMK)"]
           end
           subgraph "Zone 5: Audit"
+            direction TB
             CloudTrail["CloudTrail\n(write-once S3)"]
             XRAY["X-Ray\nTracing"]
           end
+
+          Internet --> CF --> APIGW --> OrderLambda --> EB
+          EB --> PayLambda --> Stripe
+          EB --> FulfilLambda
+          EB --> NotifyLambda
+
+          OrderLambda --> DDB
+          PayLambda --> DDB
+          FulfilLambda --> SQSq
+          EB --> S3arch
+
+          DDB -. audit .-> CloudTrail
+          SQSq -. audit .-> CloudTrail
+          S3arch -. audit .-> CloudTrail
+          OrderLambda -. trace .-> XRAY
+          PayLambda -. trace .-> XRAY
+          FulfilLambda -. trace .-> XRAY
+          NotifyLambda -. trace .-> XRAY
       source_type: mermaid
 
     element_catalog:
