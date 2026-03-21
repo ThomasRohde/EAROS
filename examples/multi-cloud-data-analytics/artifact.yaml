@@ -112,9 +112,19 @@ sections:
       - Cross-cloud network traffic must traverse private interconnects, not public internet
       - Single identity provider (Azure Entra ID) for all human access
     assumptions:
-      - AWS-GCP dedicated interconnect is provisioned in eu-west-1 ↔ europe-west1
-      - Azure ExpressRoute is available in North Europe
-      - All three cloud accounts are under enterprise agreements with committed spend
+      - assumption: AWS-GCP dedicated interconnect is provisioned in eu-west-1 ↔ europe-west1
+        consequence_if_violated: >
+          Data transfer between AWS and GCP would fall back to public internet,
+          increasing latency, egress costs, and GDPR compliance risk.
+      - assumption: Azure ExpressRoute is available in North Europe
+        consequence_if_violated: >
+          Power BI DirectQuery to Redshift would traverse the public internet,
+          degrading dashboard refresh latency and requiring additional encryption
+          controls.
+      - assumption: All three cloud accounts are under enterprise agreements with committed spend
+        consequence_if_violated: >
+          On-demand pricing across three clouds would significantly increase costs,
+          potentially undermining the financial case for multi-cloud.
 
   business_context:
     business_drivers:
@@ -489,16 +499,16 @@ sections:
         everything on AWS would mean Athena for analytics (less preferred by
         analysts) and QuickSight for BI (not adopted by the enterprise).
       options:
-        - name: AWS-only
-          description: Use Athena + QuickSight, stay single-cloud
+        - id: A
+          description: "AWS-only: Use Athena + QuickSight, stay single-cloud"
           pros: [Simpler networking, single IAM, lower operational overhead]
           cons: [Does not meet diversification mandate, analyst resistance to QuickSight]
-        - name: AWS + GCP (BigQuery only)
-          description: Add BigQuery for analytics, keep BI on QuickSight
+        - id: B
+          description: "AWS + GCP (BigQuery only): Add BigQuery for analytics, keep BI on QuickSight"
           pros: [Addresses analyst preference, partial diversification]
           cons: [Still single BI tool, analysts want Power BI]
-        - name: AWS + Azure + GCP (chosen)
-          description: AWS for ingest/storage, GCP for analytics/ML, Azure for identity/BI
+        - id: C
+          description: "AWS + Azure + GCP: best-of-breed per domain for ingest/storage, analytics/ML, and identity/BI"
           pros: [Best-of-breed per domain, meets diversification mandate, aligns with enterprise BI standard]
           cons: [Cross-cloud networking complexity, three IAM systems to federate, higher operational cost]
       decision: >
@@ -506,15 +516,28 @@ sections:
         BigQuery and Power BI are already enterprise standards in their respective
         domains. The complexity cost is manageable with dedicated interconnects and
         federated identity.
-      consequences:
-        - Three cloud networking fabrics must be connected via Megaport
-        - Identity federation from Entra ID to AWS and GCP is mandatory
-        - Data transfer costs between clouds must be budgeted and monitored
-        - Operations team needs cross-cloud monitoring (Datadog)
-      revisit_triggers:
-        - If cross-cloud data transfer costs exceed 15% of total cloud spend
-        - If Megaport interconnect SLA drops below 99.95%
-        - If any cloud provider releases a service that eliminates the best-of-breed advantage
+      rationale: >
+        The board diversification mandate eliminates Option 1. Option 2 still
+        leaves BI on an unadopted tool (QuickSight). Option 3 places each
+        workload on the strongest platform for its domain: AWS for data
+        infrastructure (established), GCP for analytics (BigQuery leader),
+        Azure for identity and BI (enterprise standard). The additional
+        operational complexity is bounded by Megaport interconnects and
+        federated identity — both well-understood patterns.
+      tradeoffs: >
+        Accepted: cross-cloud networking complexity, three IAM systems requiring
+        federation, higher operational cost, and data transfer latency between
+        clouds. Rejected: single-vendor simplicity, unified IAM, and lower
+        operational overhead.
+      consequences: >
+        Three cloud networking fabrics must be connected via Megaport. Identity
+        federation from Entra ID to AWS and GCP is mandatory. Data transfer costs
+        between clouds must be budgeted and monitored. Operations team needs
+        cross-cloud monitoring (Datadog).
+      revisit_conditions: >
+        If cross-cloud data transfer costs exceed 15% of total cloud spend. If
+        Megaport interconnect SLA drops below 99.95%. If any cloud provider
+        releases a service that eliminates the best-of-breed advantage.
 
     - id: ADR-002
       title: Azure Entra ID as the single identity provider
@@ -527,30 +550,42 @@ sections:
         Identity Center and GCP Workforce Identity Federation both support SAML/OIDC
         federation from external IdPs.
       options:
-        - name: Per-cloud native IAM
-          description: Manage users separately in each cloud
+        - id: A
+          description: "Per-cloud native IAM: manage users separately in each cloud"
           pros: [No cross-cloud dependency]
           cons: [Identity sprawl, inconsistent MFA, audit nightmare]
-        - name: Azure Entra ID federation (chosen)
-          description: Entra ID as IdP, federate to AWS and GCP
+        - id: B
+          description: "Azure Entra ID federation: Entra ID as IdP, federate to AWS and GCP"
           pros: [Single MFA policy, unified audit log, existing enterprise adoption]
           cons: [Azure dependency for all access, federation setup complexity]
-        - name: Okta as external IdP
-          description: Use Okta to federate to all three clouds
+        - id: C
+          description: "Okta as external IdP: federate to all three clouds via Okta"
           pros: [Cloud-neutral IdP, strong SCIM support]
           cons: [Additional vendor cost, migration from existing Entra ID]
       decision: >
         Azure Entra ID federation. It is the existing enterprise standard, already
         has MFA and Conditional Access policies configured, and both AWS and GCP
         support it natively.
-      consequences:
-        - AWS IAM Identity Center configured with Entra ID as external SAML IdP
-        - GCP Workforce Identity Federation configured with Entra ID OIDC
-        - Break-glass accounts maintained in each cloud's native IAM for emergency access
-        - Conditional Access policies extended to cover BigQuery and Redshift access
-      revisit_triggers:
-        - If the enterprise migrates away from Microsoft 365
-        - If Entra ID federation latency exceeds 500ms p99
+      rationale: >
+        Entra ID is already the enterprise identity provider with MFA and
+        Conditional Access policies in place. Both AWS (IAM Identity Center)
+        and GCP (Workforce Identity Federation) natively support SAML/OIDC
+        federation from Entra ID. Using Okta would require migrating from
+        the existing IdP and adding vendor cost with no functional advantage.
+        Per-cloud IAM would create identity sprawl and audit gaps.
+      tradeoffs: >
+        Accepted: dependency on Azure for all access across all three clouds;
+        federation configuration complexity. Rejected: per-cloud IAM
+        simplicity; Okta's cloud-neutral positioning.
+      consequences: >
+        AWS IAM Identity Center configured with Entra ID as external SAML IdP.
+        GCP Workforce Identity Federation configured with Entra ID OIDC.
+        Break-glass accounts maintained in each cloud's native IAM for emergency
+        access. Conditional Access policies extended to cover BigQuery and
+        Redshift access.
+      revisit_conditions: >
+        If the enterprise migrates away from Microsoft 365. If Entra ID
+        federation latency exceeds 500ms p99.
 
     - id: ADR-003
       title: Dedicated interconnects over VPN for cross-cloud data transfer
@@ -562,30 +597,43 @@ sections:
         includes PII subject to GDPR. Transfer must be private, reliable, and
         cost-effective at scale.
       options:
-        - name: Public internet with TLS
-          description: Transfer over the internet with encryption
+        - id: A
+          description: "Public internet with TLS: transfer over the internet with encryption"
           pros: [No setup cost, works immediately]
           cons: [Variable latency, GDPR risk perception, egress costs at scale]
-        - name: Cloud-native VPN tunnels
-          description: Site-to-site VPN between cloud VPCs
+        - id: B
+          description: "Cloud-native VPN tunnels: site-to-site VPN between cloud VPCs"
           pros: [Private routing, moderate setup effort]
           cons: [Throughput limited to ~1.25 Gbps per tunnel, VPN management overhead]
-        - name: Dedicated interconnects via Megaport (chosen)
-          description: Private cross-connects through Megaport colocation fabric
+        - id: C
+          description: "Dedicated interconnects via Megaport: private cross-connects through colocation fabric"
           pros: [Consistent low latency, 10 Gbps capacity, private routing, no egress surcharge on interconnect]
           cons: [Monthly port and cross-connect fees (~$2,500/month), physical dependency on Megaport PoPs]
       decision: >
         Dedicated interconnects via Megaport. At 500 GB/day, the interconnect
         cost is lower than public internet egress fees. Private routing satisfies
         GDPR data sovereignty requirements without debate.
-      consequences:
-        - Megaport ports provisioned in Dublin (AWS eu-west-1), Frankfurt (GCP europe-west1), and Dublin (Azure North Europe)
-        - BGP routing configured between all three clouds
-        - Failover to VPN tunnels if interconnect goes down
-        - Monthly interconnect cost added to platform budget
-      revisit_triggers:
-        - If daily transfer volume drops below 50 GB (VPN becomes more cost-effective)
-        - If any cloud provider offers native multi-cloud private connectivity
+      rationale: >
+        At 500 GB/day transfer volume, dedicated interconnect egress is cheaper
+        than public internet egress. Private routing eliminates GDPR data
+        sovereignty concerns entirely — no data leaves the Megaport fabric.
+        VPN tunnels cap at ~1.25 Gbps per tunnel and require more management.
+        Public internet is unsuitable for PII-classified data transfers at
+        this scale.
+      tradeoffs: >
+        Accepted: monthly port and cross-connect fees (~$2,500/month); physical
+        dependency on Megaport PoPs in Dublin and Frankfurt; 4-6 week lead time
+        for provisioning. Rejected: zero-cost public internet option; simpler
+        VPN tunnel setup.
+      consequences: >
+        Megaport ports provisioned in Dublin (AWS eu-west-1), Frankfurt (GCP
+        europe-west1), and Dublin (Azure North Europe). BGP routing configured
+        between all three clouds. Failover to VPN tunnels if interconnect goes
+        down. Monthly interconnect cost added to platform budget.
+      revisit_conditions: >
+        If daily transfer volume drops below 50 GB (VPN becomes more
+        cost-effective). If any cloud provider offers native multi-cloud
+        private connectivity.
 
   quality_attributes:
     - attribute: Data freshness
