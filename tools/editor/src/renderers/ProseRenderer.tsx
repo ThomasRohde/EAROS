@@ -1,4 +1,4 @@
-import { rankWith, scopeEndIs, or } from '@jsonforms/core'
+import { rankWith, scopeEndIs, or, and, schemaTypeIs } from '@jsonforms/core'
 import { withJsonFormsControlProps } from '@jsonforms/react'
 import type { ControlProps, UISchemaElement } from '@jsonforms/core'
 import { TextField, Box } from '@mui/material'
@@ -20,7 +20,7 @@ function getFieldName(scope: string): string {
 
 export const proseTester = rankWith(
   8,
-  or(...PROSE_FIELDS.map((name) => scopeEndIs(name))) as (uischema: UISchemaElement, schema: any, context: any) => boolean,
+  or(...PROSE_FIELDS.map((name) => and(scopeEndIs(name), schemaTypeIs('string')))) as (uischema: UISchemaElement, schema: any, context: any) => boolean,
 )
 
 function ProseRendererComponent({ data, handleChange, path, label, schema, uischema }: ControlProps) {

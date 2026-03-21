@@ -2,11 +2,12 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { rankWith, scopeEndIs } from '@jsonforms/core'
 import { withJsonFormsControlProps } from '@jsonforms/react'
 import type { ControlProps } from '@jsonforms/core'
-import { Box, Button, Dialog, DialogContent, FormHelperText, IconButton, Typography } from '@mui/material'
-import VisibilityIcon from '@mui/icons-material/Visibility'
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
+import { Box, Button, Dialog, FormHelperText, IconButton, Tooltip, Typography } from '@mui/material'
 import FullscreenIcon from '@mui/icons-material/Fullscreen'
 import CloseIcon from '@mui/icons-material/Close'
+import ZoomInIcon from '@mui/icons-material/ZoomIn'
+import ZoomOutIcon from '@mui/icons-material/ZoomOut'
+import FitScreenIcon from '@mui/icons-material/FitScreen'
 import mermaid from 'mermaid'
 
 let mermaidInitialized = false
@@ -25,6 +26,10 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
   const [fullscreen, setFullscreen] = useState(false)
   const [svg, setSvg] = useState<string>('')
   const [renderError, setRenderError] = useState<string>('')
+  const [zoom, setZoom] = useState(1)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [dragging, setDragging] = useState(false)
+  const dragStart = useRef({ x: 0, y: 0 })
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const idRef = useRef(`mermaid-${Math.random().toString(36).slice(2, 10)}`)
 
@@ -56,6 +61,27 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
     }
   }, [data, renderMermaid])
 
+  const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }) }
+  const openFullscreen = () => { resetView(); setFullscreen(true) }
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
+    const delta = e.deltaY > 0 ? 0.9 : 1.1
+    setZoom(z => Math.max(0.1, Math.min(5, z * delta)))
+  }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setDragging(true)
+    dragStart.current = { x: e.clientX - pan.x, y: e.clientY - pan.y }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!dragging) return
+    setPan({ x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y })
+  }
+
+  const handleMouseUp = () => setDragging(false)
+
   const showCode = viewMode === 'split' || viewMode === 'code'
   const showPreview = viewMode === 'split' || viewMode === 'preview'
 
@@ -66,8 +92,8 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
   ) : svg ? (
     <Box
       dangerouslySetInnerHTML={{ __html: svg }}
-      onClick={() => svg && setFullscreen(true)}
-      sx={{ maxWidth: '100%', cursor: svg ? 'zoom-in' : 'default', '& svg': { maxWidth: '100%', height: 'auto' } }}
+      onClick={openFullscreen}
+      sx={{ maxWidth: '100%', cursor: 'zoom-in', '& svg': { maxWidth: '100%', height: 'auto' } }}
     />
   ) : (
     <Typography variant="caption" color="text.disabled">
@@ -94,7 +120,7 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
             </Button>
           ))}
           {svg && (
-            <IconButton size="small" onClick={() => setFullscreen(true)} title="Fullscreen preview" sx={{ ml: 0.5 }}>
+            <IconButton size="small" onClick={openFullscreen} title="Fullscreen preview" sx={{ ml: 0.5 }}>
               <FullscreenIcon sx={{ fontSize: 18 }} />
             </IconButton>
           )}
@@ -129,7 +155,7 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
         {showPreview && (
           <Box
             sx={{
-              flex: viewMode === 'preview' ? 1 : 1,
+              flex: 1,
               minHeight: 300,
               border: '1px solid',
               borderColor: 'divider',
@@ -150,23 +176,91 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
         {schema?.description ?? 'Mermaid diagram syntax. Click the preview or fullscreen icon to enlarge.'}
       </FormHelperText>
 
-      {/* Fullscreen dialog */}
-      <Dialog open={fullscreen} onClose={() => setFullscreen(false)} maxWidth={false} fullWidth
-        PaperProps={{ sx: { maxWidth: '95vw', maxHeight: '95vh', m: 2 } }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 1.5 }}>
-          <Typography variant="subtitle2" color="text.secondary">
+      {/* True fullscreen dialog with pan/zoom */}
+      <Dialog
+        open={fullscreen}
+        onClose={() => setFullscreen(false)}
+        fullScreen
+        PaperProps={{ sx: { bgcolor: '#0d1117', display: 'flex', flexDirection: 'column' } }}
+      >
+        {/* Toolbar */}
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          px: 2,
+          py: 1,
+          bgcolor: '#161b22',
+          borderBottom: '1px solid #30363d',
+          flexShrink: 0,
+        }}>
+          <Typography variant="subtitle2" sx={{ color: '#8b949e' }}>
             {label || schema?.title || 'Diagram Preview'}
           </Typography>
-          <IconButton onClick={() => setFullscreen(false)} size="small"><CloseIcon /></IconButton>
+          <Box sx={{ flexGrow: 1 }} />
+          <Tooltip title="Zoom out">
+            <IconButton size="small" onClick={() => setZoom(z => Math.max(0.1, z * 0.9))} sx={{ color: '#8b949e' }}>
+              <ZoomOutIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Tooltip>
+          <Typography variant="caption" sx={{
+            color: '#8b949e',
+            minWidth: 44,
+            textAlign: 'center',
+            fontFamily: 'monospace',
+            fontSize: '0.78rem',
+          }}>
+            {Math.round(zoom * 100)}%
+          </Typography>
+          <Tooltip title="Zoom in">
+            <IconButton size="small" onClick={() => setZoom(z => Math.min(5, z * 1.1))} sx={{ color: '#8b949e' }}>
+              <ZoomInIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Reset view (double-click canvas)">
+            <IconButton size="small" onClick={resetView} sx={{ color: '#8b949e' }}>
+              <FitScreenIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Close">
+            <IconButton size="small" onClick={() => setFullscreen(false)} sx={{ color: '#8b949e', ml: 1 }}>
+              <CloseIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Tooltip>
         </Box>
-        <DialogContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3, overflow: 'auto' }}>
+
+        {/* Pan/zoom canvas */}
+        <Box
+          onWheel={handleWheel}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onDoubleClick={resetView}
+          sx={{
+            flex: 1,
+            cursor: dragging ? 'grabbing' : 'grab',
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            userSelect: 'none',
+          }}
+        >
           {svg ? (
-            <Box dangerouslySetInnerHTML={{ __html: svg }}
-              sx={{ '& svg': { maxWidth: '100%', height: 'auto', minWidth: '600px' } }} />
+            <Box
+              dangerouslySetInnerHTML={{ __html: svg }}
+              sx={{
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                transformOrigin: 'center center',
+                transition: dragging ? 'none' : 'transform 0.1s',
+                '& svg': { display: 'block', maxWidth: 'none', height: 'auto' },
+              }}
+            />
           ) : (
-            <Typography color="text.disabled">No diagram to display</Typography>
+            <Typography sx={{ color: '#8b949e' }}>No diagram to display</Typography>
           )}
-        </DialogContent>
+        </Box>
       </Dialog>
     </Box>
   )
