@@ -16,8 +16,14 @@ cd my-architecture && earos
 
 That's it. Your workspace opens in the browser, ready to assess.
 
-Pass `--icons` when you want the current official AWS architecture icon package downloaded into `./icons` during workspace initialization. The initializer also creates stable Mermaid-friendly aliases under `./icons/aws/`.
-In an existing EAROS workspace, run `earos init . --icons` to fetch or refresh the icon set without re-scaffolding the workspace.
+Pass `--icons` to download the official architecture icon packages from **AWS**, **Azure**, and **GCP** into `./icons` during workspace initialization. The initializer creates stable Mermaid-friendly aliases under `./icons/aws/`, `./icons/azure/`, and `./icons/gcp/`.
+
+In an existing EAROS workspace, run `earos init . --icons` to fetch or refresh the icon sets without re-scaffolding the workspace.
+
+Override download URLs with environment variables if needed:
+- `EAROS_AWS_ICON_PACKAGE_URL` / `EAROS_AWS_ICON_PAGE_URL`
+- `EAROS_AZURE_ICON_PACKAGE_URL` / `EAROS_AZURE_ICON_PAGE_URL`
+- `EAROS_GCP_ICON_PACKAGE_URL` / `EAROS_GCP_ICON_PAGE_URL`
 
 ---
 
@@ -48,7 +54,7 @@ The workspace is **agent-agnostic** — the `.agents/skills/` directory works wi
 | Command | Description |
 |---------|-------------|
 | `earos` | Start the web editor (Express server, opens browser) |
-| `earos init [dir] [--icons]` | Scaffold a complete EAROS workspace in `dir` and optionally download the current AWS architecture icon package into `icons/`, plus stable aliases in `icons/aws/` |
+| `earos init [dir] [--icons]` | Scaffold a complete EAROS workspace in `dir` and optionally download architecture icon packages from AWS, Azure, and GCP into `icons/`, with stable aliases in `icons/aws/`, `icons/azure/`, and `icons/gcp/` |
 | `earos validate <file>` | Validate a rubric or evaluation YAML against EAROS schemas (exit 0/1) |
 | `earos manifest` | Regenerate `earos.manifest.yaml` by scanning the filesystem |
 | `earos manifest add <file>` | Add a single file to the manifest |

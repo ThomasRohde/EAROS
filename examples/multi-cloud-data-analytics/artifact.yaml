@@ -1,0 +1,667 @@
+kind: artifact
+artifact_type: reference_architecture
+
+metadata:
+  title: Multi-Cloud Data Analytics Platform
+  version: 1.0.0
+  status: draft
+  author: Thomas Rohde
+  owner: Enterprise Architecture, Data Platform Domain
+  effective_date: "2026-03-21"
+  next_review_date: "2026-09-21"
+  last_updated: "2026-03-21"
+  purpose: >
+    This reference architecture defines the target pattern for a multi-cloud data
+    analytics platform that combines best-of-breed services from AWS, Azure, and
+    Google Cloud. It demonstrates how architecture diagrams can use vendor-specific
+    icons to communicate cloud placement clearly, and serves as an example of
+    multi-cloud Mermaid diagrams with the EAROS icon system.
+  decision_context: >
+    Architecture Board review Q1 2026. The enterprise data platform is expanding
+    from a single-cloud AWS deployment to a multi-cloud strategy. Primary compute
+    and storage remain on AWS. Azure provides enterprise identity and Power BI
+    reporting. Google Cloud contributes BigQuery for ad-hoc analytics and Vertex AI
+    for ML workloads. This reference architecture governs all new data pipeline
+    services.
+  stakeholders:
+    - role: Executive Sponsor
+      name: Chief Data Officer
+      concerns: >
+        Data strategy alignment, cost distribution across clouds, vendor lock-in
+        risk, and time to insight for business analysts.
+    - role: Platform Architect
+      name: Enterprise Architecture
+      concerns: >
+        Cross-cloud networking, identity federation, data sovereignty, and
+        architectural consistency.
+    - role: Data Engineer Lead
+      name: Data Platform Engineering
+      concerns: >
+        Pipeline reliability, schema evolution, backfill procedures, and
+        development experience across three clouds.
+    - role: Security Architect
+      name: Information Security
+      concerns: >
+        Cross-cloud IAM federation, encryption in transit and at rest across
+        boundaries, and audit trail completeness.
+    - role: BI Analyst Lead
+      name: Business Intelligence
+      concerns: >
+        Data freshness in dashboards, self-service query access, and Power BI
+        workspace governance.
+  change_log:
+    - version: "1.0.0"
+      date: "2026-03-21"
+      author: Thomas Rohde
+      changes:
+        - Initial draft — multi-cloud icon demonstration artifact
+        - All 4 architecture views with AWS, Azure, and GCP icons
+        - 3 ADRs covering cloud selection, identity federation, and data transfer
+
+sections:
+  reading_guide:
+    how_to_use: >
+      This document is structured so each audience can navigate directly to
+      their primary concerns. Architecture views use vendor-specific icons
+      (AWS orange, Azure blue, GCP coloured) to make cloud placement
+      immediately visible in every diagram.
+    section_map:
+      - section: Business Context
+        audience: CDO, Executive Sponsor
+        concern: Strategic drivers for multi-cloud and expected outcomes
+      - section: Architecture Views — Context
+        audience: Platform Architect, Security Architect
+        concern: System boundary, cross-cloud actors, and integration points
+      - section: Architecture Views — Functional
+        audience: Data Engineer Lead, Platform Architect
+        concern: Service decomposition across clouds and data flow paths
+      - section: Architecture Views — Deployment
+        audience: Platform Architect, Security Architect
+        concern: Network topology, cross-cloud connectivity, identity federation
+      - section: Architecture Views — Data Flow
+        audience: Data Engineer Lead, BI Analyst Lead
+        concern: Runtime data pipeline from ingestion to dashboard
+      - section: Architecture Decisions (ADRs)
+        audience: Platform Architect, Security Architect
+        concern: Cloud selection rationale, identity federation, cross-cloud transfer
+
+  scope:
+    statement: >
+      This reference architecture covers a multi-cloud data analytics platform
+      spanning AWS, Azure, and Google Cloud. Data is ingested and stored on AWS,
+      transformed via cross-cloud pipelines, analysed on BigQuery (GCP), and
+      visualised through Power BI (Azure).
+    in_scope:
+      - Data ingestion API (AWS API Gateway + Lambda)
+      - Raw data lake (AWS S3)
+      - Stream processing (AWS Kinesis Data Streams + Firehose)
+      - Data warehouse (AWS Redshift) — primary structured storage
+      - Cross-cloud data transfer (AWS S3 → GCP Cloud Storage via Storage Transfer Service)
+      - Ad-hoc analytics (GCP BigQuery)
+      - ML model training and serving (GCP Vertex AI)
+      - Enterprise identity federation (Azure Entra ID → AWS IAM + GCP IAM)
+      - BI dashboards (Azure Power BI connected to Redshift and BigQuery)
+      - Monitoring (AWS CloudWatch, GCP Cloud Monitoring, Azure Monitor — federated via Datadog)
+      - Infrastructure as code (Terraform multi-provider)
+    out_of_scope:
+      - Source system integrations — covered by domain-specific patterns
+      - Data governance tooling — separate initiative (Collibra)
+      - ML model development workflow — governed by ML platform team
+    constraints:
+      - All data classified as PII must remain within EU regions across all clouds
+      - Cross-cloud network traffic must traverse private interconnects, not public internet
+      - Single identity provider (Azure Entra ID) for all human access
+    assumptions:
+      - AWS-GCP dedicated interconnect is provisioned in eu-west-1 ↔ europe-west1
+      - Azure ExpressRoute is available in North Europe
+      - All three cloud accounts are under enterprise agreements with committed spend
+
+  business_context:
+    business_drivers:
+      - driver: Best-of-breed analytics
+        description: >
+          BigQuery provides the most cost-effective serverless analytics for
+          ad-hoc exploration. Power BI is the enterprise standard for executive
+          dashboards. Combining both gives analysts the right tool for each task.
+      - driver: Vendor diversification
+        description: >
+          Board directive to reduce single-vendor dependency below 80% of cloud
+          spend by 2027. This architecture distributes workloads across three
+          providers.
+      - driver: ML capability
+        description: >
+          Vertex AI offers managed ML pipelines and model serving that
+          complement the existing AWS data infrastructure without re-platforming
+          the data lake.
+    use_cases:
+      - name: Real-time order analytics
+        description: >
+          Stream order events from the e-commerce platform through Kinesis into
+          Redshift and BigQuery for real-time dashboards and ad-hoc analysis.
+      - name: Executive reporting
+        description: >
+          Power BI connects to both Redshift (operational metrics) and BigQuery
+          (ad-hoc analysis) to provide unified executive dashboards with
+          scheduled refresh.
+      - name: Demand forecasting
+        description: >
+          Historical order data is transferred to GCP, where Vertex AI trains
+          demand forecasting models. Predictions are written back to Redshift
+          for operational use.
+
+  architecture_views:
+    context:
+      description: >
+        The context view shows the multi-cloud analytics platform boundary and
+        its relationships with external actors across three cloud providers.
+        AWS hosts the core data platform (ingestion, storage, warehouse). GCP
+        provides BigQuery for analytics and Vertex AI for ML. Azure provides
+        enterprise identity (Entra ID) and reporting (Power BI).
+      key_decisions:
+        - AWS is the primary data platform — all raw data lands here first
+        - GCP receives curated datasets via dedicated interconnect for analytics
+        - Azure Entra ID is the single identity provider for all human access
+        - Cross-cloud data transfer uses private interconnects, never public internet
+      diagram_source: |
+        flowchart LR
+          classDef actor fill:#f8fafc,stroke:#334155,stroke-width:1.4px,color:#0f172a;
+          classDef external fill:#fff7ed,stroke:#c2410c,stroke-width:1.4px,color:#7c2d12;
+
+          Analyst@{ shape: stadium, label: "Business Analyst" }
+          DataEng@{ shape: stadium, label: "Data Engineer" }
+          MLEng@{ shape: stadium, label: "ML Engineer" }
+          SourceSys@{ shape: cloud, label: "Source Systems\n(ERP, CRM, E-Commerce)" }
+
+          subgraph AWS["AWS (Primary Data Platform)"]
+            APIGW@{ img: "/icons/aws/api-gateway.svg", label: "API Gateway", pos: "b", w: 52, h: 52, constraint: "on" }
+            S3@{ img: "/icons/aws/s3.svg", label: "Data Lake\n(S3)", pos: "b", w: 52, h: 52, constraint: "on" }
+            Redshift@{ img: "/icons/aws/redshift.svg", label: "Redshift\nWarehouse", pos: "b", w: 52, h: 52, constraint: "on" }
+          end
+
+          subgraph GCP["Google Cloud (Analytics & ML)"]
+            BigQuery@{ img: "/icons/gcp/bigquery.svg", label: "BigQuery", pos: "b", w: 52, h: 52, constraint: "on" }
+            VertexAI@{ img: "/icons/gcp/cloud-run.svg", label: "Vertex AI", pos: "b", w: 52, h: 52, constraint: "on" }
+          end
+
+          subgraph Azure["Azure (Identity & Reporting)"]
+            EntraID@{ img: "/icons/azure/entra-id.svg", label: "Entra ID", pos: "b", w: 52, h: 52, constraint: "on" }
+            PowerBI@{ img: "/icons/azure/synapse-analytics.svg", label: "Power BI", pos: "b", w: 52, h: 52, constraint: "on" }
+          end
+
+          SourceSys -->|Events & CDC| APIGW
+          APIGW --> S3
+          S3 --> Redshift
+          S3 -.->|Interconnect| BigQuery
+          BigQuery --> VertexAI
+          VertexAI -.->|Predictions| Redshift
+
+          EntraID -->|Federation| AWS
+          EntraID -->|Federation| GCP
+          Analyst --> PowerBI
+          PowerBI --> Redshift
+          PowerBI --> BigQuery
+          DataEng --> Redshift
+          MLEng --> VertexAI
+
+          class Analyst,DataEng,MLEng actor
+          class SourceSys external
+      source_type: mermaid
+
+    functional:
+      description: >
+        The functional view decomposes the platform into its constituent services
+        across all three clouds. Each node is annotated with its cloud provider
+        icon to make placement unambiguous. Data flows left to right: ingest on
+        AWS, transform on AWS, transfer to GCP for analytics, and report via
+        Azure Power BI.
+      components:
+        - name: Ingestion API
+          cloud: AWS
+          service: API Gateway + Lambda
+          responsibility: >
+            Accept events from source systems via REST/webhook. Validate schema,
+            enrich with metadata, write to Kinesis.
+        - name: Stream Processor
+          cloud: AWS
+          service: Kinesis Data Streams + Firehose
+          responsibility: >
+            Buffer and deliver raw events to S3 data lake. Apply basic filtering
+            and partitioning by event type and date.
+        - name: Data Lake
+          cloud: AWS
+          service: S3 (Iceberg tables)
+          responsibility: >
+            Store raw and curated data in open table format. Serve as the
+            single source of truth for all downstream consumers.
+        - name: Data Warehouse
+          cloud: AWS
+          service: Redshift Serverless
+          responsibility: >
+            Provide structured, optimised storage for operational analytics.
+            Serve as primary data source for Power BI dashboards.
+        - name: Transfer Service
+          cloud: GCP
+          service: Storage Transfer Service
+          responsibility: >
+            Scheduled and event-triggered transfer of curated datasets from
+            AWS S3 to GCP Cloud Storage via dedicated interconnect.
+        - name: Analytics Engine
+          cloud: GCP
+          service: BigQuery
+          responsibility: >
+            Serverless SQL analytics on curated datasets. Ad-hoc exploration
+            by analysts. Serve as secondary data source for Power BI.
+        - name: ML Platform
+          cloud: GCP
+          service: Vertex AI
+          responsibility: >
+            Train and serve ML models (demand forecasting, anomaly detection).
+            Read from BigQuery, write predictions back to Redshift.
+        - name: Identity Provider
+          cloud: Azure
+          service: Entra ID
+          responsibility: >
+            Single source of truth for human identity. Federate to AWS IAM
+            Identity Center and GCP Workforce Identity Federation.
+        - name: Reporting
+          cloud: Azure
+          service: Power BI Premium
+          responsibility: >
+            Enterprise dashboards connecting to Redshift (DirectQuery) and
+            BigQuery (Import with scheduled refresh).
+      diagram_source: |
+        flowchart LR
+          classDef external fill:#fff7ed,stroke:#c2410c,stroke-width:1.4px,color:#7c2d12;
+
+          Sources@{ shape: cloud, label: "Source\nSystems" }
+
+          subgraph AWS["AWS — Ingest & Store"]
+            direction TB
+            APIGW@{ img: "/icons/aws/api-gateway.svg", label: "API Gateway", pos: "b", w: 48, h: 48, constraint: "on" }
+            Lambda@{ img: "/icons/aws/lambda.svg", label: "Ingestion\nLambda", pos: "b", w: 48, h: 48, constraint: "on" }
+            Kinesis@{ img: "/icons/aws/kinesis.svg", label: "Kinesis Data\nStreams", pos: "b", w: 48, h: 48, constraint: "on" }
+            Firehose@{ img: "/icons/aws/data-firehose.svg", label: "Firehose", pos: "b", w: 48, h: 48, constraint: "on" }
+            S3@{ img: "/icons/aws/s3.svg", label: "S3 Data Lake\n(Iceberg)", pos: "b", w: 48, h: 48, constraint: "on" }
+            Redshift@{ img: "/icons/aws/redshift.svg", label: "Redshift\nServerless", pos: "b", w: 48, h: 48, constraint: "on" }
+            CW@{ img: "/icons/aws/cloudwatch.svg", label: "CloudWatch", pos: "b", w: 48, h: 48, constraint: "on" }
+
+            APIGW --> Lambda --> Kinesis --> Firehose --> S3
+            S3 --> Redshift
+          end
+
+          subgraph GCP["GCP — Analyse & Predict"]
+            direction TB
+            GCS@{ img: "/icons/gcp/cloud-storage.svg", label: "Cloud Storage\n(Landing)", pos: "b", w: 48, h: 48, constraint: "on" }
+            BQ@{ img: "/icons/gcp/bigquery.svg", label: "BigQuery", pos: "b", w: 48, h: 48, constraint: "on" }
+            Vertex@{ img: "/icons/gcp/cloud-run.svg", label: "Vertex AI", pos: "b", w: 48, h: 48, constraint: "on" }
+            GCM@{ img: "/icons/gcp/cloud-monitoring.svg", label: "Cloud\nMonitoring", pos: "b", w: 48, h: 48, constraint: "on" }
+
+            GCS --> BQ --> Vertex
+          end
+
+          subgraph Azure["Azure — Identity & Report"]
+            direction TB
+            Entra@{ img: "/icons/azure/entra-id.svg", label: "Entra ID", pos: "b", w: 48, h: 48, constraint: "on" }
+            PBI@{ img: "/icons/azure/synapse-analytics.svg", label: "Power BI\nPremium", pos: "b", w: 48, h: 48, constraint: "on" }
+            Monitor@{ img: "/icons/azure/monitor.svg", label: "Azure\nMonitor", pos: "b", w: 48, h: 48, constraint: "on" }
+          end
+
+          Sources --> APIGW
+          S3 -.->|Dedicated interconnect| GCS
+          Vertex -.->|Predictions| Redshift
+          Redshift --> PBI
+          BQ --> PBI
+          Entra -->|SAML/OIDC| AWS
+          Entra -->|Workforce IdP| GCP
+
+          class Sources external
+      source_type: mermaid
+
+    deployment:
+      description: >
+        The deployment view shows the network topology across all three cloud
+        providers. Each cloud has its own VPC/VNet/VPC and they are connected
+        via dedicated interconnects (AWS Direct Connect to GCP, Azure
+        ExpressRoute). All data transfer crosses private links — never the
+        public internet.
+      key_decisions:
+        - Private interconnects between all three clouds via Megaport fabric
+        - Each cloud uses private subnets only — no public endpoints for data services
+        - DNS resolution via Route 53 with forwarding rules to Azure Private DNS and GCP Cloud DNS
+        - TLS 1.3 enforced on all cross-cloud data transfers
+      diagram_source: |
+        flowchart TB
+          Route53@{ img: "/icons/aws/route53.svg", label: "Route 53\nCentral DNS", pos: "b", w: 52, h: 52, constraint: "on" }
+
+          subgraph AWS_Region["AWS eu-west-1"]
+            direction TB
+            WAF@{ img: "/icons/aws/waf.svg", label: "WAF", pos: "b", w: 48, h: 48, constraint: "on" }
+            APIGW@{ img: "/icons/aws/api-gateway.svg", label: "API Gateway", pos: "b", w: 48, h: 48, constraint: "on" }
+
+            subgraph AWS_VPC["VPC 10.0.0.0/16"]
+              direction LR
+              subgraph AWS_Private["Private Subnets"]
+                direction TB
+                Lambda@{ img: "/icons/aws/lambda.svg", label: "Lambda\nFunctions", pos: "b", w: 44, h: 44, constraint: "on" }
+                Kinesis@{ img: "/icons/aws/kinesis.svg", label: "Kinesis", pos: "b", w: 44, h: 44, constraint: "on" }
+                S3@{ img: "/icons/aws/s3.svg", label: "S3 Data Lake", pos: "b", w: 44, h: 44, constraint: "on" }
+                Redshift@{ img: "/icons/aws/redshift.svg", label: "Redshift", pos: "b", w: 44, h: 44, constraint: "on" }
+              end
+            end
+
+            WAF --> APIGW --> Lambda
+            Lambda --> Kinesis --> S3
+            S3 --> Redshift
+          end
+
+          subgraph GCP_Region["GCP europe-west1"]
+            direction TB
+            Armor@{ img: "/icons/gcp/cloud-armor.svg", label: "Cloud Armor", pos: "b", w: 48, h: 48, constraint: "on" }
+
+            subgraph GCP_VPC["VPC 10.1.0.0/16"]
+              direction TB
+              GCS@{ img: "/icons/gcp/cloud-storage.svg", label: "Cloud Storage", pos: "b", w: 44, h: 44, constraint: "on" }
+              BQ@{ img: "/icons/gcp/bigquery.svg", label: "BigQuery", pos: "b", w: 44, h: 44, constraint: "on" }
+              Vertex@{ img: "/icons/gcp/cloud-run.svg", label: "Vertex AI", pos: "b", w: 44, h: 44, constraint: "on" }
+            end
+
+            GCS --> BQ --> Vertex
+          end
+
+          subgraph Azure_Region["Azure North Europe"]
+            direction TB
+            FrontDoor@{ img: "/icons/azure/front-door.svg", label: "Front Door", pos: "b", w: 48, h: 48, constraint: "on" }
+
+            subgraph Azure_VNet["VNet 10.2.0.0/16"]
+              direction TB
+              Entra@{ img: "/icons/azure/entra-id.svg", label: "Entra ID", pos: "b", w: 44, h: 44, constraint: "on" }
+              PBI@{ img: "/icons/azure/synapse-analytics.svg", label: "Power BI\nGateway", pos: "b", w: 44, h: 44, constraint: "on" }
+            end
+          end
+
+          Route53 --> AWS_Region
+          Route53 -.-> GCP_Region
+          Route53 -.-> Azure_Region
+
+          S3 ===|"AWS Direct Connect\nto GCP Interconnect\n(Megaport)"| GCS
+          Redshift ===|"ExpressRoute\n(Megaport)"| PBI
+          BQ ===|"GCP Interconnect\nto ExpressRoute"| PBI
+          Entra -->|"SAML federation"| APIGW
+          Entra -->|"Workforce IdP"| Armor
+          Vertex -.->|"Predictions via\ninterconnect"| Redshift
+      source_type: mermaid
+
+    data_flow:
+      description: >
+        The data flow view traces the lifecycle of an order event from source
+        system ingestion through transformation, cross-cloud transfer, analytics,
+        ML inference, and finally executive reporting. Each step is numbered
+        and annotated with the cloud provider and service responsible.
+      narrative_steps:
+        - step: 1
+          description: >
+            Source systems (ERP, e-commerce) push order events to the AWS API
+            Gateway via REST webhooks. Lambda validates the schema and enriches
+            events with ingestion metadata.
+        - step: 2
+          description: >
+            Validated events are written to Kinesis Data Streams for real-time
+            buffering. Kinesis Data Firehose delivers micro-batches to S3 in
+            Parquet format, partitioned by date and event type.
+        - step: 3
+          description: >
+            AWS Glue crawlers register new partitions in the Iceberg catalog.
+            Redshift Spectrum queries the data lake directly; Redshift Serverless
+            loads curated tables for dashboard queries.
+        - step: 4
+          description: >
+            GCP Storage Transfer Service copies curated Parquet files from S3 to
+            Cloud Storage on a 15-minute schedule via dedicated interconnect. No
+            data traverses the public internet.
+        - step: 5
+          description: >
+            BigQuery external tables point at the Cloud Storage landing zone.
+            Analysts run ad-hoc SQL queries directly in BigQuery. Vertex AI
+            training jobs read from BigQuery.
+        - step: 6
+          description: >
+            Vertex AI trains demand forecasting models nightly. Batch predictions
+            are written to a BigQuery results table, then pushed back to Redshift
+            via the interconnect for operational consumption.
+        - step: 7
+          description: >
+            Power BI Premium connects to Redshift via DirectQuery for real-time
+            operational dashboards and to BigQuery via Import with 30-minute
+            scheduled refresh for analytical dashboards.
+      diagram_source: |
+        flowchart LR
+          classDef step fill:#f0fdf4,stroke:#16a34a,stroke-width:1.2px,color:#14532d;
+
+          S1["① Ingest"]
+          S2["② Buffer"]
+          S3_step["③ Store"]
+          S4["④ Transfer"]
+          S5["⑤ Analyse"]
+          S6["⑥ Predict"]
+          S7["⑦ Report"]
+
+          APIGW@{ img: "/icons/aws/api-gateway.svg", label: "API Gateway", pos: "b", w: 44, h: 44, constraint: "on" }
+          Lambda@{ img: "/icons/aws/lambda.svg", label: "Lambda", pos: "b", w: 44, h: 44, constraint: "on" }
+          Kinesis@{ img: "/icons/aws/kinesis.svg", label: "Kinesis", pos: "b", w: 44, h: 44, constraint: "on" }
+          Firehose@{ img: "/icons/aws/data-firehose.svg", label: "Firehose", pos: "b", w: 44, h: 44, constraint: "on" }
+          S3@{ img: "/icons/aws/s3.svg", label: "S3", pos: "b", w: 44, h: 44, constraint: "on" }
+          Redshift@{ img: "/icons/aws/redshift.svg", label: "Redshift", pos: "b", w: 44, h: 44, constraint: "on" }
+          GCS@{ img: "/icons/gcp/cloud-storage.svg", label: "Cloud Storage", pos: "b", w: 44, h: 44, constraint: "on" }
+          BQ@{ img: "/icons/gcp/bigquery.svg", label: "BigQuery", pos: "b", w: 44, h: 44, constraint: "on" }
+          Vertex@{ img: "/icons/gcp/cloud-run.svg", label: "Vertex AI", pos: "b", w: 44, h: 44, constraint: "on" }
+          PBI@{ img: "/icons/azure/synapse-analytics.svg", label: "Power BI", pos: "b", w: 44, h: 44, constraint: "on" }
+          Entra@{ img: "/icons/azure/entra-id.svg", label: "Entra ID", pos: "b", w: 44, h: 44, constraint: "on" }
+
+          S1 --- APIGW --> Lambda
+          S2 --- Kinesis --> Firehose
+          S3_step --- S3 --> Redshift
+          S4 --- GCS
+          S5 --- BQ
+          S6 --- Vertex
+          S7 --- PBI
+
+          Lambda --> Kinesis
+          Firehose --> S3
+          S3 -.->|Interconnect| GCS
+          GCS --> BQ --> Vertex
+          Vertex -.->|Predictions| Redshift
+          Redshift --> PBI
+          BQ --> PBI
+          Entra -.->|SSO| PBI
+
+          class S1,S2,S3_step,S4,S5,S6,S7 step
+      source_type: mermaid
+
+  decisions:
+    - id: ADR-001
+      title: Multi-cloud strategy — best-of-breed over single-vendor
+      status: accepted
+      date: "2026-01-15"
+      context: >
+        The enterprise data platform has grown on AWS but the board has mandated
+        vendor diversification. Business analysts strongly prefer BigQuery for
+        ad-hoc analytics and Power BI for executive dashboards. Keeping
+        everything on AWS would mean Athena for analytics (less preferred by
+        analysts) and QuickSight for BI (not adopted by the enterprise).
+      options:
+        - name: AWS-only
+          description: Use Athena + QuickSight, stay single-cloud
+          pros: [Simpler networking, single IAM, lower operational overhead]
+          cons: [Does not meet diversification mandate, analyst resistance to QuickSight]
+        - name: AWS + GCP (BigQuery only)
+          description: Add BigQuery for analytics, keep BI on QuickSight
+          pros: [Addresses analyst preference, partial diversification]
+          cons: [Still single BI tool, analysts want Power BI]
+        - name: AWS + Azure + GCP (chosen)
+          description: AWS for ingest/storage, GCP for analytics/ML, Azure for identity/BI
+          pros: [Best-of-breed per domain, meets diversification mandate, aligns with enterprise BI standard]
+          cons: [Cross-cloud networking complexity, three IAM systems to federate, higher operational cost]
+      decision: >
+        Option 3 (AWS + Azure + GCP). The diversification mandate is non-negotiable.
+        BigQuery and Power BI are already enterprise standards in their respective
+        domains. The complexity cost is manageable with dedicated interconnects and
+        federated identity.
+      consequences:
+        - Three cloud networking fabrics must be connected via Megaport
+        - Identity federation from Entra ID to AWS and GCP is mandatory
+        - Data transfer costs between clouds must be budgeted and monitored
+        - Operations team needs cross-cloud monitoring (Datadog)
+      revisit_triggers:
+        - If cross-cloud data transfer costs exceed 15% of total cloud spend
+        - If Megaport interconnect SLA drops below 99.95%
+        - If any cloud provider releases a service that eliminates the best-of-breed advantage
+
+    - id: ADR-002
+      title: Azure Entra ID as the single identity provider
+      status: accepted
+      date: "2026-01-22"
+      context: >
+        With three clouds, each having its own IAM system, human access must be
+        federated through a single identity provider. The enterprise already uses
+        Azure Entra ID (formerly Azure AD) for all corporate identity. AWS IAM
+        Identity Center and GCP Workforce Identity Federation both support SAML/OIDC
+        federation from external IdPs.
+      options:
+        - name: Per-cloud native IAM
+          description: Manage users separately in each cloud
+          pros: [No cross-cloud dependency]
+          cons: [Identity sprawl, inconsistent MFA, audit nightmare]
+        - name: Azure Entra ID federation (chosen)
+          description: Entra ID as IdP, federate to AWS and GCP
+          pros: [Single MFA policy, unified audit log, existing enterprise adoption]
+          cons: [Azure dependency for all access, federation setup complexity]
+        - name: Okta as external IdP
+          description: Use Okta to federate to all three clouds
+          pros: [Cloud-neutral IdP, strong SCIM support]
+          cons: [Additional vendor cost, migration from existing Entra ID]
+      decision: >
+        Azure Entra ID federation. It is the existing enterprise standard, already
+        has MFA and Conditional Access policies configured, and both AWS and GCP
+        support it natively.
+      consequences:
+        - AWS IAM Identity Center configured with Entra ID as external SAML IdP
+        - GCP Workforce Identity Federation configured with Entra ID OIDC
+        - Break-glass accounts maintained in each cloud's native IAM for emergency access
+        - Conditional Access policies extended to cover BigQuery and Redshift access
+      revisit_triggers:
+        - If the enterprise migrates away from Microsoft 365
+        - If Entra ID federation latency exceeds 500ms p99
+
+    - id: ADR-003
+      title: Dedicated interconnects over VPN for cross-cloud data transfer
+      status: accepted
+      date: "2026-02-05"
+      context: >
+        The platform transfers up to 500 GB/day from AWS S3 to GCP Cloud Storage
+        and 50 GB/day of query results between Redshift and Power BI. Data
+        includes PII subject to GDPR. Transfer must be private, reliable, and
+        cost-effective at scale.
+      options:
+        - name: Public internet with TLS
+          description: Transfer over the internet with encryption
+          pros: [No setup cost, works immediately]
+          cons: [Variable latency, GDPR risk perception, egress costs at scale]
+        - name: Cloud-native VPN tunnels
+          description: Site-to-site VPN between cloud VPCs
+          pros: [Private routing, moderate setup effort]
+          cons: [Throughput limited to ~1.25 Gbps per tunnel, VPN management overhead]
+        - name: Dedicated interconnects via Megaport (chosen)
+          description: Private cross-connects through Megaport colocation fabric
+          pros: [Consistent low latency, 10 Gbps capacity, private routing, no egress surcharge on interconnect]
+          cons: [Monthly port and cross-connect fees (~$2,500/month), physical dependency on Megaport PoPs]
+      decision: >
+        Dedicated interconnects via Megaport. At 500 GB/day, the interconnect
+        cost is lower than public internet egress fees. Private routing satisfies
+        GDPR data sovereignty requirements without debate.
+      consequences:
+        - Megaport ports provisioned in Dublin (AWS eu-west-1), Frankfurt (GCP europe-west1), and Dublin (Azure North Europe)
+        - BGP routing configured between all three clouds
+        - Failover to VPN tunnels if interconnect goes down
+        - Monthly interconnect cost added to platform budget
+      revisit_triggers:
+        - If daily transfer volume drops below 50 GB (VPN becomes more cost-effective)
+        - If any cloud provider offers native multi-cloud private connectivity
+
+  quality_attributes:
+    - attribute: Data freshness
+      target: "Raw events available in S3 within 5 minutes of ingestion; curated data in BigQuery within 30 minutes"
+      validation: Kinesis iterator age alarm + BigQuery partition freshness query
+    - attribute: Query performance
+      target: "P95 BigQuery ad-hoc queries complete within 30 seconds on datasets up to 10 TB"
+      validation: BigQuery INFORMATION_SCHEMA.JOBS monitoring
+    - attribute: Dashboard refresh
+      target: "Power BI DirectQuery dashboards reflect Redshift data within 60 seconds; Import datasets refresh every 30 minutes"
+      validation: Power BI refresh monitoring + Redshift query log
+    - attribute: Cross-cloud transfer reliability
+      target: "99.9% success rate for S3 → GCS transfer jobs, zero data loss"
+      validation: Storage Transfer Service job completion monitoring + row count reconciliation
+    - attribute: Identity federation latency
+      target: "SSO login to any cloud console completes within 3 seconds p99"
+      validation: Entra ID sign-in logs + synthetic monitoring
+
+  raid_log:
+    risks:
+      - id: R-001
+        description: >
+          Cross-cloud interconnect failure could halt data transfer to GCP,
+          degrading BigQuery freshness and ML model retraining.
+        likelihood: low
+        impact: high
+        mitigation: >
+          Automated failover to VPN tunnels. Storage Transfer Service retries
+          automatically. BigQuery queries degrade gracefully to stale data.
+      - id: R-002
+        description: >
+          Azure Entra ID outage blocks human access to all three clouds
+          simultaneously.
+        likelihood: very_low
+        impact: critical
+        mitigation: >
+          Break-glass accounts in each cloud's native IAM. Tested quarterly.
+          Entra ID SLA is 99.99%.
+      - id: R-003
+        description: >
+          Cross-cloud data transfer costs exceed budget as data volume grows.
+        likelihood: medium
+        impact: medium
+        mitigation: >
+          Monthly cost monitoring with 80% budget alerts. Data lifecycle
+          policies delete aged data from GCS after BigQuery ingestion. ADR-003
+          revisit trigger at 15% of total spend.
+    assumptions:
+      - id: A-001
+        description: >
+          Source systems can push events to a REST endpoint. Systems that cannot
+          are out of scope for this reference architecture.
+      - id: A-002
+        description: >
+          All three cloud enterprise agreements include committed spend that
+          makes multi-cloud cost-effective versus on-demand pricing.
+    dependencies:
+      - id: D-001
+        description: >
+          Megaport interconnect provisioning in Dublin and Frankfurt — lead time
+          approximately 4-6 weeks.
+      - id: D-002
+        description: >
+          GCP Workforce Identity Federation with Entra ID — requires GCP
+          organisation admin approval.
+
+  governance:
+    review_cadence: Quarterly architecture review with all three cloud teams
+    exception_process: >
+      Any deviation from the prescribed cross-cloud data transfer patterns
+      requires Architecture Board approval and a documented exception in the
+      RAID log.
+    compliance_frameworks:
+      - name: GDPR
+        mapping: >
+          All PII data remains in EU regions. Cross-cloud transfers use private
+          interconnects within EU geography. Data residency enforced via S3
+          bucket policies, BigQuery dataset location constraints, and Azure
+          geography restrictions.
