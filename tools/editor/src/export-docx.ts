@@ -27,6 +27,9 @@ import {
   TableOfContents,
   type IRunOptions,
 } from 'docx'
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,6 +41,38 @@ interface ArtifactData {
   glossary?: any[]
   [key: string]: any
 }
+
+interface JsonSchemaNode {
+  type?: string | string[]
+  title?: string
+  description?: string
+  properties?: Record<string, JsonSchemaNode>
+  items?: JsonSchemaNode
+  [key: string]: any
+}
+
+const MODULE_DIR = dirname(fileURLToPath(import.meta.url))
+
+function loadArtifactSchema(): JsonSchemaNode | null {
+  const candidates = [
+    resolve(MODULE_DIR, 'schemas', 'artifact.schema.json'),
+    resolve(MODULE_DIR, '../schemas', 'artifact.schema.json'),
+    resolve(MODULE_DIR, '../../standard/schemas', 'artifact.schema.json'),
+  ]
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(readFileSync(candidate, 'utf8')) as JsonSchemaNode
+    } catch {
+      // Try next candidate path.
+    }
+  }
+
+  console.warn('[export-docx] Artifact schema not found; falling back to shape-driven rendering')
+  return null
+}
+
+const ARTIFACT_SCHEMA = loadArtifactSchema()
 
 // ─── Kroki Mermaid rendering ──────────────────────────────────────────────────
 
@@ -282,23 +317,14 @@ function dataTable(headers: string[], rows: string[][]): Table {
   })
 }
 
-function objectTable(items: Array<Record<string, any>>): Table | null {
+function objectTable(items: Array<Record<string, any>>, schema?: JsonSchemaNode | null): Table | null {
   if (!items.length) return null
 
-  const keys: string[] = []
-  const seen = new Set<string>()
-  for (const item of items) {
-    if (!item || typeof item !== 'object' || Array.isArray(item)) continue
-    for (const key of Object.keys(item)) {
-      if (seen.has(key)) continue
-      seen.add(key)
-      keys.push(key)
-    }
-  }
+  const keys = orderedObjectKeys(items, schema).filter((key) => items.every((item) => isScalarish(item?.[key])))
   if (!keys.length) return null
 
   return dataTable(
-    keys.map((key) => key.replace(/_/g, ' ')),
+    keys.map((key) => displayLabel(key, propertySchema(schema, key))),
     items.map((item) => keys.map((key) => str(item?.[key])))
   )
 }
@@ -312,10 +338,195 @@ function str(v: any): string {
   return ''
 }
 
-function renderStringList(items: any[], children: Children, indent = 1) {
+function prettyLabel(key: string): string {
+  return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+function displayLabel(key: string, schema?: JsonSchemaNode | null): string {
+  return str(schema?.title) || prettyLabel(key)
+}
+
+function heading(level: number, text: string): Paragraph {
+  if (level <= 1) return h1(text)
+  if (level === 2) return h2(text)
+  return h3(text)
+}
+
+function isPlainObject(value: any): value is Record<string, any> {
+  return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function isScalarish(value: any): boolean {
+  return value == null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+}
+
+function schemaProperties(schema?: JsonSchemaNode | null): Record<string, JsonSchemaNode> {
+  return isPlainObject(schema?.properties) ? schema.properties : {}
+}
+
+function propertySchema(schema: JsonSchemaNode | null | undefined, key: string): JsonSchemaNode | undefined {
+  return schemaProperties(schema)[key]
+}
+
+function itemSchema(schema?: JsonSchemaNode | null): JsonSchemaNode | undefined {
+  return isPlainObject(schema?.items) ? schema.items : undefined
+}
+
+function sectionSchema(key: string): JsonSchemaNode | undefined {
+  const sections = propertySchema(ARTIFACT_SCHEMA, 'sections')
+  return propertySchema(sections, key)
+}
+
+function topLevelSchema(key: string): JsonSchemaNode | undefined {
+  return propertySchema(ARTIFACT_SCHEMA, key)
+}
+
+function orderedObjectKeys(
+  items: Record<string, any> | Array<Record<string, any>>,
+  schema?: JsonSchemaNode | null,
+): string[] {
+  const objects = Array.isArray(items) ? items.filter(isPlainObject) : [items].filter(isPlainObject)
+  const keys: string[] = []
+  const seen = new Set<string>()
+
+  for (const key of Object.keys(schemaProperties(schema))) {
+    if (objects.some((item) => key in item)) {
+      seen.add(key)
+      keys.push(key)
+    }
+  }
+
+  for (const item of objects) {
+    for (const key of Object.keys(item)) {
+      if (seen.has(key)) continue
+      seen.add(key)
+      keys.push(key)
+    }
+  }
+
+  return keys
+}
+
+function isScalarObject(value: any): value is Record<string, any> {
+  return isPlainObject(value) && Object.values(value).every(isScalarish)
+}
+
+function primaryObjectField(
+  value: Record<string, any>,
+  schema?: JsonSchemaNode | null,
+): { key: string; text: string } | null {
+  const preferred = ['title', 'name', 'id', 'term', 'section', 'control', 'role', 'version']
+  for (const key of preferred) {
+    const text = str(value[key])
+    if (text) return { key, text }
+  }
+
+  for (const key of orderedObjectKeys(value, schema)) {
+    const text = str(value[key])
+    if (text) return { key, text }
+  }
+
+  return null
+}
+
+function renderStructuredArray(
+  items: any[],
+  children: Children,
+  schema?: JsonSchemaNode | null,
+  level = 2,
+) {
+  if (!items.length) return
+
+  if (items.every(isScalarish)) {
+    for (const item of items) children.push(bullet(str(item), Math.max(level - 2, 0)))
+    return
+  }
+
+  if (items.every(isScalarObject)) {
+    const table = objectTable(items, itemSchema(schema))
+    if (table) {
+      children.push(table)
+      return
+    }
+  }
+
+  const childSchema = itemSchema(schema)
+  for (const [index, item] of items.entries()) {
+    if (isScalarish(item)) {
+      children.push(bullet(str(item), Math.max(level - 2, 0)))
+      continue
+    }
+    if (!isPlainObject(item)) continue
+
+    const primary = primaryObjectField(item, childSchema)
+    if (primary) {
+      children.push(heading(level, primary.text))
+    } else {
+      children.push(heading(level, `Item ${index + 1}`))
+    }
+
+    if (isScalarObject(item)) {
+      const pairs = orderedObjectKeys(item, childSchema)
+        .filter((key) => key !== primary?.key && str(item[key]))
+        .map((key) => [displayLabel(key, propertySchema(childSchema, key)), str(item[key])] as [string, string])
+      if (pairs.length) children.push(kvTable(pairs))
+      continue
+    }
+
+    renderStructuredObject(item, children, childSchema, Math.min(level + 1, 3), new Set(primary ? [primary.key] : []))
+  }
+}
+
+function renderStructuredObject(
+  value: Record<string, any>,
+  children: Children,
+  schema?: JsonSchemaNode | null,
+  level = 2,
+  skipKeys = new Set<string>(),
+) {
+  for (const key of orderedObjectKeys(value, schema)) {
+    if (skipKeys.has(key)) continue
+    const child = value[key]
+    if (child == null || child === '') continue
+
+    const childSchema = propertySchema(schema, key)
+    const title = displayLabel(key, childSchema)
+    children.push(heading(level, title))
+    renderStructuredValue(child, children, childSchema, Math.min(level + 1, 3))
+  }
+}
+
+function renderStructuredValue(
+  value: any,
+  children: Children,
+  schema?: JsonSchemaNode | null,
+  level = 2,
+) {
+  if (value == null || value === '') return
+  if (isScalarish(value)) {
+    children.push(body(str(value)))
+    return
+  }
+  if (Array.isArray(value)) {
+    renderStructuredArray(value, children, schema, level)
+    return
+  }
+  if (isPlainObject(value)) {
+    renderStructuredObject(value, children, schema, level)
+  }
+}
+
+function renderStringList(items: any[], children: Children, indent = 1, schema?: JsonSchemaNode | null) {
   if (!Array.isArray(items)) return
+  if (items.length && items.every(isScalarObject)) {
+    const table = objectTable(items, schema)
+    if (table) {
+      children.push(table)
+      return
+    }
+  }
   for (const item of items) {
-    if (typeof item === 'string') children.push(bullet(item, indent - 1))
+    if (isScalarish(item)) children.push(bullet(str(item), indent - 1))
     else if (item && typeof item === 'object') {
       const text = item.description ?? item.statement ?? item.text ?? JSON.stringify(item)
       children.push(bullet(str(text), indent - 1))
@@ -558,44 +769,16 @@ function renderQualityAttributes(data: any, children: Children) {
   children.push(h1('Quality Attributes'))
   const items = Array.isArray(data) ? data : Object.values(data)
   if (!items.length) return
-  const table = objectTable(items.filter((item: any) => item && typeof item === 'object' && !Array.isArray(item)))
+  const table = objectTable(
+    items.filter((item: any) => item && typeof item === 'object' && !Array.isArray(item)),
+    itemSchema(sectionSchema('quality_attributes'))
+  )
   if (table) children.push(table)
 }
 
 function renderOperationalModel(data: any, children: Children) {
   children.push(h1('Operational Model'))
-  const STRING_FIELDS = ['deployment_strategy', 'release_process', 'review_cadence']
-  for (const f of STRING_FIELDS) {
-    if (data[f]) {
-      children.push(h2(f.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())))
-      children.push(body(str(data[f])))
-    }
-  }
-  const LIST_FIELDS = ['environments', 'operational_runbooks']
-  for (const f of LIST_FIELDS) {
-    if (Array.isArray(data[f]) && data[f].length) {
-      children.push(h2(f.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())))
-      renderStringList(data[f], children)
-    }
-  }
-  // Sub-objects not explicitly handled above
-  for (const [key, value] of Object.entries(data)) {
-    if ([...STRING_FIELDS, ...LIST_FIELDS].includes(key)) continue
-    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      children.push(h2(key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())))
-      for (const [k, v] of Object.entries(value as Record<string, any>)) {
-        if (typeof v === 'string') {
-          children.push(label(k.replace(/_/g, ' '), v))
-        } else if (Array.isArray(v)) {
-          children.push(h3(k.replace(/_/g, ' ')))
-          renderStringList(v, children)
-        }
-      }
-    } else if (Array.isArray(value) && value.length) {
-      children.push(h2(key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())))
-      renderStringList(value, children)
-    }
-  }
+  renderStructuredObject(data, children, sectionSchema('operational_model'), 2)
 }
 
 function renderImplementationGuidance(data: any, children: Children) {
@@ -632,10 +815,14 @@ function renderImplementationGuidance(data: any, children: Children) {
 
 function renderGovernance(data: any, children: Children) {
   children.push(h1('Governance and Compliance'))
+  const schema = sectionSchema('governance')
   const compliance = data.compliance_mapping
   if (Array.isArray(compliance) && compliance.length) {
     children.push(h2('Compliance Mapping'))
-    const table = objectTable(compliance.filter((item: any) => item && typeof item === 'object' && !Array.isArray(item)))
+    const table = objectTable(
+      compliance.filter((item: any) => item && typeof item === 'object' && !Array.isArray(item)),
+      itemSchema(propertySchema(schema, 'compliance_mapping'))
+    )
     if (table) children.push(table)
   }
   const risks = data.risk_register
@@ -655,13 +842,13 @@ function renderGovernance(data: any, children: Children) {
   // Remaining object sub-sections
   for (const [key, value] of Object.entries(data)) {
     if (['compliance_mapping', 'risk_register', 'review_cadence'].includes(key)) continue
-    children.push(h2(key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())))
+    children.push(h2(displayLabel(key, propertySchema(schema, key))))
     if (typeof value === 'string') children.push(body(value))
-    else if (Array.isArray(value)) renderStringList(value, children)
+    else if (Array.isArray(value)) renderStringList(value, children, 1, propertySchema(schema, key))
     else if (typeof value === 'object' && value !== null) {
       for (const [k, v] of Object.entries(value as Record<string, any>)) {
-        if (typeof v === 'string') children.push(label(k.replace(/_/g, ' '), v))
-        else if (Array.isArray(v)) renderStringList(v, children)
+        if (typeof v === 'string') children.push(label(displayLabel(k, propertySchema(propertySchema(schema, key), k)), v))
+        else if (Array.isArray(v)) renderStringList(v, children, 1, propertySchema(propertySchema(schema, key), k))
       }
     }
   }
@@ -830,25 +1017,9 @@ function renderGlossary(data: any, children: Children) {
 }
 
 // Generic fallback for unknown sections
-function renderGenericSection(title: string, data: any, children: Children) {
+function renderGenericSection(title: string, data: any, children: Children, schema?: JsonSchemaNode | null) {
   children.push(h1(title))
-  if (typeof data === 'string') {
-    children.push(body(data))
-  } else if (Array.isArray(data)) {
-    renderStringList(data, children)
-  } else if (typeof data === 'object' && data !== null) {
-    for (const [key, value] of Object.entries(data)) {
-      children.push(h2(key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())))
-      if (typeof value === 'string') children.push(body(value))
-      else if (Array.isArray(value)) renderStringList(value, children)
-      else if (typeof value === 'object' && value !== null) {
-        for (const [k, v] of Object.entries(value as Record<string, any>)) {
-          if (typeof v === 'string') children.push(label(k.replace(/_/g, ' '), v))
-          else if (Array.isArray(v)) renderStringList(v, children)
-        }
-      }
-    }
-  }
+  renderStructuredValue(data, children, schema, 2)
 }
 
 // Component catalog / classification — array of components with name/type/etc.
@@ -1042,8 +1213,9 @@ export async function exportToDocx(artifactData: ArtifactData): Promise<Buffer> 
       if (renderer) {
         renderer(value, children, diagramImages)
       } else {
-        const title = key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-        renderGenericSection(title, value, children)
+        const schema = sectionSchema(key)
+        const title = displayLabel(key, schema)
+        renderGenericSection(title, value, children, schema)
       }
       rendered.add(key)
     }
@@ -1058,8 +1230,9 @@ export async function exportToDocx(artifactData: ArtifactData): Promise<Buffer> 
     if (renderer) {
       renderer(value, children, diagramImages)
     } else {
-      const title = key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-      renderGenericSection(title, value, children)
+      const schema = topLevelSchema(key)
+      const title = displayLabel(key, schema)
+      renderGenericSection(title, value, children, schema)
     }
   }
 
