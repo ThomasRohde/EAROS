@@ -25,6 +25,7 @@ import {
   SectionType,
   SimpleField,
   TableOfContents,
+  type IRunOptions,
 } from 'docx'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -104,6 +105,20 @@ const MID_GREY = '777777'
 const ORANGE = 'C55A11'
 
 type Children = Array<Paragraph | Table | TableOfContents>
+type RunStyle = Omit<IRunOptions, 'text' | 'children' | 'break'>
+
+// Word ignores raw `\n` inside a text node, so emit explicit line breaks.
+function textRuns(text: string, run: RunStyle): TextRun[] {
+  const lines = text.replace(/\r\n?/g, '\n').split('\n')
+  while (lines.length > 1 && lines[lines.length - 1] === '') lines.pop()
+  return lines.map((line, index) =>
+    new TextRun({
+      ...run,
+      text: line === '' && lines.length > 1 ? ' ' : line,
+      ...(index > 0 ? { break: 1 } : {}),
+    })
+  )
+}
 
 function h1(text: string): Paragraph {
   return new Paragraph({
@@ -135,14 +150,7 @@ function h3(text: string): Paragraph {
 function body(text: string, indent = 0): Paragraph {
   return new Paragraph({
     style: 'Normal',
-    children: [
-      new TextRun({
-        text,
-        font: 'Arial',
-        size: 20,
-        color: DARK_GREY,
-      }),
-    ],
+    children: textRuns(text, { font: 'Arial', size: 20, color: DARK_GREY }),
     spacing: { before: 60, after: 60 },
     indent: indent ? { left: indent * 360 } : undefined,
   })
@@ -150,7 +158,7 @@ function body(text: string, indent = 0): Paragraph {
 
 function bullet(text: string, level = 0): Paragraph {
   return new Paragraph({
-    children: [new TextRun({ text, font: 'Arial', size: 20, color: DARK_GREY })],
+    children: textRuns(text, { font: 'Arial', size: 20, color: DARK_GREY }),
     bullet: { level },
     spacing: { before: 40, after: 40 },
   })
@@ -161,7 +169,7 @@ function label(key: string, value: string): Paragraph {
     style: 'Normal',
     children: [
       new TextRun({ text: `${key}: `, font: 'Arial', size: 20, bold: true, color: DARK_GREY }),
-      new TextRun({ text: value, font: 'Arial', size: 20, color: DARK_GREY }),
+      ...textRuns(value, { font: 'Arial', size: 20, color: DARK_GREY }),
     ],
     spacing: { before: 40, after: 40 },
   })
@@ -170,7 +178,7 @@ function label(key: string, value: string): Paragraph {
 function italicNote(text: string): Paragraph {
   return new Paragraph({
     style: 'Normal',
-    children: [new TextRun({ text, font: 'Arial', size: 18, italics: true, color: MID_GREY })],
+    children: textRuns(text, { font: 'Arial', size: 18, italics: true, color: MID_GREY }),
     spacing: { before: 60, after: 60 },
   })
 }
@@ -179,7 +187,7 @@ function italicNote(text: string): Paragraph {
 function consequence(text: string): Paragraph {
   return new Paragraph({
     style: 'Normal',
-    children: [new TextRun({ text: `→ ${text}`, font: 'Arial', size: 18, italics: true, color: MID_GREY })],
+    children: textRuns(`→ ${text}`, { font: 'Arial', size: 18, italics: true, color: MID_GREY }),
     indent: { left: 720 },
     spacing: { before: 20, after: 40 },
   })
@@ -222,11 +230,11 @@ function kvTable(pairs: Array<[string, string]>): Table {
         children: [
           new TableCell({
             width: { size: 25, type: WidthType.PERCENTAGE },
-            children: [new Paragraph({ style: 'Normal', children: [new TextRun({ text: k, bold: true, font: 'Arial', size: 18 })] })],
+            children: [new Paragraph({ style: 'Normal', children: textRuns(k, { bold: true, font: 'Arial', size: 18 }) })],
           }),
           new TableCell({
             width: { size: 75, type: WidthType.PERCENTAGE },
-            children: [new Paragraph({ style: 'Normal', children: [new TextRun({ text: v, font: 'Arial', size: 18 })] })],
+            children: [new Paragraph({ style: 'Normal', children: textRuns(v, { font: 'Arial', size: 18 }) })],
           }),
         ],
       })
@@ -236,6 +244,7 @@ function kvTable(pairs: Array<[string, string]>): Table {
 
 // Generic header-row table
 function dataTable(headers: string[], rows: string[][]): Table {
+  const columnCount = headers.length
   const headerRow = new TableRow({
     tableHeader: true,
     children: headers.map(
@@ -245,7 +254,7 @@ function dataTable(headers: string[], rows: string[][]): Table {
           children: [
             new Paragraph({
               style: 'Normal',
-              children: [new TextRun({ text: h, bold: true, font: 'Arial', size: 18, color: 'FFFFFF' })],
+              children: textRuns(h, { bold: true, font: 'Arial', size: 18, color: 'FFFFFF' }),
             }),
           ],
         })
@@ -254,13 +263,13 @@ function dataTable(headers: string[], rows: string[][]): Table {
   const dataRows = rows.map(
     (row) =>
       new TableRow({
-        children: row.map(
+        children: Array.from({ length: columnCount }, (_, index) => row[index] ?? '').map(
           (cell) =>
             new TableCell({
               children: [
                 new Paragraph({
                   style: 'Normal',
-                  children: [new TextRun({ text: cell ?? '', font: 'Arial', size: 18 })],
+                  children: textRuns(cell ?? '', { font: 'Arial', size: 18 }),
                 }),
               ],
             })
@@ -271,6 +280,27 @@ function dataTable(headers: string[], rows: string[][]): Table {
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [headerRow, ...dataRows],
   })
+}
+
+function objectTable(items: Array<Record<string, any>>): Table | null {
+  if (!items.length) return null
+
+  const keys: string[] = []
+  const seen = new Set<string>()
+  for (const item of items) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) continue
+    for (const key of Object.keys(item)) {
+      if (seen.has(key)) continue
+      seen.add(key)
+      keys.push(key)
+    }
+  }
+  if (!keys.length) return null
+
+  return dataTable(
+    keys.map((key) => key.replace(/_/g, ' ')),
+    items.map((item) => keys.map((key) => str(item?.[key])))
+  )
 }
 
 // ─── Section renderers ────────────────────────────────────────────────────────
@@ -528,12 +558,8 @@ function renderQualityAttributes(data: any, children: Children) {
   children.push(h1('Quality Attributes'))
   const items = Array.isArray(data) ? data : Object.values(data)
   if (!items.length) return
-  const first = items[0]
-  if (typeof first === 'object' && first !== null) {
-    const headers = Object.keys(first).map((k) => k.replace(/_/g, ' '))
-    const rows = items.map((item: any) => Object.values(item).map(str))
-    children.push(dataTable(headers, rows))
-  }
+  const table = objectTable(items.filter((item: any) => item && typeof item === 'object' && !Array.isArray(item)))
+  if (table) children.push(table)
 }
 
 function renderOperationalModel(data: any, children: Children) {
@@ -609,9 +635,8 @@ function renderGovernance(data: any, children: Children) {
   const compliance = data.compliance_mapping
   if (Array.isArray(compliance) && compliance.length) {
     children.push(h2('Compliance Mapping'))
-    const headers = Object.keys(compliance[0]).map((k) => k.replace(/_/g, ' '))
-    const rows = compliance.map((c: any) => Object.values(c).map(str))
-    children.push(dataTable(headers, rows))
+    const table = objectTable(compliance.filter((item: any) => item && typeof item === 'object' && !Array.isArray(item)))
+    if (table) children.push(table)
   }
   const risks = data.risk_register
   if (Array.isArray(risks) && risks.length) {
