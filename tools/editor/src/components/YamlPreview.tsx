@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { Paper, Typography, Box, IconButton, Tooltip } from '@mui/material'
+import { useEffect, useRef, useState } from 'react'
+import { Paper, Typography, Box, IconButton, Tooltip, Chip } from '@mui/material'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { toYaml } from '../utils/yaml'
@@ -8,19 +8,35 @@ interface Props {
   data: unknown
   open: boolean
   onToggle: () => void
+  debounceMs?: number
 }
 
-export default function YamlPreview({ data, open, onToggle }: Props) {
-  const yamlText = useMemo(() => {
-    try {
-      return toYaml(data)
-    } catch (e) {
-      return `# Error generating YAML\n# ${(e as Error).message}`
-    }
-  }, [data])
+export default function YamlPreview({ data, open, onToggle, debounceMs = 700 }: Props) {
+  const [yamlText, setYamlText] = useState('')
+  const [isUpdating, setIsUpdating] = useState(true)
+  const hasRenderedRef = useRef(false)
+
+  useEffect(() => {
+    if (!open) return
+
+    const delay = hasRenderedRef.current ? debounceMs : 0
+    setIsUpdating(true)
+
+    const timer = window.setTimeout(() => {
+      try {
+        setYamlText(toYaml(data))
+      } catch (e) {
+        setYamlText(`# Error generating YAML\n# ${(e as Error).message}`)
+      }
+      hasRenderedRef.current = true
+      setIsUpdating(false)
+    }, delay)
+
+    return () => window.clearTimeout(timer)
+  }, [data, open, debounceMs])
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(yamlText).catch(() => {})
+    navigator.clipboard?.writeText(yamlText).catch(() => {})
   }
 
   if (!open) return null
@@ -53,8 +69,15 @@ export default function YamlPreview({ data, open, onToggle }: Props) {
         <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', flexGrow: 1 }}>
           YAML Preview
         </Typography>
+        {isUpdating && (
+          <Chip
+            label="Updating preview..."
+            size="small"
+            sx={{ height: 20, mr: 0.5, fontSize: '0.68rem' }}
+          />
+        )}
         <Tooltip title="Copy to clipboard">
-          <IconButton size="small" onClick={handleCopy}>
+          <IconButton size="small" onClick={handleCopy} disabled={!yamlText}>
             <ContentCopyIcon sx={{ fontSize: 16 }} />
           </IconButton>
         </Tooltip>
@@ -74,7 +97,7 @@ export default function YamlPreview({ data, open, onToggle }: Props) {
           color: (theme) => theme.palette.mode === 'dark' ? '#cdd6f4' : 'text.primary',
         }}
       >
-        {yamlText}
+        {yamlText || '# Generating preview…'}
       </Box>
     </Paper>
   )

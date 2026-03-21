@@ -32,7 +32,7 @@ import AddIcon from '@mui/icons-material/Add'
 import { customRenderers } from '../renderers'
 import QuickTipBanner from './QuickTipBanner'
 import type { Kind } from './KindSelector'
-import YamlPreview from './YamlPreview'
+import YamlPreviewPane from './YamlPreviewPane'
 import FileControls from './FileControls'
 import StatusBar from './StatusBar'
 import { toJson, toYaml } from '../utils/yaml'
@@ -576,12 +576,12 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
           />
         </Paper>
 
-        {/* YAML preview panel */}
-        {previewOpen && (
-          <Box sx={{ flex: '0 0 42%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            <YamlPreview data={data} open={previewOpen} onToggle={() => setPreviewOpen(false)} />
-          </Box>
-        )}
+        <YamlPreviewPane
+          data={data}
+          open={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+          storageKey="earos-rubric-preview-width"
+        />
       </Box>
 
       <StatusBar validation={validation} kind={kind} />
