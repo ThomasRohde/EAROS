@@ -10,11 +10,14 @@
 
 ```bash
 npm install -g @trohde/earos
-earos init my-architecture
+earos init my-architecture --icons
 cd my-architecture && earos
 ```
 
 That's it. Your workspace opens in the browser, ready to assess.
+
+Pass `--icons` when you want the current official AWS architecture icon package downloaded into `./icons` during workspace initialization. The initializer also creates stable Mermaid-friendly aliases under `./icons/aws/`.
+In an existing EAROS workspace, run `earos init . --icons` to fetch or refresh the icon set without re-scaffolding the workspace.
 
 ---
 
@@ -45,7 +48,7 @@ The workspace is **agent-agnostic** — the `.agents/skills/` directory works wi
 | Command | Description |
 |---------|-------------|
 | `earos` | Start the web editor (Express server, opens browser) |
-| `earos init [dir]` | Scaffold a complete EAROS workspace in `dir` (default: current directory) |
+| `earos init [dir] [--icons]` | Scaffold a complete EAROS workspace in `dir` and optionally download the current AWS architecture icon package into `icons/`, plus stable aliases in `icons/aws/` |
 | `earos validate <file>` | Validate a rubric or evaluation YAML against EAROS schemas (exit 0/1) |
 | `earos manifest` | Regenerate `earos.manifest.yaml` by scanning the filesystem |
 | `earos manifest add <file>` | Add a single file to the manifest |

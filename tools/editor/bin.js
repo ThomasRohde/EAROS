@@ -83,7 +83,7 @@ if (args[0] === '--help' || args[0] === '-h') {
 Usage:
   earos                             Open the editor in your browser
   earos <file.yaml>                 Open the editor with a file pre-loaded
-  earos init [dir]                  Scaffold a new EAROS workspace (default: current dir)
+  earos init [dir] [--icons]        Scaffold a new EAROS workspace (default: current dir)
   earos validate <file.yaml>        Validate a rubric or evaluation YAML (exit 0/1)
   earos export <file.yaml>          Export artifact YAML as Word document (.docx)
   earos manifest                    Regenerate earos.manifest.yaml
@@ -129,9 +129,29 @@ Usage:
     process.exit(1)
   }
 } else if (args[0] === 'init') {
-  const targetDir = args[1] || '.'
+  const initArgs = args.slice(1)
+  let targetDir = '.'
+  let downloadIcons = false
+
+  for (const arg of initArgs) {
+    if (arg === '--icons') {
+      downloadIcons = true
+      continue
+    }
+    if (arg.startsWith('--')) {
+      console.error(`Unknown init option: ${arg}`)
+      process.exit(1)
+    }
+    if (targetDir === '.') {
+      targetDir = arg
+      continue
+    }
+    console.error('Usage: earos init [dir] [--icons]')
+    process.exit(1)
+  }
+
   const { initWorkspace } = await import('./init.js')
-  initWorkspace(targetDir)
+  await initWorkspace(targetDir, { downloadIcons })
 } else if (args[0] === 'validate') {
   if (!args[1]) {
     console.error('Usage: earos validate <file.yaml>')

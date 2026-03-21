@@ -31,6 +31,13 @@ import { validateData } from '../utils/validate'
 import type { ValidationResult } from '../utils/validate'
 import { saveRepoFile } from '../manifest'
 import { loadSchema } from '../utils/schemaLoader'
+import {
+  extractMermaidDiagrams,
+  inlineLocalMermaidImagesInSvg,
+  rasterizeSvgToPng,
+  renderMermaidSvg,
+} from '../utils/mermaid'
+import type { RenderedDiagramPng } from '../utils/mermaid'
 
 const FALLBACK_UISCHEMA = {
   type: 'Categorization',
@@ -65,6 +72,32 @@ const INITIAL_ARTIFACT = {
     purpose: '',
   },
   sections: {},
+}
+
+async function renderWordExportDiagrams(artifactData: object): Promise<Record<string, RenderedDiagramPng>> {
+  const renderedDiagrams: Record<string, RenderedDiagramPng> = {}
+  const diagramRefs = extractMermaidDiagrams(artifactData)
+  const failedLabels: string[] = []
+
+  for (const diagramRef of diagramRefs) {
+    try {
+      const prefix = `word-export-${diagramRef.key.replace(/[^a-z0-9]+/gi, '-')}`
+      const exportSource = `%%{init: {"htmlLabels": false}}%%\n${diagramRef.source}`
+      const svg = await renderMermaidSvg(exportSource, prefix)
+      const inlinedSvg = await inlineLocalMermaidImagesInSvg(svg, { rasterizeSvgAssets: true })
+      const pngRender = await rasterizeSvgToPng(inlinedSvg)
+      renderedDiagrams[diagramRef.key] = pngRender
+    } catch (error) {
+      console.warn(`[ArtifactEditor] Browser render failed for "${diagramRef.label}"`, error)
+      failedLabels.push(diagramRef.label)
+    }
+  }
+
+  if (failedLabels.length) {
+    throw new Error(`Browser Mermaid render failed for: ${failedLabels.join(', ')}`)
+  }
+
+  return renderedDiagrams
 }
 
 // ─── Import Drop Zone ──────────────────────────────────────────────────────────
@@ -303,10 +336,11 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
   const handleExportWord = useCallback(async () => {
     setWordExporting(true)
     try {
+      const renderedDiagrams = await renderWordExportDiagrams(data)
       const resp = await fetch('/api/export/docx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ artifactData: data, renderedDiagrams }),
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: resp.statusText }))
@@ -395,7 +429,7 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
                   Export YAML
                 </Button>
               </Tooltip>
-              <Tooltip title="Export as Word document (.docx) — diagrams rendered via Kroki">
+              <Tooltip title="Export as Word document (.docx) with browser-rendered diagrams">
                 <Button
                   size="small"
                   variant="outlined"

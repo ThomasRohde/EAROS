@@ -8,16 +8,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import ZoomInIcon from '@mui/icons-material/ZoomIn'
 import ZoomOutIcon from '@mui/icons-material/ZoomOut'
 import FitScreenIcon from '@mui/icons-material/FitScreen'
-import mermaid from 'mermaid'
-
-let mermaidInitialized = false
-
-function ensureMermaidInit() {
-  if (!mermaidInitialized) {
-    mermaid.initialize({ startOnLoad: false, theme: 'default' })
-    mermaidInitialized = true
-  }
-}
+import { ensureMermaidInit, renderMermaidSvg } from '../utils/mermaid'
 
 export const mermaidTester = rankWith(10, scopeEndIs('diagram_source'))
 
@@ -46,7 +37,7 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
       return
     }
     try {
-      const { svg: rendered } = await mermaid.render(idRef.current, code)
+      const rendered = await renderMermaidSvg(code, idRef.current)
       setSvg(rendered)
       setRenderError('')
     } catch (err) {

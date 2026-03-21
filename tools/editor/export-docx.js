@@ -1,13 +1,13 @@
 /**
  * EAROS — Export artifact data to a Microsoft Word (.docx) document.
  *
- * Mermaid diagrams are rendered to PNG via the Kroki public API (no local
- * Chromium required).  If Kroki is unreachable the diagram placeholder is
- * replaced with an italic note rather than failing the entire export.
+ * Mermaid diagrams are rendered in the browser for the editor export flow and
+ * passed to the server as PNGs. Kroki remains as a fallback for CLI/server-only
+ * exports or any diagram the browser did not pre-render.
  */
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, ImageRun, AlignmentType, WidthType, BorderStyle, PageBreak, Header, Footer, SectionType, SimpleField, TableOfContents, } from 'docx';
-import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 function loadArtifactSchema() {
@@ -30,12 +30,60 @@ function loadArtifactSchema() {
 const ARTIFACT_SCHEMA = loadArtifactSchema();
 // ─── Kroki Mermaid rendering ──────────────────────────────────────────────────
 const KROKI_URL = 'https://kroki.io/mermaid/png';
+const LOCAL_MERMAID_IMAGE_PREFIXES = ['/icons/', '/mermaid-icons/'];
+const LOCAL_MERMAID_IMAGE_DIRS = [
+    resolve(process.cwd()),
+    resolve(MODULE_DIR, 'public'),
+    resolve(MODULE_DIR, 'dist'),
+];
+const MERMAID_IMAGE_MIME_TYPES = {
+    '.gif': 'image/gif',
+    '.jpeg': 'image/jpeg',
+    '.jpg': 'image/jpeg',
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml',
+    '.webp': 'image/webp',
+};
+const mermaidImageDataUrlCache = new Map();
+function resolveLocalMermaidImage(assetPath) {
+    const relativePath = assetPath.replace(/^\/+/, '');
+    for (const baseDir of LOCAL_MERMAID_IMAGE_DIRS) {
+        const candidate = resolve(baseDir, relativePath);
+        if (existsSync(candidate))
+            return candidate;
+    }
+    return null;
+}
+function localImageToDataUrl(filePath) {
+    const ext = extname(filePath).toLowerCase();
+    const mime = MERMAID_IMAGE_MIME_TYPES[ext] ?? 'application/octet-stream';
+    const bytes = readFileSync(filePath);
+    return `data:${mime};base64,${bytes.toString('base64')}`;
+}
+function inlineLocalMermaidImages(diagram, label) {
+    return diagram.replace(/img:\s*(['"])(\/(?:icons|mermaid-icons)\/[^'"]+)\1/g, (match, quote, assetPath) => {
+        const cached = mermaidImageDataUrlCache.get(assetPath);
+        if (cached)
+            return `img: ${quote}${cached}${quote}`;
+        const filePath = resolveLocalMermaidImage(assetPath);
+        if (!filePath) {
+            console.warn(`[export-docx] Mermaid image asset not found for "${label}": ${assetPath}`);
+            return match;
+        }
+        const dataUrl = localImageToDataUrl(filePath);
+        mermaidImageDataUrlCache.set(assetPath, dataUrl);
+        return `img: ${quote}${dataUrl}${quote}`;
+    });
+}
 async function renderMermaidDiagram(diagram, label) {
     try {
+        const preparedDiagram = LOCAL_MERMAID_IMAGE_PREFIXES.some((prefix) => diagram.includes(prefix))
+            ? inlineLocalMermaidImages(diagram.trim(), label)
+            : diagram.trim();
         const response = await fetch(KROKI_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
-            body: diagram.trim(),
+            body: preparedDiagram,
             signal: AbortSignal.timeout(30_000),
         });
         if (!response.ok) {
@@ -54,6 +102,14 @@ async function renderMermaidDiagram(diagram, label) {
         console.warn(`[export-docx] Diagram render error for "${label}":`, err);
         return null;
     }
+}
+function isBrowserRenderedDiagram(value) {
+    return !!value
+        && typeof value === 'object'
+        && (typeof value.pngBase64 === 'string'
+            || typeof value.svgText === 'string')
+        && Number.isFinite(value.width)
+        && Number.isFinite(value.height);
 }
 function extractDiagrams(obj, path = '', label = '') {
     if (!obj || typeof obj !== 'object')
@@ -81,6 +137,9 @@ const NAVY = '1F3864';
 const DARK_GREY = '404040';
 const MID_GREY = '777777';
 const ORANGE = 'C55A11';
+const MAX_DIAGRAM_WIDTH = 580;
+const MAX_DIAGRAM_HEIGHT = 340;
+const TRANSPARENT_PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9VE3VxkAAAAASUVORK5CYII=';
 // Word ignores raw `\n` inside a text node, so emit explicit line breaks.
 function textRuns(text, run) {
     const lines = text.replace(/\r\n?/g, '\n').split('\n');
@@ -168,16 +227,51 @@ function horizontalRule() {
         children: [],
     });
 }
-function diagImage(pngBuffer) {
+function diagImage(image) {
+    let width = MAX_DIAGRAM_WIDTH;
+    let height = MAX_DIAGRAM_HEIGHT;
+    if (Buffer.isBuffer(image)) {
+        return new Paragraph({
+            style: 'Normal',
+            children: [
+                new ImageRun({
+                    data: image,
+                    transformation: { width, height },
+                    type: 'png',
+                }),
+            ],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 120, after: 120 },
+        });
+    }
+    const scale = Math.min(MAX_DIAGRAM_WIDTH / Math.max(image.width, 1), MAX_DIAGRAM_HEIGHT / Math.max(image.height, 1), 1);
+    width = Math.max(1, Math.round(image.width * scale));
+    height = Math.max(1, Math.round(image.height * scale));
+    const pngBuffer = typeof image.pngBase64 === 'string'
+        ? Buffer.from(image.pngBase64, 'base64')
+        : null;
+    const fallbackPng = pngBuffer ?? Buffer.from(TRANSPARENT_PNG_BASE64, 'base64');
+    const imageRun = pngBuffer
+        ? new ImageRun({
+            data: pngBuffer,
+            transformation: { width, height },
+            type: 'png',
+        })
+        : typeof image.svgText === 'string'
+            ? new ImageRun({
+                data: Buffer.from(image.svgText, 'utf8'),
+                transformation: { width, height },
+                type: 'svg',
+                fallback: { data: fallbackPng, type: 'png' },
+            })
+            : new ImageRun({
+                data: fallbackPng,
+                transformation: { width, height },
+                type: 'png',
+            });
     return new Paragraph({
         style: 'Normal',
-        children: [
-            new ImageRun({
-                data: pngBuffer,
-                transformation: { width: 580, height: 340 },
-                type: 'png',
-            }),
-        ],
+        children: [imageRun],
         alignment: AlignmentType.CENTER,
         spacing: { before: 120, after: 120 },
     });
@@ -501,11 +595,11 @@ function renderView(viewLabel, data, children, diagramImages, diagramKey) {
         children.push(body(str(desc)));
     // Render diagram if available
     const imgBuf = diagramImages.get(diagramKey);
-    if (imgBuf && imgBuf.length > 0) {
+    if (imgBuf && (Buffer.isBuffer(imgBuf) ? imgBuf.length > 0 : !!imgBuf.pngBase64)) {
         children.push(diagImage(imgBuf));
     }
     else if (data.diagram_source || data.diagram || data.mermaid || data.mermaid_source) {
-        children.push(italicNote(`[${viewLabel} diagram could not be rendered — Kroki API may be unavailable]`));
+        children.push(italicNote(`[${viewLabel} diagram could not be rendered for export]`));
     }
     // Narrative steps (data flow view)
     if (Array.isArray(data.narrative_steps)) {
@@ -1014,18 +1108,31 @@ function titlePage(meta) {
     ];
 }
 // ─── Main export function ─────────────────────────────────────────────────────
-export async function exportToDocx(artifactData) {
+export async function exportToDocx(artifactData, browserRenderedDiagrams) {
     const meta = artifactData.metadata ?? {};
     const sections = artifactData.sections ?? {};
+    const isBrowserExport = browserRenderedDiagrams !== undefined;
     // 1. Extract all diagram references
     const diagRefs = extractDiagrams(artifactData);
-    // 2. Render diagrams in parallel (max 10 at a time to avoid rate-limiting)
+    // 2. Load browser-rendered diagrams first, then fall back to Kroki when needed.
     const diagramImages = new Map();
-    const BATCH = 10;
-    for (let i = 0; i < diagRefs.length; i += BATCH) {
-        const batch = diagRefs.slice(i, i + BATCH);
-        const results = await Promise.all(batch.map((r) => renderMermaidDiagram(r.source, r.label)));
-        batch.forEach((r, idx) => diagramImages.set(r.key, results[idx]));
+    for (const diagRef of diagRefs) {
+        const browserRendered = browserRenderedDiagrams?.[diagRef.key];
+        if (isBrowserRenderedDiagram(browserRendered)) {
+            diagramImages.set(diagRef.key, browserRendered);
+        }
+    }
+    const missingDiagRefs = diagRefs.filter((diagRef) => !diagramImages.has(diagRef.key));
+    if (isBrowserExport && missingDiagRefs.length) {
+        throw new Error(`Missing browser-rendered diagrams for export: ${missingDiagRefs.map((diagRef) => diagRef.label).join(', ')}`);
+    }
+    if (!isBrowserExport) {
+        const BATCH = 10;
+        for (let i = 0; i < missingDiagRefs.length; i += BATCH) {
+            const batch = missingDiagRefs.slice(i, i + BATCH);
+            const results = await Promise.all(batch.map((r) => renderMermaidDiagram(r.source, r.label)));
+            batch.forEach((r, idx) => diagramImages.set(r.key, results[idx]));
+        }
     }
     // 3. Build document body
     const children = [];

@@ -289,15 +289,38 @@ sections:
         - All events are published to EventBridge for cross-domain consumption
           by the Analytics Platform.
       diagram_source: |
-        graph TD
-          Customer["Customer\n[Person]"] -->|HTTPS REST| APIGW["API Gateway\n[AWS]"]
-          Operator["Internal Operator\n[Person]"] -->|HTTPS REST| APIGW
-          APIGW --> Platform["Event-Driven Order\nProcessing Platform\n[AWS]"]
-          Platform -->|REST HTTPS| PayGW["Payment Gateway\n(Stripe)\n[External]"]
-          Platform -->|SQS| WMS["Warehouse Management\nSystem\n[External]"]
-          Platform -->|SES/SNS| NotifyProv["Notification Provider\n(Amazon SES/SNS)\n[AWS Managed]"]
-          Platform -->|S3 Events| Analytics["Analytics Platform\n[Internal]"]
-          CorpIAM["Corporate IAM\n(Cognito)\n[AWS]"] -->|JWT tokens| APIGW
+        flowchart LR
+          classDef actor fill:#f8fafc,stroke:#334155,stroke-width:1.4px,color:#0f172a;
+          classDef external fill:#fff7ed,stroke:#c2410c,stroke-width:1.4px,color:#7c2d12;
+          classDef internal fill:#ecfeff,stroke:#0f766e,stroke-width:1.4px,color:#134e4a;
+
+          Customer@{ shape: stadium, label: "Customer" }
+          Operator@{ shape: rounded, label: "Internal Operator" }
+          PayGW@{ shape: cloud, label: "Payment Gateway\n(Stripe)" }
+          WMS@{ shape: cloud, label: "Warehouse Management\nSystem" }
+          Analytics@{ shape: doc, label: "Analytics Platform" }
+
+          APIGW@{ img: "/icons/aws/api-gateway.svg", label: "API Gateway", pos: "b", w: 56, h: 56, constraint: "on" }
+          Cognito@{ img: "/icons/aws/cognito.svg", label: "Corporate IAM\nvia Cognito", pos: "b", w: 56, h: 56, constraint: "on" }
+          Platform@{ img: "/icons/aws/aws-cloud.svg", label: "Event-Driven Order\nProcessing Platform", pos: "b", w: 72, h: 72, constraint: "on" }
+          EventBus@{ img: "/icons/aws/eventbridge.svg", label: "EventBridge", pos: "b", w: 56, h: 56, constraint: "on" }
+          SES@{ img: "/icons/aws/ses.svg", label: "Amazon SES", pos: "b", w: 56, h: 56, constraint: "on" }
+          SNS@{ img: "/icons/aws/sns.svg", label: "Amazon SNS", pos: "b", w: 56, h: 56, constraint: "on" }
+
+          Customer -->|Submit orders| APIGW
+          Operator -->|Query status| APIGW
+          Cognito -->|JWT tokens| APIGW
+          APIGW --> Platform
+          Platform -->|REST HTTPS| PayGW
+          Platform -->|Fulfilment requests| WMS
+          Platform --> SES
+          Platform --> SNS
+          Platform --> EventBus
+          EventBus -->|Order events| Analytics
+
+          class Customer,Operator actor
+          class PayGW,WMS external
+          class Analytics internal
       source_type: mermaid
 
     functional:
@@ -329,23 +352,49 @@ sections:
         - Event Archive (S3 + Firehose): All EventBridge events replayed to
           Kinesis Firehose → S3 for audit retention (7 years) and analytics.
       diagram_source: |
-        graph LR
-          APIGW["API Gateway\n+ WAF + Cognito\nAuthoriser"] --> OrderSvc["Order Service\nLambda\n(Node.js 20)"]
-          OrderSvc --> DDB["DynamoDB\nOrders Table\n(single-table)"]
-          OrderSvc --> EB["EventBridge\nEvent Bus"]
-          EB --> PaySvc["Payment Service\nLambda\n(Node.js 20)"]
-          EB --> FulfilSvc["Fulfilment Service\nLambda\n(Node.js 20)"]
-          EB --> NotifySvc["Notification Service\nLambda\n(Node.js 20)"]
-          PaySvc --> Stripe["Payment Gateway\n(Stripe)"]
+        flowchart LR
+          classDef external fill:#fff7ed,stroke:#c2410c,stroke-width:1.4px,color:#7c2d12;
+
+          WAF@{ img: "/icons/aws/waf.svg", label: "AWS WAF", pos: "b", w: 52, h: 52, constraint: "on" }
+          APIGW@{ img: "/icons/aws/api-gateway.svg", label: "API Gateway", pos: "b", w: 52, h: 52, constraint: "on" }
+          Cognito@{ img: "/icons/aws/cognito.svg", label: "Cognito\nAuthorizer", pos: "b", w: 52, h: 52, constraint: "on" }
+          OrderSvc@{ img: "/icons/aws/lambda.svg", label: "Order Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+          PaySvc@{ img: "/icons/aws/lambda.svg", label: "Payment Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+          FulfilSvc@{ img: "/icons/aws/lambda.svg", label: "Fulfilment Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+          NotifySvc@{ img: "/icons/aws/lambda.svg", label: "Notification Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+          WMSAdapter@{ img: "/icons/aws/lambda.svg", label: "WMS Adapter\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+          DDB@{ img: "/icons/aws/dynamodb.svg", label: "Orders Table\nDynamoDB", pos: "b", w: 52, h: 52, constraint: "on" }
+          EB@{ img: "/icons/aws/eventbridge.svg", label: "Order Event Bus", pos: "b", w: 52, h: 52, constraint: "on" }
+          SQS@{ img: "/icons/aws/sqs.svg", label: "Fulfilment Queue\n+ DLQ", pos: "b", w: 52, h: 52, constraint: "on" }
+          SES@{ img: "/icons/aws/ses.svg", label: "Amazon SES", pos: "b", w: 52, h: 52, constraint: "on" }
+          SNS@{ img: "/icons/aws/sns.svg", label: "Amazon SNS", pos: "b", w: 52, h: 52, constraint: "on" }
+          Firehose@{ img: "/icons/aws/data-firehose.svg", label: "Kinesis Data Firehose", pos: "b", w: 52, h: 52, constraint: "on" }
+          S3@{ img: "/icons/aws/s3.svg", label: "S3 Event Archive\n(7-year retention)", pos: "b", w: 52, h: 52, constraint: "on" }
+          Stripe@{ shape: cloud, label: "Stripe API" }
+          WMS@{ shape: cloud, label: "Warehouse Management\nSystem" }
+
+          WAF --> APIGW
+          Cognito --> APIGW
+          APIGW --> OrderSvc
+          OrderSvc --> DDB
+          OrderSvc --> EB
+          EB --> PaySvc
+          EB --> FulfilSvc
+          EB --> NotifySvc
+          PaySvc --> Stripe
+          PaySvc --> DDB
           PaySvc --> EB
-          FulfilSvc --> SQS["SQS Queue\nFulfilment\n+ DLQ"]
-          SQS --> WMSAdapter["WMS Adapter\nLambda\n(Node.js 20)"]
-          WMSAdapter --> WMS["Warehouse Mgmt\nSystem"]
+          FulfilSvc --> DDB
+          FulfilSvc --> SQS
           FulfilSvc --> EB
-          NotifySvc --> SES["Amazon SES\n(Email)"]
-          NotifySvc --> SNS["Amazon SNS\n(SMS)"]
-          EB --> Firehose["Kinesis Firehose"]
-          Firehose --> S3["S3 Event Archive\n(7-year retention)"]
+          SQS --> WMSAdapter
+          WMSAdapter --> WMS
+          NotifySvc --> SES
+          NotifySvc --> SNS
+          EB --> Firehose
+          Firehose --> S3
+
+          class Stripe,WMS external
       source_type: mermaid
 
     deployment:
@@ -382,32 +431,71 @@ sections:
         - Route 53 health checks; failover routing policy activates DR region
           within RTO target (4 hours).
       diagram_source: |
-        graph TB
-          subgraph "eu-west-1 (Primary)"
-            subgraph "AZ-A (eu-west-1a)"
-              LambdaA["Lambda\n(all services)\nAZ-A"]
-              SubnetA["Private Subnet A\n10.0.1.0/24"]
+        flowchart TB
+          Route53@{ img: "/icons/aws/route53.svg", label: "Route 53\nHealth checks + failover", pos: "b", w: 56, h: 56, constraint: "on" }
+
+          subgraph Primary["eu-west-1 (Primary)"]
+            direction TB
+            CF_Primary@{ img: "/icons/aws/cloudfront.svg", label: "CloudFront", pos: "b", w: 52, h: 52, constraint: "on" }
+            WAF_Primary@{ img: "/icons/aws/waf.svg", label: "AWS WAF", pos: "b", w: 52, h: 52, constraint: "on" }
+            APIGW_Primary@{ img: "/icons/aws/api-gateway.svg", label: "Regional API Gateway", pos: "b", w: 52, h: 52, constraint: "on" }
+
+            subgraph VPC_Primary["VPC"]
+              direction LR
+
+              subgraph AZ_A["eu-west-1a"]
+                direction TB
+                SubnetA@{ img: "/icons/aws/private-subnet.svg", label: "Private Subnet A\n10.0.1.0/24", pos: "b", w: 48, h: 48, constraint: "on" }
+                LambdaA@{ img: "/icons/aws/lambda.svg", label: "Lambda workload", pos: "b", w: 48, h: 48, constraint: "on" }
+                NATA@{ img: "/icons/aws/nat-gateway.svg", label: "NAT Gateway A", pos: "b", w: 48, h: 48, constraint: "on" }
+                SubnetA --- LambdaA
+                LambdaA -. egress .-> NATA
+              end
+
+              subgraph AZ_B["eu-west-1b"]
+                direction TB
+                SubnetB@{ img: "/icons/aws/private-subnet.svg", label: "Private Subnet B\n10.0.2.0/24", pos: "b", w: 48, h: 48, constraint: "on" }
+                LambdaB@{ img: "/icons/aws/lambda.svg", label: "Lambda workload", pos: "b", w: 48, h: 48, constraint: "on" }
+                NATB@{ img: "/icons/aws/nat-gateway.svg", label: "NAT Gateway B", pos: "b", w: 48, h: 48, constraint: "on" }
+                SubnetB --- LambdaB
+                LambdaB -. egress .-> NATB
+              end
+
+              subgraph AZ_C["eu-west-1c"]
+                direction TB
+                SubnetC@{ img: "/icons/aws/private-subnet.svg", label: "Private Subnet C\n10.0.3.0/24", pos: "b", w: 48, h: 48, constraint: "on" }
+                LambdaC@{ img: "/icons/aws/lambda.svg", label: "Lambda workload", pos: "b", w: 48, h: 48, constraint: "on" }
+                NATC@{ img: "/icons/aws/nat-gateway.svg", label: "NAT Gateway C", pos: "b", w: 48, h: 48, constraint: "on" }
+                SubnetC --- LambdaC
+                LambdaC -. egress .-> NATC
+              end
             end
-            subgraph "AZ-B (eu-west-1b)"
-              LambdaB["Lambda\n(all services)\nAZ-B"]
-              SubnetB["Private Subnet B\n10.0.2.0/24"]
-            end
-            subgraph "AZ-C (eu-west-1c)"
-              LambdaC["Lambda\n(all services)\nAZ-C"]
-              SubnetC["Private Subnet C\n10.0.3.0/24"]
-            end
-            NATGW["NAT Gateway\n(per AZ)"]
-            DDB_Primary["DynamoDB\nGlobal Table\n(Primary)"]
-            APIGW_Regional["API Gateway\n(Regional)"]
-            WAF["WAF\n(CloudFront)"]
+
+            DDB_Primary@{ img: "/icons/aws/dynamodb.svg", label: "DynamoDB Global Table\nPrimary", pos: "b", w: 52, h: 52, constraint: "on" }
           end
-          subgraph "eu-central-1 (DR)"
-            DDB_DR["DynamoDB\nGlobal Table\n(Replica)"]
-            Lambda_DR["Lambda\n(warm standby)"]
+
+          subgraph DR["eu-central-1 (Warm standby)"]
+            direction TB
+            CF_DR@{ img: "/icons/aws/cloudfront.svg", label: "CloudFront", pos: "b", w: 52, h: 52, constraint: "on" }
+            WAF_DR@{ img: "/icons/aws/waf.svg", label: "AWS WAF", pos: "b", w: 52, h: 52, constraint: "on" }
+            APIGW_DR@{ img: "/icons/aws/api-gateway.svg", label: "Regional API Gateway", pos: "b", w: 52, h: 52, constraint: "on" }
+            Lambda_DR@{ img: "/icons/aws/lambda.svg", label: "Lambda warm standby", pos: "b", w: 52, h: 52, constraint: "on" }
+            DDB_DR@{ img: "/icons/aws/dynamodb.svg", label: "DynamoDB Global Table\nReplica", pos: "b", w: 52, h: 52, constraint: "on" }
           end
-          Route53["Route 53\nHealth Check\nFailover"] --> APIGW_Regional
-          Route53 -.->|"failover"| Lambda_DR
-          DDB_Primary <-->|"Global Tables\nreplication"| DDB_DR
+
+          Route53 --> CF_Primary
+          Route53 -. failover .-> CF_DR
+          CF_Primary --> WAF_Primary --> APIGW_Primary
+          CF_DR --> WAF_DR --> APIGW_DR
+          APIGW_Primary --> LambdaA
+          APIGW_Primary --> LambdaB
+          APIGW_Primary --> LambdaC
+          APIGW_DR --> Lambda_DR
+          LambdaA -. private AWS SDK .-> DDB_Primary
+          LambdaB -. private AWS SDK .-> DDB_Primary
+          LambdaC -. private AWS SDK .-> DDB_Primary
+          Lambda_DR -. warm standby access .-> DDB_DR
+          DDB_Primary <-->|Global Tables\nreplication| DDB_DR
       source_type: mermaid
 
     data_flow:
@@ -535,54 +623,69 @@ sections:
         uses TLS 1.2+. Internal Lambda-to-SQS and Lambda-to-DynamoDB calls
         use AWS SDK over HTTPS via VPC endpoints.
       diagram_source: |
-        graph LR
-          subgraph "Zone 1: Public"
+        flowchart LR
+          classDef external fill:#fff7ed,stroke:#c2410c,stroke-width:1.4px,color:#7c2d12;
+
+          Internet@{ shape: cloud, label: "Internet" }
+          Stripe@{ shape: cloud, label: "Stripe\nTLS 1.2+" }
+
+          subgraph Zone1["Zone 1: Public"]
             direction TB
-            Internet["Internet"]
-            CF["CloudFront\n+ WAF\n(OWASP CRS)"]
-          end
-          subgraph "Zone 2: API Perimeter"
-            direction TB
-            APIGW["API Gateway\n+ Cognito JWT\nAuthoriser"]
-          end
-          subgraph "Zone 3: Service Mesh (VPC)"
-            direction TB
-            OrderLambda["Order Service\nLambda\n(IAM least-priv)"]
-            EB["EventBridge\n(schema validated)"]
-            PayLambda["Payment Service\nLambda\n(IAM least-priv)"]
-            FulfilLambda["Fulfilment Service\nLambda\n(IAM least-priv)"]
-            NotifyLambda["Notification Service\nLambda\n(IAM least-priv)"]
-            Stripe["Stripe\n(TLS 1.2+)"]
-          end
-          subgraph "Zone 4: Data (KMS encrypted)"
-            direction TB
-            DDB["DynamoDB\n(KMS CMK)"]
-            SQSq["SQS\n(KMS CMK)"]
-            S3arch["S3 Archive\n(KMS CMK)"]
-          end
-          subgraph "Zone 5: Audit"
-            direction TB
-            CloudTrail["CloudTrail\n(write-once S3)"]
-            XRAY["X-Ray\nTracing"]
+            CF@{ img: "/icons/aws/cloudfront.svg", label: "CloudFront", pos: "b", w: 52, h: 52, constraint: "on" }
+            WAF@{ img: "/icons/aws/waf.svg", label: "AWS WAF\nOWASP CRS", pos: "b", w: 52, h: 52, constraint: "on" }
+            CF --> WAF
           end
 
-          Internet --> CF --> APIGW --> OrderLambda --> EB
+          subgraph Zone2["Zone 2: API Perimeter"]
+            direction TB
+            APIGW@{ img: "/icons/aws/api-gateway.svg", label: "API Gateway", pos: "b", w: 52, h: 52, constraint: "on" }
+            Cognito@{ img: "/icons/aws/cognito.svg", label: "Cognito JWT\nAuthorizer", pos: "b", w: 52, h: 52, constraint: "on" }
+            Cognito --> APIGW
+          end
+
+          subgraph Zone3["Zone 3: Service Mesh (VPC)"]
+            direction TB
+            OrderLambda@{ img: "/icons/aws/lambda.svg", label: "Order Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+            PayLambda@{ img: "/icons/aws/lambda.svg", label: "Payment Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+            FulfilLambda@{ img: "/icons/aws/lambda.svg", label: "Fulfilment Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+            NotifyLambda@{ img: "/icons/aws/lambda.svg", label: "Notification Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+          end
+
+          subgraph Zone4["Zone 4: Data Layer (KMS encrypted)"]
+            direction TB
+            EB@{ img: "/icons/aws/eventbridge.svg", label: "EventBridge\nSchema validated", pos: "b", w: 52, h: 52, constraint: "on" }
+            DDB@{ img: "/icons/aws/dynamodb.svg", label: "DynamoDB", pos: "b", w: 52, h: 52, constraint: "on" }
+            SQSq@{ img: "/icons/aws/sqs.svg", label: "SQS", pos: "b", w: 52, h: 52, constraint: "on" }
+            S3arch@{ img: "/icons/aws/s3.svg", label: "S3 Archive", pos: "b", w: 52, h: 52, constraint: "on" }
+          end
+
+          subgraph Zone5["Zone 5: Audit"]
+            direction TB
+            CloudTrail@{ img: "/icons/aws/cloudtrail.svg", label: "CloudTrail\nwrite-once S3", pos: "b", w: 52, h: 52, constraint: "on" }
+            XRAY@{ img: "/icons/aws/xray.svg", label: "AWS X-Ray", pos: "b", w: 52, h: 52, constraint: "on" }
+          end
+
+          Internet --> CF
+          WAF --> APIGW
+          APIGW --> OrderLambda
+          OrderLambda --> EB
           EB --> PayLambda --> Stripe
           EB --> FulfilLambda
           EB --> NotifyLambda
-
           OrderLambda --> DDB
           PayLambda --> DDB
           FulfilLambda --> SQSq
           EB --> S3arch
 
-          DDB -. audit .-> CloudTrail
-          SQSq -. audit .-> CloudTrail
-          S3arch -. audit .-> CloudTrail
-          OrderLambda -. trace .-> XRAY
-          PayLambda -. trace .-> XRAY
-          FulfilLambda -. trace .-> XRAY
-          NotifyLambda -. trace .-> XRAY
+          DDB -. data events .-> CloudTrail
+          SQSq -. queue events .-> CloudTrail
+          S3arch -. archive logs .-> CloudTrail
+          OrderLambda -. traces .-> XRAY
+          PayLambda -. traces .-> XRAY
+          FulfilLambda -. traces .-> XRAY
+          NotifyLambda -. traces .-> XRAY
+
+          class Internet,Stripe external
       source_type: mermaid
 
     element_catalog:

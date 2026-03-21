@@ -60,7 +60,7 @@ export async function startServer(fileArg?: string): Promise<void> {
   }
 
   const app = express()
-  app.use(express.json())
+  app.use(express.json({ limit: '25mb' }))
 
   // GET /api/manifest  or  GET /api/files
   const manifestHandler: RequestHandler = (_req, res) => {
@@ -122,19 +122,30 @@ export async function startServer(fileArg?: string): Promise<void> {
   // POST /api/export/docx  — generate a Word document from artifact JSON
   app.post('/api/export/docx', async (req, res) => {
     try {
-      const artifactData = req.body
+      const payload = req.body as Record<string, any> | null
+      const artifactData = payload?.artifactData ?? payload
+      const renderedDiagrams =
+        payload?.artifactData && payload.renderedDiagrams && typeof payload.renderedDiagrams === 'object'
+          ? payload.renderedDiagrams
+          : undefined
+
       if (!artifactData || typeof artifactData !== 'object') {
         res.status(400).json({ error: 'Request body must be artifact JSON' })
         return
       }
-      const buf = await exportToDocx(artifactData)
+      const buf = await exportToDocx(artifactData, renderedDiagrams)
       const title: string =
         (artifactData as any)?.metadata?.title?.replace(/[^a-z0-9]/gi, '-').toLowerCase() ?? 'artifact'
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
       res.setHeader('Content-Disposition', `attachment; filename="${title}.docx"`)
       res.send(buf)
     } catch (e) {
-      res.status(500).json({ error: String(e) })
+      const message = e instanceof Error ? e.message : String(e)
+      if (message.startsWith('Missing browser-rendered diagrams for export:')) {
+        res.status(400).json({ error: message })
+        return
+      }
+      res.status(500).json({ error: message })
     }
   })
 
@@ -142,6 +153,9 @@ export async function startServer(fileArg?: string): Promise<void> {
   app.all('/api/*', (_req, res) => {
     res.status(404).json({ error: 'Unknown API route' })
   })
+
+  // Workspace icon assets
+  app.use('/icons', express.static(resolve(REPO_ROOT, 'icons')))
 
   // Static files — served after API routes
   app.use(express.static(distDir))
