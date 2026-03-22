@@ -121,7 +121,7 @@ function getDemoConfig(slug: string): ContentInjection[] {
             key="agent-demo"
             title="AI agent assessment"
             lines={[
-              { type: 'input', prompt: '(claude)', value: 'claude -p "Assess artifact.yaml using EAROS"' },
+              { type: 'input', value: 'claude -p "Assess artifact.yaml using EAROS"' },
               { value: '\u280b Reading rubric files...' },
               { value: '\u280b Running structural validation...' },
               { value: '\u280b Scoring 19 criteria with RULERS protocol...' },
@@ -129,7 +129,7 @@ function getDemoConfig(slug: string): ContentInjection[] {
               { value: 'Status: Pass (3.73 / 4.0)' },
               { value: '  No critical gate failures \u2022 All dimensions \u2265 2.0' },
               { value: 'Output: artifact.evaluation.yaml' },
-              { type: 'input', prompt: '(copilot)', value: 'copilot "Run EAROS assessment on solution-design.yaml"' },
+              { type: 'input', value: 'copilot "Run EAROS assessment on solution-design.yaml"' },
               { value: 'Loading earos-assess skill...' },
               { value: 'Applying EAROS-CORE-002 + EAROS-SOL-001...' },
               { value: '\u2713 14 criteria scored, 0 gate failures' },
