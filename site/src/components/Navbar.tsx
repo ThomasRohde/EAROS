@@ -37,8 +37,9 @@ const themeCycle: Record<ThemeMode, ThemeMode> = {
 
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
-  { label: 'Demo', to: '/demo' },
+  { label: 'Onboarding', to: '/onboarding' },
   { label: 'Docs', to: '/docs' },
+  { label: 'Demo', to: '/demo' },
 ]
 
 export default function Navbar() {

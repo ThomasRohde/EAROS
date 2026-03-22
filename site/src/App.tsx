@@ -7,6 +7,8 @@ import LandingPage from './pages/LandingPage'
 const DemoPage = lazy(() => import('./pages/DemoPage'))
 const DocsPage = lazy(() => import('./pages/DocsPage'))
 const DocViewPage = lazy(() => import('./pages/DocViewPage'))
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage'))
+const OnboardingViewPage = lazy(() => import('./pages/OnboardingViewPage'))
 
 function Loading() {
   return (
@@ -26,6 +28,8 @@ export default function App() {
             <Route path="demo" element={<DemoPage />} />
             <Route path="docs" element={<DocsPage />} />
             <Route path="docs/:slug" element={<DocViewPage />} />
+            <Route path="onboarding" element={<OnboardingPage />} />
+            <Route path="onboarding/:slug" element={<OnboardingViewPage />} />
           </Route>
         </Routes>
       </Suspense>

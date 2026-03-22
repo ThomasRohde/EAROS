@@ -15,6 +15,12 @@ const MD_ROUTE_MAP: Record<string, string> = {
   'profile-authoring-guide.md': '/docs/profile-authoring',
   'terminology.md': '/docs/terminology',
   'EAROS.md': '/docs/standard',
+  // Onboarding guides
+  'overview.md': '/onboarding/overview',
+  'first-assessment.md': '/onboarding/first-assessment',
+  'governed-review.md': '/onboarding/governed-review',
+  'agent-assisted.md': '/onboarding/agent-assisted',
+  'scaling-optimization.md': '/onboarding/scaling-optimization',
 }
 
 /** Try to resolve an href that points at a .md file to an internal route. */
@@ -53,6 +59,15 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
               return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>
             }
             return <a href={href} {...props}>{children}</a>
+          },
+          img({ src, alt, ...props }: any) {
+            if (src && !src.startsWith('http')) {
+              // Resolve paths relative to the base URL for GitHub Pages
+              const base = import.meta.env.BASE_URL
+              const resolved = src.startsWith('/') ? base + src.slice(1) : base + 'screenshots/' + src
+              return <img src={resolved} alt={alt || ''} style={{ maxWidth: '100%', borderRadius: 8 }} {...props} />
+            }
+            return <img src={src} alt={alt || ''} style={{ maxWidth: '100%', borderRadius: 8 }} {...props} />
           },
         }}
       >
