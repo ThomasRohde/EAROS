@@ -23,8 +23,6 @@ No formal review process. Evaluation quality depends entirely on who happens to 
 - **EAROS capabilities:** None (this is the baseline state)
 - **You are here when:** You recognize the problem --- reviews are inconsistent and reviewer-dependent
 
----
-
 ### Level 2 --- Rubric-Based
 
 The core rubric is adopted. Every assessment uses the same 9 dimensions and 10 criteria with the 0--4 scoring scale. Evidence is cited for every score. Results are reproducible across reviewers.
@@ -34,8 +32,6 @@ The core rubric is adopted. Every assessment uses the same 9 dimensions and 10 c
 - **You are here when:** You have completed at least one assessment using the core rubric with evidence for every score
 
 > **Guide:** [Your First Assessment](first-assessment.md) walks you through this transition.
-
----
 
 ### Level 3 --- Governed
 
@@ -47,8 +43,6 @@ Artifact-specific profiles and context-driven overlays are in use. Teams are cal
 
 > **Guide:** [Governed Review](governed-review.md) walks you through this transition.
 
----
-
 ### Level 4 --- Hybrid
 
 AI agents augment human reviewers. Both evaluate independently and reconcile disagreements against level descriptors. Metrics track inter-rater reliability between human and agent evaluators.
@@ -58,8 +52,6 @@ AI agents augment human reviewers. Both evaluate independently and reconcile dis
 - **You are here when:** Human-agent disagreements are routinely resolved and inter-rater reliability is tracked
 
 > **Guide:** [Agent-Assisted Evaluation](agent-assisted.md) walks you through this transition.
-
----
 
 ### Level 5 --- Optimized
 

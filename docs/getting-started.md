@@ -2,8 +2,6 @@
 
 This guide walks you through your first architecture artifact assessment using EaROS. By the end, you will have scored an artifact, produced a structured evaluation record, and know how to interpret the results.
 
----
-
 ## Before You Start
 
 **What you need:**
@@ -14,8 +12,6 @@ This guide walks you through your first architecture artifact assessment using E
 - A rubric specifying exactly what to look for and how to score it
 - A scoring sheet to record your evidence and scores
 - Clear pass/fail thresholds
-
----
 
 ## Step 1: Identify the Artifact Type
 
@@ -33,8 +29,6 @@ EaROS has profiles for the most common enterprise architecture artifact types:
 > **Status:** *Approved* profiles have completed calibration. *Draft* profiles are usable but have not yet been calibrated with inter-rater reliability measured. Check `earos.manifest.yaml` for the latest status of each rubric.
 
 If your artifact does not match any profile, apply only the core rubric. The core dimensions are universal.
-
----
 
 ## Step 2: Select Your Rubric Set
 
@@ -62,8 +56,6 @@ overlays/regulatory.yaml       ← if the design is subject to compliance requir
 
 Apply overlays selectively. Not every artifact needs every overlay.
 
----
-
 ## Step 3: Open the Scoring Sheet
 
 Open the Excel scoring sheet from `tools/scoring-sheets/`:
@@ -76,8 +68,6 @@ The scoring sheet has:
 - Evidence fields for recording your cited text or reference
 - An automatic aggregation tab that calculates the weighted score and indicates the pass threshold
 
----
-
 ## Step 4: Read the Rubric, Then Read the Artifact
 
 Open the relevant YAML rubric files. For each criterion, familiarise yourself with:
@@ -87,8 +77,6 @@ Open the relevant YAML rubric files. For each criterion, familiarise yourself wi
 - The `gate` field — if enabled with severity `critical`, a failure triggers a Reject; severity `major` caps the status at Conditional Pass
 
 **Then read the artifact end-to-end** before scoring. Do not score as you read on the first pass. Form an overall impression first, then return to score criterion by criterion.
-
----
 
 ## Step 5: Score Each Criterion
 
@@ -110,8 +98,6 @@ For each criterion:
 
 You read the artifact and find a scope statement that defines what is in scope but does not list explicit exclusions. → **Score: 3** → Record: "Section 1.2: scope statement defines in-scope components but exclusions are not listed."
 
----
-
 ## Step 6: Check the Gates
 
 Before calculating the aggregate, check every criterion with a `gate` object (not `gate: false`) in the rubric files. Gate behaviour depends on severity:
@@ -121,8 +107,6 @@ Before calculating the aggregate, check every criterion with a `gate` object (no
 - **`advisory`** — Triggers a recommendation but does not cap the status.
 
 Gate criteria represent non-negotiable minimums on their respective concern. A critical gate failure means the artifact has a fundamental deficiency that makes it unsuitable for its purpose.
-
----
 
 ## Step 7: Determine the Status
 
@@ -137,8 +121,6 @@ The scoring sheet calculates the weighted dimension average automatically. Read 
 | Critical gate failure (evidence too incomplete to score) | **Not Reviewable** |
 
 **Conditional Pass** means the artifact is acceptable for use but has identified remediation items that must be addressed before the next formal review. Document each item with the criterion ID, the score, and the specific improvement needed.
-
----
 
 ## Step 8: Write the Evaluation Record
 
@@ -156,8 +138,6 @@ The evaluation record captures:
 
 Store completed evaluation records with the artifact or in your architecture governance system.
 
----
-
 ## Interpreting Results
 
 ### Pass
@@ -172,8 +152,6 @@ The artifact has pervasive or significant gaps. Return it to the author with the
 ### Reject
 The artifact has failed one or more gate criteria, indicating a fundamental deficiency. Reject means the artifact should not be used or progressed until the gate issue is fully resolved. A gate failure is not about quality level — it is about something that makes the artifact unsuitable for its purpose.
 
----
-
 ## Calibrating Your Assessments
 
 If you are introducing EaROS to a team or beginning to use it for formal governance, calibrate before going live:
@@ -185,8 +163,6 @@ If you are introducing EaROS to a team or beginning to use it for formal governa
 5. Document the agreed interpretation in a calibration note stored in `calibration/gold-set/`
 
 Target inter-rater reliability: Cohen's κ > 0.70 for well-defined criteria.
-
----
 
 ## Next Steps
 

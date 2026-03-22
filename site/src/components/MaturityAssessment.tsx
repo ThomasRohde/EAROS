@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import {
   Box,
   Typography,
-  Checkbox,
+  Radio,
+  RadioGroup,
   FormControlLabel,
   Button,
   Collapse,
@@ -15,80 +16,285 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
 import { sapphire } from '../theme'
 
-interface LevelData {
-  level: number
-  name: string
-  subtitle: string
-  guide?: { label: string; to: string }
-  questions: string[]
+/* ------------------------------------------------------------------ */
+/*  Data types                                                        */
+/* ------------------------------------------------------------------ */
+
+interface Question {
+  id: string
+  text: string
+  options: string[] // 4 options, index position determines score (1–4)
 }
 
-const LEVELS: LevelData[] = [
+interface Dimension {
+  id: string
+  name: string
+  description: string
+  questions: Question[]
+  recommendations: Record<number, string> // level → what to do next
+}
+
+/* ------------------------------------------------------------------ */
+/*  Maturity levels                                                   */
+/* ------------------------------------------------------------------ */
+
+const LEVEL_NAMES: Record<number, string> = {
+  1: 'Ad Hoc',
+  2: 'Rubric-Based',
+  3: 'Governed',
+  4: 'Hybrid',
+  5: 'Optimized',
+}
+
+const LEVEL_GUIDES: Record<number, { label: string; to: string }> = {
+  2: { label: 'Your First Assessment', to: '/onboarding/first-assessment' },
+  3: { label: 'Governed Review', to: '/onboarding/governed-review' },
+  4: { label: 'Agent-Assisted Evaluation', to: '/onboarding/agent-assisted' },
+  5: { label: 'Scaling & Optimization', to: '/onboarding/scaling-optimization' },
+}
+
+/* ------------------------------------------------------------------ */
+/*  Assessment dimensions (5 × 3 questions = 15 diagnostic questions) */
+/* ------------------------------------------------------------------ */
+
+const DIMENSIONS: Dimension[] = [
   {
-    level: 1,
-    name: 'Ad Hoc',
-    subtitle: 'You are here if most answers are "no"',
+    id: 'criteria',
+    name: 'Criteria & Standards',
+    description: 'How well-defined are your review criteria?',
     questions: [
-      'Do you have a written set of criteria for architecture review?',
-      'Do two reviewers produce substantially similar feedback on the same artifact?',
-      'Can you explain what "good" looks like for an architecture artifact in your organization?',
+      {
+        id: 'crit-def',
+        text: 'How are your architecture review criteria defined?',
+        options: [
+          'Each reviewer applies their own mental model',
+          'We have a shared rubric with explicit criteria and scoring levels',
+          'We use artifact-specific profiles with calibrated scoring guides',
+          'Criteria are machine-readable, versioned, and governed through change control',
+        ],
+      },
+      {
+        id: 'crit-lvl',
+        text: 'How do you distinguish between score levels?',
+        options: [
+          'It\'s implicit \u2014 reviewers know quality when they see it',
+          'Written level descriptors define what each score means',
+          'Decision trees resolve ambiguous cases between adjacent scores',
+          'Scoring guides are refined continuously based on calibration data',
+        ],
+      },
+      {
+        id: 'crit-gate',
+        text: 'How do you handle criteria that can block a passing review?',
+        options: [
+          'No formal blocking criteria \u2014 everything is advisory',
+          'Some criteria are marked as must-pass gates',
+          'Gates have graded severity (advisory / major / critical) with defined effects',
+          'Gate violations trigger automated workflow actions',
+        ],
+      },
     ],
+    recommendations: {
+      1: 'Start by documenting your review criteria in a shared rubric with explicit scoring levels.',
+      2: 'Adopt artifact-specific profiles and add decision trees to resolve scoring ambiguity.',
+      3: 'Introduce version control and governed change processes for your rubric definitions.',
+      4: 'Integrate rubric governance into your CI/CD pipeline with automated validation.',
+    },
   },
   {
-    level: 2,
-    name: 'Rubric-Based',
-    subtitle: 'You have adopted a structured rubric',
-    guide: { label: 'Your First Assessment', to: '/onboarding/first-assessment' },
+    id: 'evidence',
+    name: 'Evidence & Scoring',
+    description: 'How rigorous is your evidence gathering?',
     questions: [
-      'You use a defined rubric with explicit criteria and scoring levels',
-      'Every score has a cited evidence reference (not just "seems adequate")',
-      'You can explain the difference between a score of 2 and 3 for any criterion',
-      'You check gates before computing averages',
+      {
+        id: 'evid-cite',
+        text: 'How do reviewers substantiate their scores?',
+        options: [
+          'Based on overall impression without specific citations',
+          'By citing specific sections, quotes, or diagrams from the artifact',
+          'Evidence is classified by type (observed / inferred / external)',
+          'Evidence extraction is automated with agents identifying and classifying references',
+        ],
+      },
+      {
+        id: 'evid-persp',
+        text: 'How do you distinguish document quality from architecture soundness?',
+        options: [
+          'They\'re treated as one thing',
+          'Reviewers know they\'re different but score them together',
+          'The evaluation addresses artifact quality, architectural fitness, and governance fit',
+          'All three perspectives are scored with distinct criteria and tracked over time',
+        ],
+      },
+      {
+        id: 'evid-na',
+        text: 'What happens when a criterion doesn\'t apply?',
+        options: [
+          'Skip it or give a default score',
+          'Mark N/A with a brief note',
+          'N/A requires written justification and is excluded from score calculations',
+          'N/A patterns are tracked across evaluations to refine criteria applicability',
+        ],
+      },
     ],
+    recommendations: {
+      1: 'Require reviewers to cite specific evidence for every score they assign.',
+      2: 'Classify evidence as observed, inferred, or external to strengthen scoring transparency.',
+      3: 'Introduce AI-assisted evidence extraction to scale evidence-anchored scoring.',
+      4: 'Track evidence patterns across evaluations to continuously improve criteria relevance.',
+    },
   },
   {
-    level: 3,
-    name: 'Governed',
-    subtitle: 'Your team follows a calibrated, evidence-anchored process',
-    guide: { label: 'Governed Review', to: '/onboarding/governed-review' },
+    id: 'process',
+    name: 'Process & Governance',
+    description: 'How structured is your review process?',
     questions: [
-      'You select profiles matched to artifact types (not just the core rubric)',
-      'You apply overlays based on context (security, data governance, regulatory)',
-      'Your team has completed a calibration exercise with inter-rater agreement measured',
-      'Evidence is classified as observed, inferred, or external',
-      'The evaluation narrative addresses all three perspectives: artifact quality, architectural fitness, and governance fit',
+      {
+        id: 'proc-trig',
+        text: 'How is architecture review triggered?',
+        options: [
+          'Ad hoc \u2014 when someone thinks to request one',
+          'At defined milestones (e.g., before major decisions or releases)',
+          'Through a governed review cadence with entry and exit criteria',
+          'Automatically \u2014 artifact changes trigger evaluation in CI/CD pipelines',
+        ],
+      },
+      {
+        id: 'proc-rec',
+        text: 'How are review results recorded?',
+        options: [
+          'In meeting notes, emails, or informal documents',
+          'In a structured scoring sheet or template',
+          'In machine-readable evaluation records conforming to a schema',
+          'Records are versioned, stored centrally, and feed portfolio reporting',
+        ],
+      },
+      {
+        id: 'proc-chg',
+        text: 'How are rubric changes managed?',
+        options: [
+          'Criteria evolve informally based on reviewer preference',
+          'Changes are discussed and agreed before adoption',
+          'Rubrics are versioned (semver) with owner approval required',
+          'Changes trigger automated re-calibration and impact analysis',
+        ],
+      },
     ],
+    recommendations: {
+      1: 'Establish a regular review cadence and record results in a structured template.',
+      2: 'Move to schema-conformant evaluation records and version your rubrics.',
+      3: 'Integrate evaluation into your delivery pipeline for automated review triggers.',
+      4: 'Add automated impact analysis when rubric definitions change.',
+    },
   },
   {
-    level: 4,
-    name: 'Hybrid',
-    subtitle: 'AI agents augment human reviewers',
-    guide: { label: 'Agent-Assisted Evaluation', to: '/onboarding/agent-assisted' },
+    id: 'people',
+    name: 'People & Calibration',
+    description: 'How consistent are reviews across reviewers?',
     questions: [
-      'AI agents evaluate artifacts using the full 8-step DAG evaluation flow',
-      'Human and agent evaluations are compared and reconciled',
-      'A challenge pass reviews the highest and lowest scores for every evaluation',
-      'You track inter-rater reliability metrics between human and agent evaluators',
+      {
+        id: 'ppl-cons',
+        text: 'How consistent are reviews across different reviewers?',
+        options: [
+          'We don\'t measure \u2014 results depend heavily on who reviews',
+          'We\'ve compared informally and noticed reasonable consistency',
+          'We run calibration exercises and measure inter-rater reliability (Cohen\u2019s \u03BA)',
+          'Calibration is continuous \u2014 drift is detected and triggers re-calibration',
+        ],
+      },
+      {
+        id: 'ppl-disagree',
+        text: 'How are disagreements between reviewers resolved?',
+        options: [
+          'The senior reviewer\'s opinion prevails',
+          'Discussion until consensus is reached',
+          'Resolved against the rubric\'s level descriptors and decision trees',
+          'Persistent disagreements trigger rubric refinement to reduce future ambiguity',
+        ],
+      },
+      {
+        id: 'ppl-onboard',
+        text: 'How do new reviewers learn to evaluate?',
+        options: [
+          'By shadowing experienced reviewers',
+          'Using written guidance and example evaluations',
+          'Through calibration exercises with reference artifacts and structured feedback',
+          'Self-service onboarding with gold-standard examples and automated scoring comparison',
+        ],
+      },
     ],
+    recommendations: {
+      1: 'Run your first calibration exercise: two reviewers independently score the same artifact.',
+      2: 'Measure inter-rater reliability and resolve disagreements against the rubric.',
+      3: 'Introduce AI evaluators alongside human reviewers and calibrate continuously.',
+      4: 'Build a self-service calibration program with automated drift detection.',
+    },
   },
   {
-    level: 5,
-    name: 'Optimized',
-    subtitle: 'Architecture evaluation is continuous and automated',
-    guide: { label: 'Scaling and Optimization', to: '/onboarding/scaling-optimization' },
+    id: 'tooling',
+    name: 'Tooling & Automation',
+    description: 'What level of tooling supports your reviews?',
     questions: [
-      'Architecture evaluation is integrated into your CI/CD or delivery pipeline',
-      'Calibration runs continuously, not just at setup time',
-      'You create and maintain custom profiles for your organization\'s artifact types',
-      'Executive reporting provides portfolio-level quality visibility',
-      'Rubric changes follow a governed process with version bumps and re-calibration',
+      {
+        id: 'tool-plat',
+        text: 'What tools support your architecture review?',
+        options: [
+          'Email, documents, and meetings',
+          'A structured scoring spreadsheet or form',
+          'A dedicated evaluation tool with schema validation',
+          'An integrated platform with AI-assisted scoring and pipeline integration',
+        ],
+      },
+      {
+        id: 'tool-ai',
+        text: 'How do AI agents participate in architecture review?',
+        options: [
+          'They don\'t participate',
+          'We\'ve experimented informally with AI-assisted review',
+          'AI agents evaluate using a defined protocol, with human reconciliation',
+          'AI and human evaluations run in parallel with continuous calibration',
+        ],
+      },
+      {
+        id: 'tool-report',
+        text: 'How do you report on architecture quality across your portfolio?',
+        options: [
+          'No portfolio-level visibility',
+          'Manual compilation when requested',
+          'Regular reports aggregate results by team, artifact type, or dimension',
+          'Real-time dashboards with automated alerts on quality degradation',
+        ],
+      },
     ],
+    recommendations: {
+      1: 'Adopt a structured scoring tool \u2014 the EAROS editor or scoring spreadsheet.',
+      2: 'Introduce AI agent evaluation with human reconciliation.',
+      3: 'Build portfolio-level reporting with automated quality dashboards.',
+      4: 'Achieve full pipeline integration with real-time quality monitoring.',
+    },
   },
 ]
 
-const STORAGE_KEY = 'earos-maturity-assessment'
+/* ------------------------------------------------------------------ */
+/*  Scoring                                                           */
+/* ------------------------------------------------------------------ */
 
-function getLevelColor(level: number, isDark: boolean) {
+const STORAGE_KEY = 'earos-maturity-assessment-v2'
+
+/** Map a 1.0–4.0 dimension average to a maturity level 1–5. */
+function scoreToLevel(score: number): number {
+  if (score < 1.5) return 1
+  if (score < 2.5) return 2
+  if (score < 3.2) return 3
+  if (score < 3.7) return 4
+  return 5
+}
+
+/* ------------------------------------------------------------------ */
+/*  Theme helpers                                                     */
+/* ------------------------------------------------------------------ */
+
+function getLevelColor(level: number, isDark: boolean): string {
   switch (level) {
     case 1: return isDark ? sapphire.gray[400] : sapphire.gray[500]
     case 2: return isDark ? sapphire.green[400] : sapphire.green[500]
@@ -99,7 +305,8 @@ function getLevelColor(level: number, isDark: boolean) {
   }
 }
 
-function getLevelBg(level: number, isDark: boolean) {
+/** Semi-transparent background tinted to the maturity level colour. */
+function getLevelBg(level: number, isDark: boolean): string {
   switch (level) {
     case 1: return isDark ? 'hsl(211 19% 49% / 0.08)' : sapphire.gray[50]
     case 2: return isDark ? 'hsl(122 39% 49% / 0.08)' : sapphire.green[50]
@@ -110,157 +317,165 @@ function getLevelBg(level: number, isDark: boolean) {
   }
 }
 
-function computeLevel(checks: Record<string, boolean>): number {
-  // Walk levels top-down: the highest level where ALL questions are checked
-  // Level 1 is special: it's the baseline. You're at L1 if L1 questions are mostly "no"
-  // For L2-5: you've reached that level if all its questions (and all below) are checked
-  for (let li = LEVELS.length - 1; li >= 1; li--) {
-    const allPriorComplete = LEVELS.slice(0, li + 1).every((lvl) =>
-      lvl.questions.every((_, qi) => checks[`${lvl.level}-${qi}`])
-    )
-    if (allPriorComplete) return LEVELS[li].level
+/** Subtle border tinted to the maturity level colour. */
+function getLevelBorder(level: number, isDark: boolean): string {
+  switch (level) {
+    case 1: return isDark ? 'hsl(211 19% 49% / 0.20)' : 'hsl(211 19% 49% / 0.13)'
+    case 2: return isDark ? 'hsl(122 39% 49% / 0.20)' : 'hsl(122 39% 49% / 0.13)'
+    case 3: return isDark ? 'hsl(216 100% 63% / 0.20)' : 'hsl(216 100% 63% / 0.13)'
+    case 4: return isDark ? 'hsl(46 97% 65% / 0.20)' : 'hsl(46 97% 65% / 0.13)'
+    case 5: return isDark ? 'hsl(40 57% 62% / 0.20)' : 'hsl(40 57% 62% / 0.13)'
+    default: return isDark ? 'hsl(211 19% 49% / 0.20)' : 'hsl(211 19% 49% / 0.13)'
   }
-  // Check if at least some L1 questions are answered yes
-  const l1Checked = LEVELS[0].questions.filter((_, qi) => checks[`1-${qi}`]).length
-  if (l1Checked >= 2) return 1
-  return 1
+}
+
+/* ------------------------------------------------------------------ */
+/*  Component                                                         */
+/* ------------------------------------------------------------------ */
+
+interface DimScore {
+  dim: Dimension
+  answered: number
+  total: number
+  avg: number
+  level: number
 }
 
 export default function MaturityAssessment() {
   const theme = useTheme()
   const isDark = theme.palette.mode === 'dark'
 
-  const [checks, setChecks] = useState<Record<string, boolean>>(() => {
+  /* --- state --- */
+
+  const [answers, setAnswers] = useState<Record<string, number>>(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      return stored ? JSON.parse(stored) : {}
-    } catch {
-      return {}
-    }
+      const raw = localStorage.getItem(STORAGE_KEY)
+      return raw ? JSON.parse(raw) : {}
+    } catch { return {} }
   })
 
-  const [expanded, setExpanded] = useState<Record<number, boolean>>(() => {
-    // Start with all levels expanded
-    const init: Record<number, boolean> = {}
-    LEVELS.forEach((l) => { init[l.level] = true })
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {}
+    DIMENSIONS.forEach(d => { init[d.id] = true })
     return init
   })
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(checks))
-    } catch { /* ignore */ }
-  }, [checks])
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(answers)) }
+    catch { /* quota exceeded */ }
+  }, [answers])
 
-  const toggleCheck = (key: string) => {
-    setChecks((prev) => ({ ...prev, [key]: !prev[key] }))
+  /* --- derived --- */
+
+  const totalQuestions = DIMENSIONS.reduce((s, d) => s + d.questions.length, 0)
+  const answeredCount = Object.keys(answers).length
+  const hasAnswers = answeredCount > 0
+  const allDone = answeredCount === totalQuestions
+
+  const dimScores: DimScore[] = DIMENSIONS.map(dim => {
+    const vals = dim.questions
+      .map(q => answers[q.id])
+      .filter((v): v is number => v !== undefined)
+    const answered = vals.length
+    const total = dim.questions.length
+    const avg = answered > 0 ? vals.reduce((a, b) => a + b, 0) / answered : 0
+    const level = answered > 0 ? scoreToLevel(avg) : 0
+    return { dim, answered, total, avg, level }
+  })
+
+  const scored = dimScores.filter(d => d.answered > 0)
+
+  let overallLevel = 0
+  if (scored.length > 0) {
+    const overallAvg = scored.reduce((s, d) => s + d.avg, 0) / scored.length
+    const uncapped = scoreToLevel(overallAvg)
+    const minLevel = Math.min(...scored.map(d => d.level))
+    // Your overall level can't exceed your weakest dimension + 1
+    overallLevel = Math.min(uncapped, minLevel + 1)
   }
 
-  const resetAll = () => {
-    setChecks({})
-  }
+  const sorted = [...scored].sort((a, b) => a.avg - b.avg)
+  const weakest = sorted[0]
+  const strongest = sorted[sorted.length - 1]
 
-  const currentLevel = computeLevel(checks)
-  const totalChecked = Object.values(checks).filter(Boolean).length
-  const totalQuestions = LEVELS.reduce((sum, l) => sum + l.questions.length, 0)
-  const hasAnyChecks = totalChecked > 0
+  const nextGuideLevel = overallLevel < 5 ? overallLevel + 1 : 5
+  const nextGuide = LEVEL_GUIDES[nextGuideLevel]
 
-  // Find the next guide to recommend
-  const nextLevel = LEVELS.find((l) => l.level === currentLevel + 1) || LEVELS.find((l) => l.level === currentLevel)
+  /* --- handlers --- */
+
+  const handleAnswer = (qid: string, score: number) =>
+    setAnswers(prev => ({ ...prev, [qid]: score }))
+
+  const resetAll = () => setAnswers({})
+
+  /* --- render --- */
 
   return (
     <Box sx={{ mt: 6, mb: 4 }}>
-      {/* Section heading */}
+      {/* Heading */}
       <Typography
         variant="h5"
-        sx={{
-          fontWeight: 500,
-          color: isDark ? '#ffffff' : sapphire.blue[900],
-          mb: 1,
-        }}
+        sx={{ fontWeight: 500, color: isDark ? '#ffffff' : sapphire.blue[900], mb: 1 }}
       >
         Where Are You Today?
       </Typography>
-      <Typography
-        sx={{
-          color: isDark ? sapphire.gray[400] : sapphire.gray[600],
-          mb: 4,
-          fontSize: '0.95rem',
-        }}
-      >
-        Check the statements that are true for your organization. The assessment determines your current maturity level.
+      <Typography sx={{ color: isDark ? sapphire.gray[400] : sapphire.gray[600], mb: 4, fontSize: '0.95rem' }}>
+        Answer {totalQuestions} questions across {DIMENSIONS.length} dimensions to determine your architecture review maturity level.
       </Typography>
 
-      {/* Result card */}
-      <Box
-        sx={{
-          p: 3,
-          mb: 4,
-          borderRadius: '12px',
-          bgcolor: getLevelBg(currentLevel, isDark),
-          border: '1px solid',
-          borderColor: isDark
-            ? `${getLevelColor(currentLevel, isDark)}33`
-            : `${getLevelColor(currentLevel, isDark)}22`,
-        }}
-      >
+      {/* ── Results card ── */}
+      <Box sx={{
+        p: 3, mb: 4, borderRadius: '12px',
+        bgcolor: getLevelBg(overallLevel || 1, isDark),
+        border: '1px solid',
+        borderColor: getLevelBorder(overallLevel || 1, isDark),
+      }}>
+        {/* Badge + summary row */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box
-              sx={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                bgcolor: getLevelColor(currentLevel, isDark),
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
+            <Box sx={{
+              width: 44, height: 44, borderRadius: '50%',
+              bgcolor: overallLevel > 0 ? getLevelColor(overallLevel, isDark) : isDark ? sapphire.gray[700] : sapphire.gray[200],
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              transition: 'background-color 0.3s ease',
+            }}>
               <Typography sx={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff' }}>
-                {currentLevel}
+                {overallLevel > 0 ? overallLevel : '?'}
               </Typography>
             </Box>
             <Box>
               <Typography sx={{ fontWeight: 600, color: isDark ? '#ffffff' : sapphire.blue[900], fontSize: '1.05rem' }}>
-                {hasAnyChecks ? `Level ${currentLevel}: ${LEVELS[currentLevel - 1].name}` : 'Start the assessment'}
+                {hasAnswers ? `Level ${overallLevel}: ${LEVEL_NAMES[overallLevel]}` : 'Start the assessment'}
               </Typography>
               <Typography sx={{ fontSize: '0.85rem', color: isDark ? sapphire.gray[400] : sapphire.gray[600] }}>
-                {hasAnyChecks
-                  ? `${totalChecked} of ${totalQuestions} practices confirmed`
-                  : 'Check the statements that apply to your organization'}
+                {hasAnswers
+                  ? `${answeredCount} of ${totalQuestions} questions answered`
+                  : `${totalQuestions} questions across ${DIMENSIONS.length} dimensions`}
               </Typography>
             </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            {hasAnyChecks && nextLevel?.guide && (
+            {hasAnswers && nextGuide && (
               <Button
                 component={Link}
-                to={nextLevel.guide.to}
+                to={nextGuide.to}
                 size="small"
                 variant="contained"
                 endIcon={<ArrowForwardIcon />}
                 sx={{
-                  textTransform: 'none',
-                  fontSize: '0.82rem',
-                  bgcolor: getLevelColor(currentLevel, isDark),
-                  '&:hover': { bgcolor: getLevelColor(currentLevel, isDark), filter: 'brightness(1.1)' },
+                  textTransform: 'none', fontSize: '0.82rem',
+                  bgcolor: getLevelColor(overallLevel, isDark),
+                  '&:hover': { bgcolor: getLevelColor(overallLevel, isDark), filter: 'brightness(1.1)' },
                 }}
               >
-                {currentLevel < 5 ? `Start: ${nextLevel.guide.label}` : nextLevel.guide.label}
+                {overallLevel < 5 ? `Next: ${nextGuide.label}` : nextGuide.label}
               </Button>
             )}
-            {hasAnyChecks && (
+            {hasAnswers && (
               <Button
-                size="small"
-                onClick={resetAll}
+                size="small" onClick={resetAll}
                 startIcon={<RestartAltIcon sx={{ fontSize: 16 }} />}
-                sx={{
-                  textTransform: 'none',
-                  fontSize: '0.78rem',
-                  color: isDark ? sapphire.gray[400] : sapphire.gray[500],
-                }}
+                sx={{ textTransform: 'none', fontSize: '0.78rem', color: isDark ? sapphire.gray[400] : sapphire.gray[500] }}
               >
                 Reset
               </Button>
@@ -268,162 +483,174 @@ export default function MaturityAssessment() {
           </Box>
         </Box>
 
-        {/* Progress bar */}
-        {hasAnyChecks && (
-          <Box sx={{ mt: 2, display: 'flex', gap: '3px' }}>
-            {LEVELS.map((lvl) => {
-              const count = lvl.questions.length
-              const checked = lvl.questions.filter((_, qi) => checks[`${lvl.level}-${qi}`]).length
-              const pct = count > 0 ? checked / count : 0
+        {/* Dimension score bars */}
+        {hasAnswers && (
+          <Box sx={{ mt: 3 }}>
+            {dimScores.map(ds => {
+              const barColor = ds.level > 0
+                ? getLevelColor(ds.level, isDark)
+                : isDark ? sapphire.gray[700] : sapphire.gray[200]
+              const barPct = ds.answered > 0 ? (ds.avg / 4) * 100 : 0
+              const isWeak = weakest && ds.dim.id === weakest.dim.id && scored.length > 1
+
               return (
-                <Box
-                  key={lvl.level}
-                  sx={{
-                    flex: count,
-                    height: 6,
-                    borderRadius: 3,
-                    bgcolor: isDark ? 'hsla(211, 19%, 49%, 0.15)' : 'hsla(212, 63%, 12%, 0.06)',
+                <Box key={ds.dim.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                  <Typography sx={{
+                    fontSize: '0.78rem', width: 130, flexShrink: 0, textAlign: 'right',
+                    color: isDark ? sapphire.gray[400] : sapphire.gray[600],
+                    fontWeight: isWeak ? 600 : 400,
+                  }}>
+                    {ds.dim.name}
+                  </Typography>
+                  <Box sx={{
+                    flex: 1, height: 8, borderRadius: 4,
+                    bgcolor: isDark ? 'hsl(211 19% 49% / 0.12)' : 'hsl(212 63% 12% / 0.06)',
                     overflow: 'hidden',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: `${pct * 100}%`,
-                      height: '100%',
-                      borderRadius: 3,
-                      bgcolor: getLevelColor(lvl.level, isDark),
-                      transition: 'width 0.3s ease',
-                    }}
-                  />
+                  }}>
+                    <Box sx={{
+                      width: `${barPct}%`, height: '100%', borderRadius: 4,
+                      bgcolor: barColor,
+                      transition: 'width 0.4s ease, background-color 0.3s ease',
+                    }} />
+                  </Box>
+                  <Typography sx={{
+                    fontSize: '0.75rem', width: 28, flexShrink: 0,
+                    color: ds.answered > 0 ? barColor : isDark ? sapphire.gray[600] : sapphire.gray[300],
+                    fontWeight: 600,
+                  }}>
+                    {ds.answered > 0 ? ds.avg.toFixed(1) : '\u2014'}
+                  </Typography>
                 </Box>
               )
             })}
           </Box>
         )}
+
+        {/* Gap insight */}
+        {scored.length >= 2 && weakest && strongest && weakest.dim.id !== strongest.dim.id && (
+          <Typography sx={{
+            mt: 2, pt: 2, fontSize: '0.85rem',
+            color: isDark ? sapphire.gray[400] : sapphire.gray[600],
+            borderTop: '1px solid',
+            borderColor: isDark ? 'hsl(212 33% 27% / 0.5)' : 'hsl(212 63% 12% / 0.08)',
+          }}>
+            <strong style={{ color: isDark ? sapphire.gray[300] : sapphire.gray[700] }}>
+              {weakest.dim.name}
+            </strong>{' '}
+            is your main growth area.{' '}
+            {weakest.dim.recommendations[weakest.level] || ''}
+          </Typography>
+        )}
       </Box>
 
-      {/* Level sections */}
-      {LEVELS.map((lvl) => {
-        const isExpanded = expanded[lvl.level] !== false
-        const checkedCount = lvl.questions.filter((_, qi) => checks[`${lvl.level}-${qi}`]).length
-        const allChecked = checkedCount === lvl.questions.length
-        const levelColor = getLevelColor(lvl.level, isDark)
+      {/* ── Dimension sections ── */}
+      {DIMENSIONS.map(dim => {
+        const ds = dimScores.find(d => d.dim.id === dim.id)!
+        const isOpen = expanded[dim.id] !== false
+        const dimColor = ds.level > 0
+          ? getLevelColor(ds.level, isDark)
+          : isDark ? sapphire.gray[500] : sapphire.gray[400]
+        const allAnsweredInDim = ds.answered === ds.total
 
         return (
-          <Box
-            key={lvl.level}
-            sx={{
-              mb: 1.5,
-              borderRadius: '10px',
-              border: '1px solid',
-              borderColor: isDark ? 'hsla(212, 33%, 27%, 0.5)' : 'hsla(212, 63%, 12%, 0.08)',
-              bgcolor: isDark ? sapphire.gray[800] : '#ffffff',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Level header */}
+          <Box key={dim.id} sx={{
+            mb: 1.5, borderRadius: '10px', border: '1px solid',
+            borderColor: isDark ? 'hsl(212 33% 27% / 0.5)' : 'hsl(212 63% 12% / 0.08)',
+            bgcolor: isDark ? sapphire.gray[800] : '#ffffff',
+            overflow: 'hidden',
+          }}>
+            {/* Dimension header */}
             <Box
-              onClick={() => setExpanded((prev) => ({ ...prev, [lvl.level]: !isExpanded }))}
+              onClick={() => setExpanded(p => ({ ...p, [dim.id]: !isOpen }))}
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1.5,
-                px: 2.5,
-                py: 1.5,
-                cursor: 'pointer',
-                userSelect: 'none',
-                '&:hover': {
-                  bgcolor: isDark ? 'hsla(216, 100%, 63%, 0.04)' : 'hsla(218, 92%, 49%, 0.02)',
-                },
+                display: 'flex', alignItems: 'center', gap: 1.5, px: 2.5, py: 1.5,
+                cursor: 'pointer', userSelect: 'none',
+                '&:hover': { bgcolor: isDark ? 'hsl(216 100% 63% / 0.04)' : 'hsl(218 92% 49% / 0.02)' },
               }}
             >
-              <Box
-                sx={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: '50%',
-                  bgcolor: allChecked ? levelColor : 'transparent',
-                  border: allChecked ? 'none' : `2px solid ${levelColor}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    color: allChecked ? '#ffffff' : levelColor,
-                  }}
-                >
-                  {lvl.level}
+              <Box sx={{
+                width: 28, height: 28, borderRadius: '50%',
+                bgcolor: allAnsweredInDim ? dimColor : 'transparent',
+                border: allAnsweredInDim ? 'none' : `2px solid ${dimColor}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                transition: 'all 0.2s ease',
+              }}>
+                <Typography sx={{
+                  fontSize: '0.75rem', fontWeight: 700,
+                  color: allAnsweredInDim ? '#ffffff' : dimColor,
+                }}>
+                  {ds.level > 0 ? ds.level : '\u00B7'}
                 </Typography>
               </Box>
               <Box sx={{ flex: 1 }}>
                 <Typography sx={{ fontWeight: 500, fontSize: '0.95rem', color: isDark ? '#ffffff' : sapphire.blue[900] }}>
-                  {lvl.name}
+                  {dim.name}
                 </Typography>
                 <Typography sx={{ fontSize: '0.78rem', color: isDark ? sapphire.gray[400] : sapphire.gray[600] }}>
-                  {lvl.subtitle}
+                  {dim.description}
                 </Typography>
               </Box>
-              <Typography
-                sx={{
-                  fontSize: '0.78rem',
-                  color: allChecked ? levelColor : isDark ? sapphire.gray[500] : sapphire.gray[400],
-                  fontWeight: allChecked ? 600 : 400,
-                  mr: 0.5,
-                }}
-              >
-                {checkedCount}/{lvl.questions.length}
+              <Typography sx={{
+                fontSize: '0.78rem', mr: 0.5,
+                color: allAnsweredInDim ? dimColor : isDark ? sapphire.gray[500] : sapphire.gray[400],
+                fontWeight: allAnsweredInDim ? 600 : 400,
+              }}>
+                {ds.answered}/{ds.total}
               </Typography>
-              {isExpanded ? (
-                <ExpandLessIcon sx={{ fontSize: 20, color: isDark ? sapphire.gray[500] : sapphire.gray[400] }} />
-              ) : (
-                <ExpandMoreIcon sx={{ fontSize: 20, color: isDark ? sapphire.gray[500] : sapphire.gray[400] }} />
-              )}
+              {isOpen
+                ? <ExpandLessIcon sx={{ fontSize: 20, color: isDark ? sapphire.gray[500] : sapphire.gray[400] }} />
+                : <ExpandMoreIcon sx={{ fontSize: 20, color: isDark ? sapphire.gray[500] : sapphire.gray[400] }} />
+              }
             </Box>
 
             {/* Questions */}
-            <Collapse in={isExpanded}>
-              <Box sx={{ px: 2.5, pb: 2, pt: 0.5 }}>
-                {lvl.questions.map((q, qi) => {
-                  const key = `${lvl.level}-${qi}`
-                  return (
-                    <FormControlLabel
-                      key={key}
-                      control={
-                        <Checkbox
-                          checked={!!checks[key]}
-                          onChange={() => toggleCheck(key)}
-                          size="small"
-                          sx={{
-                            color: isDark ? sapphire.gray[600] : sapphire.gray[300],
-                            '&.Mui-checked': { color: levelColor },
-                            p: 0.75,
-                          }}
-                        />
-                      }
-                      label={q}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        mx: 0,
-                        mb: 0.5,
-                        '& .MuiFormControlLabel-label': {
-                          fontSize: '0.88rem',
-                          lineHeight: 1.5,
-                          color: checks[key]
-                            ? isDark ? sapphire.gray[300] : sapphire.gray[700]
-                            : isDark ? sapphire.gray[400] : sapphire.gray[600],
-                          pt: '2px',
-                        },
-                      }}
-                    />
-                  )
-                })}
+            <Collapse in={isOpen}>
+              <Box sx={{ px: 2.5, pb: 2.5, pt: 0.5 }}>
+                {dim.questions.map((q, qi) => (
+                  <Box key={q.id} sx={{ mb: qi < dim.questions.length - 1 ? 3 : 0 }}>
+                    <Typography sx={{
+                      fontSize: '0.9rem', fontWeight: 500, mb: 1,
+                      color: isDark ? sapphire.gray[300] : sapphire.gray[700],
+                    }}>
+                      {q.text}
+                    </Typography>
+                    <RadioGroup
+                      value={answers[q.id] !== undefined ? String(answers[q.id]) : ''}
+                      onChange={(_, v) => handleAnswer(q.id, Number(v))}
+                    >
+                      {q.options.map((opt, oi) => {
+                        const score = oi + 1
+                        const selected = answers[q.id] === score
+                        const optColor = getLevelColor(scoreToLevel(score), isDark)
+
+                        return (
+                          <FormControlLabel
+                            key={oi}
+                            value={String(score)}
+                            control={
+                              <Radio size="small" sx={{
+                                color: isDark ? sapphire.gray[600] : sapphire.gray[300],
+                                '&.Mui-checked': { color: optColor },
+                                p: 0.75,
+                              }} />
+                            }
+                            label={opt}
+                            sx={{
+                              display: 'flex', alignItems: 'flex-start', mx: 0, mb: 0.25,
+                              '& .MuiFormControlLabel-label': {
+                                fontSize: '0.85rem', lineHeight: 1.5, pt: '2px',
+                                color: selected
+                                  ? isDark ? sapphire.gray[200] : sapphire.gray[800]
+                                  : isDark ? sapphire.gray[400] : sapphire.gray[600],
+                                fontWeight: selected ? 500 : 400,
+                              },
+                            }}
+                          />
+                        )
+                      })}
+                    </RadioGroup>
+                  </Box>
+                ))}
               </Box>
             </Collapse>
           </Box>
