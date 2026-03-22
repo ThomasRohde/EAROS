@@ -46,15 +46,16 @@ export default function TerminalDemo({
             return entry
           })
 
-          new Termynal(el, { startDelay, typeDelay, lineDelay }, lineData)
-
           if (title) {
             const id = `termynal-${Math.random().toString(36).slice(2, 8)}`
             el.classList.add(id)
             const style = document.createElement('style')
             style.textContent = `.${id}[data-termynal]::after { content: "${title}"; }`
-            el.appendChild(style)
+            document.head.appendChild(style)
           }
+
+          const t = new Termynal(el, { startDelay, typeDelay, lineDelay }, lineData)
+          t.init()
 
           observer.disconnect()
         }
@@ -75,6 +76,9 @@ export default function TerminalDemo({
         .termynal-wrapper[data-termynal] {
           border-radius: 8px;
           font-size: 15px;
+          width: 100%;
+          max-width: 100%;
+          margin: 1.5rem 0;
         }
       `}</style>
       <div
