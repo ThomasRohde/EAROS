@@ -5,6 +5,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { onboardingGuides, getOnboardingBySlug } from '../content/onboarding'
 import MarkdownRenderer from '../components/MarkdownRenderer'
 import MaturityBadge from '../components/MaturityBadge'
+import MaturityAssessment from '../components/MaturityAssessment'
 import { sapphire } from '../theme'
 
 function getSidebarDotColor(level: number, isDark: boolean) {
@@ -159,8 +160,22 @@ export default function OnboardingViewPage() {
             />
           </Box>
 
-          {/* Markdown content */}
-          <MarkdownRenderer content={guide.content} />
+          {/* Markdown content — for overview, inject assessment between sections */}
+          {slug === 'overview' ? (() => {
+            const marker = '## How to Use This Guide'
+            const idx = guide.content.indexOf(marker)
+            const before = idx >= 0 ? guide.content.slice(0, idx) : guide.content
+            const after = idx >= 0 ? guide.content.slice(idx) : ''
+            return (
+              <>
+                <MarkdownRenderer content={before} />
+                <MaturityAssessment />
+                {after && <MarkdownRenderer content={after} />}
+              </>
+            )
+          })() : (
+            <MarkdownRenderer content={guide.content} />
+          )}
 
           {/* Prev / Next navigation */}
           <Box

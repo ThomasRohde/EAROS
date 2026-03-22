@@ -71,46 +71,6 @@ Architecture evaluation is continuous and integrated into delivery workflows. Ca
 
 > **Guide:** [Scaling and Optimization](scaling-optimization.md) walks you through this transition.
 
-## Where Are You Today?
-
-Use this self-assessment to identify your current level. Answer each question honestly --- the goal is to find your starting point, not to score well.
-
-### Level 1 -- Ad Hoc (you are here if most answers are "no")
-
-- [ ] Do you have a written set of criteria for architecture review?
-- [ ] Do two reviewers produce substantially similar feedback on the same artifact?
-- [ ] Can you explain what "good" looks like for an architecture artifact in your organization?
-
-### Level 2 -- Rubric-Based (you are here if you can answer "yes" to these)
-
-- [ ] You use a defined rubric with explicit criteria and scoring levels
-- [ ] Every score has a cited evidence reference (not just "seems adequate")
-- [ ] You can explain the difference between a score of 2 and 3 for any criterion
-- [ ] You check gates before computing averages
-
-### Level 3 -- Governed (you are here if you can answer "yes" to these)
-
-- [ ] You select profiles matched to artifact types (not just the core rubric)
-- [ ] You apply overlays based on context (security, data governance, regulatory)
-- [ ] Your team has completed a calibration exercise with inter-rater agreement measured
-- [ ] Evidence is classified as observed, inferred, or external
-- [ ] Artifact quality, architectural fitness, and governance fit are reported separately
-
-### Level 4 -- Hybrid (you are here if you can answer "yes" to these)
-
-- [ ] AI agents evaluate artifacts using the full 8-step DAG evaluation flow
-- [ ] Human and agent evaluations are compared and reconciled
-- [ ] A challenge pass reviews the highest and lowest scores for every evaluation
-- [ ] You track inter-rater reliability metrics between human and agent evaluators
-
-### Level 5 -- Optimized (you are here if you can answer "yes" to these)
-
-- [ ] Architecture evaluation is integrated into your CI/CD or delivery pipeline
-- [ ] Calibration runs continuously, not just at setup time
-- [ ] You create and maintain custom profiles for your organization's artifact types
-- [ ] Executive reporting provides portfolio-level quality visibility
-- [ ] Rubric changes follow a governed process with version bumps and re-calibration
-
 ## How to Use This Guide
 
 The onboarding guide is organized as five pages, one for each level transition:
