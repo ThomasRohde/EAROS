@@ -15,13 +15,61 @@ EAROS applies these lessons to a specific domain: architecture artifact evaluati
 
 ## The Five Levels
 
-| Level | Name | Description | Key Practices | EAROS Capabilities Used | Success Criteria |
-|-------|------|-------------|---------------|------------------------|------------------|
-| **1** | **Ad Hoc** | No formal review process. Evaluation quality depends entirely on who happens to review the artifact. Different reviewers apply different mental models, and feedback is inconsistent and unreproducible. | Informal peer review, tribal knowledge | None (this is the baseline state) | You recognize the problem: reviews are inconsistent and reviewer-dependent |
-| **2** | **Rubric-Based** | The core rubric is adopted. Every assessment uses the same 9 dimensions and 10 criteria with the 0--4 scoring scale. Evidence is cited for every score. Results are reproducible across reviewers. | Manual scoring against core meta-rubric, evidence citation for every score, gate checking | Core meta-rubric, scoring sheets, 0--4 scale | At least one complete assessment using the core rubric with evidence for every score |
-| **3** | **Governed** | Artifact-specific profiles and context-driven overlays are in use. Teams are calibrated against reference examples. The RULERS protocol ensures evidence-anchored scoring. Evaluation records are structured and auditable. | Profile and overlay selection, RULERS protocol, team calibration exercises, structured evaluation records | Profiles, overlays, calibration, RULERS protocol, evidence classes | Calibration exercise completed with Cohen's kappa > 0.70; profiles matched to artifact types |
-| **4** | **Hybrid** | AI agents augment human reviewers. Both evaluate independently and reconcile disagreements against level descriptors. Metrics track inter-rater reliability between human and agent evaluators. | Human + AI agent independent evaluation, challenge pass, disagreement resolution, reliability tracking | Agent skills, DAG evaluation flow, challenge pass, hybrid mode | Human-agent disagreements routinely resolved; inter-rater reliability tracked |
-| **5** | **Optimized** | Architecture evaluation is continuous and integrated into delivery workflows. Calibration happens automatically. Executive reporting provides portfolio-level quality visibility. Rubrics are governed assets with version control and change management. | CI/CD integration, continuous calibration, custom profile creation, executive reporting, fitness functions | Executive reporting, fitness functions, Wasserstein calibration, custom profiles | Evaluation integrated into pipelines; calibration drift monitored; portfolio-level reporting operational |
+### Level 1 --- Ad Hoc
+
+No formal review process. Evaluation quality depends entirely on who happens to review the artifact. Different reviewers apply different mental models, and feedback is inconsistent and unreproducible.
+
+- **Key practices:** Informal peer review, tribal knowledge
+- **EAROS capabilities:** None (this is the baseline state)
+- **You are here when:** You recognize the problem --- reviews are inconsistent and reviewer-dependent
+
+---
+
+### Level 2 --- Rubric-Based
+
+The core rubric is adopted. Every assessment uses the same 9 dimensions and 10 criteria with the 0--4 scoring scale. Evidence is cited for every score. Results are reproducible across reviewers.
+
+- **Key practices:** Manual scoring against core meta-rubric, evidence citation for every score, gate checking
+- **EAROS capabilities:** Core meta-rubric, scoring sheets, 0--4 scale
+- **You are here when:** You have completed at least one assessment using the core rubric with evidence for every score
+
+> **Guide:** [Your First Assessment](first-assessment.md) walks you through this transition.
+
+---
+
+### Level 3 --- Governed
+
+Artifact-specific profiles and context-driven overlays are in use. Teams are calibrated against reference examples. The RULERS protocol ensures evidence-anchored scoring. Evaluation records are structured and auditable.
+
+- **Key practices:** Profile and overlay selection, RULERS protocol, team calibration exercises, structured evaluation records
+- **EAROS capabilities:** Profiles, overlays, calibration, RULERS protocol, evidence classes
+- **You are here when:** Your team has completed a calibration exercise with Cohen's kappa > 0.70 and profiles are matched to artifact types
+
+> **Guide:** [Governed Review](governed-review.md) walks you through this transition.
+
+---
+
+### Level 4 --- Hybrid
+
+AI agents augment human reviewers. Both evaluate independently and reconcile disagreements against level descriptors. Metrics track inter-rater reliability between human and agent evaluators.
+
+- **Key practices:** Human + AI agent independent evaluation, challenge pass, disagreement resolution, reliability tracking
+- **EAROS capabilities:** Agent skills, DAG evaluation flow, challenge pass, hybrid mode
+- **You are here when:** Human-agent disagreements are routinely resolved and inter-rater reliability is tracked
+
+> **Guide:** [Agent-Assisted Evaluation](agent-assisted.md) walks you through this transition.
+
+---
+
+### Level 5 --- Optimized
+
+Architecture evaluation is continuous and integrated into delivery workflows. Calibration happens automatically. Executive reporting provides portfolio-level quality visibility. Rubrics are governed assets with version control and change management.
+
+- **Key practices:** CI/CD integration, continuous calibration, custom profile creation, executive reporting, fitness functions
+- **EAROS capabilities:** Executive reporting, fitness functions, Wasserstein calibration, custom profiles
+- **You are here when:** Evaluation is integrated into pipelines, calibration drift is monitored, and portfolio-level reporting is operational
+
+> **Guide:** [Scaling and Optimization](scaling-optimization.md) walks you through this transition.
 
 ## Where Are You Today?
 

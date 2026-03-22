@@ -58,18 +58,19 @@ export default function MaturityBadge({ maturityLevel, maturityTransition, matur
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 1.5,
+        gap: 1,
         px: 1.5,
-        py: 0.5,
-        borderRadius: '6px',
+        py: 0.75,
+        borderRadius: '8px',
         bgcolor: colors.bg,
+        whiteSpace: 'nowrap',
       }}
     >
-      {/* Level dot */}
+      {/* Level circle */}
       <Box
         sx={{
-          width: 20,
-          height: 20,
+          width: 24,
+          height: 24,
           borderRadius: '50%',
           bgcolor: colors.dot,
           display: 'flex',
@@ -80,7 +81,7 @@ export default function MaturityBadge({ maturityLevel, maturityTransition, matur
       >
         <Typography
           sx={{
-            fontSize: '0.65rem',
+            fontSize: '0.7rem',
             fontWeight: 700,
             lineHeight: 1,
             color: '#ffffff',
@@ -90,35 +91,24 @@ export default function MaturityBadge({ maturityLevel, maturityTransition, matur
         </Typography>
       </Box>
 
-      {/* Transition text */}
+      {/* Combined label */}
       <Typography
         sx={{
-          fontSize: '0.78rem',
-          color: isDark ? sapphire.gray[400] : sapphire.gray[600],
-          fontWeight: 500,
-        }}
-      >
-        {maturityTransition}
-      </Typography>
-
-      {/* Separator */}
-      <Box
-        sx={{
-          width: 1,
-          height: 14,
-          bgcolor: isDark ? 'hsla(212, 33%, 27%, 0.6)' : 'hsla(212, 63%, 12%, 0.12)',
-          flexShrink: 0,
-        }}
-      />
-
-      {/* Label */}
-      <Typography
-        sx={{
-          fontSize: '0.78rem',
+          fontSize: '0.82rem',
           color: colors.text,
           fontWeight: 600,
         }}
       >
+        {maturityTransition}
+        <Box
+          component="span"
+          sx={{
+            mx: 0.75,
+            color: isDark ? 'hsla(212, 33%, 77%, 0.4)' : 'hsla(212, 63%, 12%, 0.2)',
+          }}
+        >
+          /
+        </Box>
         {maturityLabel}
       </Typography>
     </Box>
