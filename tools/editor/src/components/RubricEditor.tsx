@@ -42,6 +42,7 @@ import type { ManifestData, ManifestEntry } from '../manifest'
 import { fetchRepoFile, saveRepoFile } from '../manifest'
 import { loadSchema } from '../utils/schemaLoader'
 
+const allRenderers = [...materialRenderers, ...customRenderers]
 
 const RUBRIC_UISCHEMA = {
   type: 'Categorization',
@@ -570,7 +571,7 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
             schema={((kind === 'evaluation' ? evalSchema : rubricSchema) ?? {}) as any}
             uischema={uischemaFor(kind) as any}
             data={data}
-            renderers={[...materialRenderers, ...customRenderers]}
+            renderers={allRenderers}
             cells={materialCells}
             onChange={({ data: d }) => { if (d !== undefined) setData(d) }}
           />

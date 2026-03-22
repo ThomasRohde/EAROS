@@ -39,6 +39,8 @@ import {
 } from '../utils/mermaid'
 import type { RenderedDiagramPng } from '../utils/mermaid'
 
+const allRenderers = [...materialRenderers, ...customRenderers]
+
 const FALLBACK_UISCHEMA = {
   type: 'Categorization',
   elements: [
@@ -481,7 +483,7 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
                   schema={(artifactSchema ?? {}) as any}
                   uischema={(artifactUiSchema ?? FALLBACK_UISCHEMA) as any}
                   data={data}
-                  renderers={[...materialRenderers, ...customRenderers]}
+                  renderers={allRenderers}
                   cells={materialCells}
                   onChange={({ data: d }) => { if (d !== undefined) setData(d) }}
                 />
