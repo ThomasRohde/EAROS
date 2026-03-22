@@ -366,7 +366,7 @@ flowchart LR
     style S8 fill:#4caf50,stroke:#2e7d32,color:#fff
 ```
 
-Calibrate your agent against `calibration/gold-set/` before production use. Target inter-rater reliability of Cohen's κ > 0.70.
+Calibrate your agent before production use. Start with the benchmark artifact in `examples/aws-event-driven-order-processing/`, then populate `calibration/gold-set/` with your own reference artifacts. Target inter-rater reliability of Cohen's κ > 0.70.
 
 ---
 
@@ -449,9 +449,9 @@ Use `kind: overlay` and `artifact_type: any`. Overlays use `scoring.method: appe
 
 ### Calibrating Before Production
 
-1. Score the artifacts in `calibration/gold-set/` independently
-2. Compare against reference scores using `calibration/results/`
-3. Resolve disagreements against the level descriptors
+1. Start with the benchmark at `examples/aws-event-driven-order-processing/`, then add your own artifacts to `calibration/gold-set/`
+2. Have 2+ reviewers score each artifact independently
+3. Compare scores and resolve disagreements against the level descriptors
 4. Iterate until κ > 0.70 on well-defined criteria, > 0.50 on subjective ones
 
 ---

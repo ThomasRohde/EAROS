@@ -114,9 +114,9 @@ function getDemoConfig(slug: string): ContentInjection[] {
             title="terminal — calibration exercise"
             lines={[
               { type: 'input', value: '# 1. Each reviewer scores the same artifact independently' },
-              { type: 'input', value: 'earos assess artifact.yaml --profile reference-architecture' },
-              { value: '✓ Evaluation saved → reviewer-a.evaluation.yaml' },
-              { type: 'input', value: '# 2. Compare scores and compute inter-rater reliability' },
+              { type: 'input', value: 'earos validate artifact.evaluation.yaml' },
+              { value: '✓ artifact.evaluation.yaml is valid (kind: evaluation)' },
+              { type: 'input', value: '# 2. Compare reviewer scores and compute agreement' },
               { value: "Cohen's κ = 0.74 (substantial agreement)" },
               { type: 'input', value: '# 3. Resolve disagreements against level descriptors' },
               { value: '2 criteria had >1-point disagreement → resolved' },
@@ -130,9 +130,10 @@ function getDemoConfig(slug: string): ContentInjection[] {
         component: (
           <TerminalDemo
             key="agent-demo"
-            title="AI agent assessment"
+            title="AI agent assessment — via earos-assess skill"
             lines={[
-              { type: 'input', value: 'claude -p "Assess artifact.yaml using EAROS"' },
+              { type: 'input', value: '# Agents discover and run the earos-assess skill automatically' },
+              { type: 'input', value: '"Assess artifact.yaml using EAROS"' },
               { value: '\u280b Reading rubric files...' },
               { value: '\u280b Running structural validation...' },
               { value: '\u280b Scoring 19 criteria with RULERS protocol...' },
@@ -140,8 +141,8 @@ function getDemoConfig(slug: string): ContentInjection[] {
               { value: 'Status: Pass (3.73 / 4.0)' },
               { value: '  No critical gate failures \u2022 All dimensions \u2265 2.0' },
               { value: 'Output: artifact.evaluation.yaml' },
-              { type: 'input', value: 'copilot "Run EAROS assessment on solution-design.yaml"' },
-              { value: 'Loading earos-assess skill...' },
+              { type: 'input', value: '"Run EAROS assessment on solution-design.yaml"' },
+              { value: 'Loading earos-assess skill from .agents/skills/...' },
               { value: 'Applying EAROS-CORE-002 + EAROS-SOL-001...' },
               { value: '\u2713 13 criteria scored, 0 gate failures' },
               { value: 'Status: Conditional Pass (2.8 / 4.0)' },

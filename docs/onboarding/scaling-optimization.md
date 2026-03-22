@@ -46,7 +46,7 @@ The RULERS protocol uses the Wasserstein distance to measure how far an agent's 
 
 ### Maintaining the gold set
 
-The gold set (`calibration/gold-set/`) contains reference artifacts with known scores. As your organization's standards evolve, the gold set must evolve too. Add new reference artifacts periodically and retire outdated ones. Every gold-set artifact needs scores from at least 2 calibrated human reviewers.
+The gold set (`calibration/gold-set/`) is where your organization places reference artifacts with known scores. Start with the benchmark in `examples/aws-event-driven-order-processing/` and add your own. As your standards evolve, the gold set must evolve too. Add new reference artifacts periodically and retire outdated ones. Every gold-set artifact needs scores from at least 2 calibrated human reviewers.
 
 ## Creating Custom Profiles
 
