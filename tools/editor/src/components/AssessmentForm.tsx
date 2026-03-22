@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import {
   Box,
   AppBar,
@@ -28,7 +28,7 @@ import type { ManifestData, ManifestEntry } from '../manifest'
 import { fetchRepoFile } from '../manifest'
 import CriterionScorer from './CriterionScorer'
 import type { CriterionResult } from './CriterionScorer'
-import AssessmentSummary from './AssessmentSummary'
+import AssessmentSummary, { computeSummary, STATUS_CONFIG } from './AssessmentSummary'
 import type { RubricDimension } from './AssessmentSummary'
 import { toYaml } from '../utils/yaml'
 import type { PreloadedAssessment, DimWithSource, ArtifactMeta } from '../types'
@@ -415,6 +415,11 @@ export default function AssessmentForm({ manifest, preloaded, onBack }: Props) {
   }, [meta, preloaded, selectedEntry, dimensions, results])
 
   const hasCriteria = dimensions.length > 0
+  const summary = useMemo(
+    () => hasCriteria ? computeSummary(dimensions, results) : null,
+    [hasCriteria, dimensions, results],
+  )
+  const statusCfg = summary ? (STATUS_CONFIG[summary.status] ?? STATUS_CONFIG.incomplete) : null
   const displayRubricId = preloaded?.primaryRubricId ?? selectedEntry?.rubric_id
   const displayTitle = preloaded?.primaryTitle ?? selectedEntry?.title ?? selectedEntry?.artifact_type
 
@@ -448,6 +453,22 @@ export default function AssessmentForm({ manifest, preloaded, onBack }: Props) {
             <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem' }}>
               {displayTitle}
             </Typography>
+          )}
+          {statusCfg && (
+            <Chip
+              icon={statusCfg.icon as any}
+              label={statusCfg.label}
+              size="small"
+              sx={{
+                bgcolor: statusCfg.bg,
+                color: statusCfg.color,
+                border: `1px solid ${statusCfg.color}33`,
+                fontWeight: 700,
+                fontSize: '0.72rem',
+                height: 26,
+                ml: 1,
+              }}
+            />
           )}
           <Box sx={{ flexGrow: 1 }} />
           {hasCriteria && (

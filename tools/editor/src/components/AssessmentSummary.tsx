@@ -43,7 +43,7 @@ function getGateSeverity(gate: RubricCriterion['gate']): string | null {
   return gate.severity ?? null
 }
 
-function computeSummary(
+export function computeSummary(
   dimensions: RubricDimension[],
   results: Record<string, CriterionResult>,
 ) {
@@ -113,7 +113,7 @@ function computeSummary(
   return { dimSummaries, gateFailures, criticalFailures, overallScore, scoredCriteria, totalCriteria, status }
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
+export const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   pass: { label: 'Pass', color: 'hsl(129 41% 23%)', bg: 'hsl(129 33% 92%)', icon: <CheckCircleIcon sx={{ fontSize: 16 }} /> },
   conditional_pass: { label: 'Conditional Pass', color: 'hsl(31 94% 33%)', bg: 'hsl(53 100% 92%)', icon: <InfoIcon sx={{ fontSize: 16 }} /> },
   rework_required: { label: 'Rework Required', color: 'hsl(0 65% 51%)', bg: 'hsl(0 82% 96%)', icon: <WarningAmberIcon sx={{ fontSize: 16 }} /> },
@@ -215,20 +215,6 @@ export default function AssessmentSummary({ dimensions, results }: Props) {
           </Tooltip>
         )}
 
-        {/* Status chip */}
-        <Chip
-          icon={statusCfg.icon as any}
-          label={statusCfg.label}
-          size="small"
-          sx={{
-            bgcolor: statusCfg.bg,
-            color: statusCfg.color,
-            border: `1px solid ${statusCfg.color}33`,
-            fontWeight: 700,
-            fontSize: '0.72rem',
-            height: 26,
-          }}
-        />
 
       </Box>
     </Box>
