@@ -1,19 +1,34 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Box, CircularProgress } from '@mui/material'
 import Layout from './components/Layout'
 import LandingPage from './pages/LandingPage'
-import DemoPage from './pages/DemoPage'
-import DocsPage from './pages/DocsPage'
+
+const DemoPage = lazy(() => import('./pages/DemoPage'))
+const DocsPage = lazy(() => import('./pages/DocsPage'))
+const DocViewPage = lazy(() => import('./pages/DocViewPage'))
+
+function Loading() {
+  return (
+    <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}>
+      <CircularProgress size={32} />
+    </Box>
+  )
+}
 
 export default function App() {
   return (
     <BrowserRouter basename="/EAROS">
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<LandingPage />} />
-          <Route path="demo" element={<DemoPage />} />
-          <Route path="docs" element={<DocsPage />} />
-        </Route>
-      </Routes>
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route index element={<LandingPage />} />
+            <Route path="demo" element={<DemoPage />} />
+            <Route path="docs" element={<DocsPage />} />
+            <Route path="docs/:slug" element={<DocViewPage />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

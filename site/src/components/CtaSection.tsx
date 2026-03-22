@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Box, Typography, Button, useTheme } from '@mui/material'
 import TerminalIcon from '@mui/icons-material/Terminal'
 import MenuBookIcon from '@mui/icons-material/MenuBook'
@@ -63,10 +64,8 @@ export default function CtaSection() {
 
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Button
-            component="a"
-            href="https://github.com/ThomasRohde/EAROS/blob/master/standard/EAROS.md"
-            target="_blank"
-            rel="noopener noreferrer"
+            component={Link}
+            to="/docs/standard"
             variant="outlined"
             startIcon={<MenuBookIcon />}
             sx={{ px: 3 }}
@@ -74,10 +73,8 @@ export default function CtaSection() {
             Read the Standard
           </Button>
           <Button
-            component="a"
-            href="https://github.com/ThomasRohde/EAROS/blob/master/docs/getting-started.md"
-            target="_blank"
-            rel="noopener noreferrer"
+            component={Link}
+            to="/docs/getting-started"
             variant="outlined"
             startIcon={<MenuBookIcon />}
             sx={{ px: 3 }}

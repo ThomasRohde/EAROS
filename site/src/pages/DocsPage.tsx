@@ -1,43 +1,18 @@
+import { Link } from 'react-router-dom'
 import { Box, Typography, Card, CardContent, CardActionArea, useTheme } from '@mui/material'
 import MenuBookIcon from '@mui/icons-material/MenuBook'
 import SchoolIcon from '@mui/icons-material/School'
 import DescriptionIcon from '@mui/icons-material/Description'
 import AbcIcon from '@mui/icons-material/Abc'
 import { sapphire } from '../theme'
+import { docs } from '../content/docs'
 
-interface DocLink {
-  icon: React.ReactNode
-  title: string
-  description: string
-  href: string
+const ICONS: Record<string, React.ReactNode> = {
+  'getting-started': <SchoolIcon sx={{ fontSize: 24 }} />,
+  'standard': <MenuBookIcon sx={{ fontSize: 24 }} />,
+  'profile-authoring': <DescriptionIcon sx={{ fontSize: 24 }} />,
+  'terminology': <AbcIcon sx={{ fontSize: 24 }} />,
 }
-
-const DOCS: DocLink[] = [
-  {
-    icon: <SchoolIcon sx={{ fontSize: 24 }} />,
-    title: 'Getting Started',
-    description: 'Quick introduction to EaROS concepts and first steps for reviewers and architects.',
-    href: 'https://github.com/ThomasRohde/EAROS/blob/master/docs/getting-started.md',
-  },
-  {
-    icon: <MenuBookIcon sx={{ fontSize: 24 }} />,
-    title: 'The Standard',
-    description: 'The canonical EAROS v2 standard document. Complete reference for the scoring model, gates, and evaluation flow.',
-    href: 'https://github.com/ThomasRohde/EAROS/blob/master/standard/EAROS.md',
-  },
-  {
-    icon: <DescriptionIcon sx={{ fontSize: 24 }} />,
-    title: 'Profile Authoring Guide',
-    description: 'How to create new artifact-type profiles. Design methods, calibration, and YAML structure.',
-    href: 'https://github.com/ThomasRohde/EAROS/blob/master/docs/profile-authoring-guide.md',
-  },
-  {
-    icon: <AbcIcon sx={{ fontSize: 24 }} />,
-    title: 'Terminology',
-    description: 'Glossary of all EAROS-specific, statistical, and architecture terms used across the framework.',
-    href: 'https://github.com/ThomasRohde/EAROS/blob/master/docs/terminology.md',
-  },
-]
 
 export default function DocsPage() {
   const theme = useTheme()
@@ -71,27 +46,22 @@ export default function DocsPage() {
         </Typography>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {DOCS.map((doc) => (
+          {docs.map((doc) => (
             <Card
-              key={doc.title}
+              key={doc.slug}
               sx={{
                 bgcolor: isDark ? sapphire.gray[800] : '#ffffff',
                 '&:hover': {
                   borderColor: isDark
-                    ? `color-mix(in srgb, ${sapphire.blue[400]} 40%, transparent)`
-                    : `color-mix(in srgb, ${sapphire.blue[500]} 24%, transparent)`,
+                    ? 'hsla(216, 100%, 63%, 0.4)'
+                    : 'hsla(218, 92%, 49%, 0.24)',
                   boxShadow: isDark
                     ? 'none'
                     : '0px 0px 0px 1px hsl(212 63% 12% / 0.06) inset, 0px 8px 32px 0px hsl(212 63% 12% / 0.08)',
                 },
               }}
             >
-              <CardActionArea
-                component="a"
-                href={doc.href}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <CardActionArea component={Link} to={`/docs/${doc.slug}`}>
                 <CardContent sx={{ display: 'flex', alignItems: 'flex-start', gap: 2.5, p: 3, '&:last-child': { pb: 3 } }}>
                   <Box
                     sx={{
@@ -106,7 +76,7 @@ export default function DocsPage() {
                       color: isDark ? sapphire.blue[400] : sapphire.blue[500],
                     }}
                   >
-                    {doc.icon}
+                    {ICONS[doc.slug]}
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography

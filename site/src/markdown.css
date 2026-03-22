@@ -1,0 +1,193 @@
+/* Markdown body — Sapphire design-system aligned */
+
+.markdown-body {
+  font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: inherit;
+  word-wrap: break-word;
+}
+
+/* Headings */
+.markdown-body h1 {
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin: 2.5rem 0 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--md-divider);
+}
+.markdown-body h2 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 2rem 0 0.75rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--md-divider);
+}
+.markdown-body h3 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 1.5rem 0 0.5rem;
+}
+.markdown-body h4 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 1.25rem 0 0.5rem;
+}
+.markdown-body h5,
+.markdown-body h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+}
+.markdown-body h1:first-child {
+  margin-top: 0;
+}
+
+/* Paragraphs */
+.markdown-body p {
+  margin: 0 0 1rem;
+}
+
+/* Links */
+.markdown-body a {
+  color: var(--md-link);
+  text-decoration: none;
+}
+.markdown-body a:hover {
+  text-decoration: underline;
+}
+
+/* Lists */
+.markdown-body ul,
+.markdown-body ol {
+  margin: 0 0 1rem;
+  padding-left: 2rem;
+}
+.markdown-body li {
+  margin-bottom: 0.25rem;
+}
+.markdown-body li > p {
+  margin-bottom: 0.5rem;
+}
+
+/* Blockquotes */
+.markdown-body blockquote {
+  margin: 0 0 1rem;
+  padding: 0.5rem 1rem;
+  border-left: 4px solid var(--md-accent);
+  background: var(--md-blockquote-bg);
+  border-radius: 0 6px 6px 0;
+}
+.markdown-body blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Tables */
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  display: block;
+  overflow-x: auto;
+}
+.markdown-body thead th {
+  font-weight: 600;
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 2px solid var(--md-divider);
+  white-space: nowrap;
+}
+.markdown-body tbody td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--md-divider);
+  vertical-align: top;
+}
+.markdown-body tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Code — inline */
+.markdown-body code {
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+  font-size: 0.875em;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background: var(--md-inline-code-bg);
+}
+
+/* Code — blocks */
+.markdown-body pre {
+  margin: 0 0 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  background: var(--md-code-bg) !important;
+  border: 1px solid var(--md-divider);
+}
+.markdown-body pre code {
+  padding: 0;
+  background: transparent;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+/* Horizontal rules */
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid var(--md-divider);
+  margin: 2rem 0;
+}
+
+/* Images */
+.markdown-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+/* Strong / emphasis */
+.markdown-body strong {
+  font-weight: 600;
+}
+
+/* --- Light mode variables ---------------------------------------------------- */
+
+:root {
+  --md-divider: hsla(212, 63%, 12%, 0.08);
+  --md-link: hsl(218, 92%, 49%);
+  --md-accent: hsl(218, 92%, 49%);
+  --md-blockquote-bg: hsl(219, 100%, 95%);
+  --md-inline-code-bg: hsla(212, 63%, 12%, 0.06);
+  --md-code-bg: hsl(206, 33%, 96%);
+}
+
+/* --- Dark mode variables ----------------------------------------------------- */
+
+[data-theme='dark'] {
+  --md-divider: hsla(212, 33%, 27%, 0.6);
+  --md-link: hsl(216, 100%, 63%);
+  --md-accent: hsl(216, 100%, 63%);
+  --md-blockquote-bg: hsla(211, 64%, 13%, 0.6);
+  --md-inline-code-bg: hsla(212, 33%, 27%, 0.5);
+  --md-code-bg: hsl(211, 64%, 13%);
+}
+
+/* --- highlight.js overrides (minimal, dark-mode aware) ---------------------- */
+
+.markdown-body .hljs {
+  background: transparent !important;
+  color: inherit;
+}
+.markdown-body .hljs-keyword,
+.markdown-body .hljs-selector-tag { color: hsl(300, 63%, 55%); }
+.markdown-body .hljs-string,
+.markdown-body .hljs-attr { color: hsl(130, 55%, 42%); }
+.markdown-body .hljs-number,
+.markdown-body .hljs-literal { color: hsl(25, 85%, 55%); }
+.markdown-body .hljs-comment { color: hsl(211, 19%, 49%); font-style: italic; }
+.markdown-body .hljs-type,
+.markdown-body .hljs-built_in { color: hsl(218, 92%, 49%); }
+.markdown-body .hljs-title { color: hsl(218, 92%, 49%); font-weight: 500; }

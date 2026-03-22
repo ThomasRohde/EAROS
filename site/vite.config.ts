@@ -8,4 +8,10 @@ export default defineConfig({
   build: {
     outDir: 'dist',
   },
+  server: {
+    fs: {
+      // Allow reading markdown files from parent dirs (standard/, docs/)
+      allow: ['..'],
+    },
+  },
 })
