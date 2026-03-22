@@ -32,10 +32,16 @@ import AddIcon from '@mui/icons-material/Add'
 import { customRenderers } from '../renderers'
 import QuickTipBanner from './QuickTipBanner'
 import type { Kind } from './KindSelector'
+import DownloadIcon from '@mui/icons-material/Download'
+import ArticleIcon from '@mui/icons-material/Article'
+import DescriptionIcon from '@mui/icons-material/Description'
 import YamlPreviewPane from './YamlPreviewPane'
 import FileControls from './FileControls'
+import ExportMenu from './ExportMenu'
+import type { ExportOption } from './ExportMenu'
 import StatusBar from './StatusBar'
 import { toJson, toYaml } from '../utils/yaml'
+import { exportRubricToMarkdown, downloadAsFile } from '../utils/export-markdown'
 import { validateData } from '../utils/validate'
 import type { ValidationResult } from '../utils/validate'
 import type { ManifestData, ManifestEntry } from '../manifest'
@@ -480,6 +486,46 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
     setToast('Exported')
   }, [data, kind])
 
+  const handleExportWord = useCallback(async () => {
+    try {
+      const resp = await fetch('/api/export/docx/rubric', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: resp.statusText }))
+        setToast(`Word export failed: ${err.error ?? resp.statusText}`)
+        return
+      }
+      const blob = await resp.blob()
+      const filename = (data as any)?.title?.replace(/[^a-z0-9]/gi, '-').toLowerCase() ?? 'rubric'
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${filename}.docx`
+      a.click()
+      URL.revokeObjectURL(url)
+      setToast('Word document exported')
+    } catch (e) {
+      setToast(`Word export failed: ${(e as Error).message}`)
+    }
+  }, [data])
+
+  const handleExportMarkdown = useCallback(() => {
+    const filename = (data as any)?.title?.replace(/[^a-z0-9]/gi, '-').toLowerCase() ??
+      (data as any)?.rubric_id ?? 'rubric'
+    const md = exportRubricToMarkdown(data)
+    downloadAsFile(md, `${filename}.md`, 'text/markdown')
+    setToast('Markdown exported')
+  }, [data])
+
+  const rubricExportOptions: ExportOption[] = [
+    { key: 'yaml', label: 'YAML', icon: <DownloadIcon fontSize="small" />, onClick: handleExport },
+    { key: 'word', label: 'Word (.docx)', icon: <ArticleIcon fontSize="small" />, onClick: handleExportWord },
+    { key: 'markdown', label: 'Markdown (.md)', icon: <DescriptionIcon fontSize="small" />, onClick: handleExportMarkdown },
+  ]
+
   const toolbarBtnSx = {
     color: 'text.primary',
     borderColor: 'divider',
@@ -517,7 +563,8 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
             </Button>
           </Tooltip>
           <Box sx={{ flexGrow: 1 }} />
-          <FileControls onImport={loadYaml} onExport={handleExport} />
+          <FileControls onImport={loadYaml} />
+          <ExportMenu options={rubricExportOptions} buttonSx={toolbarBtnSx} />
           <Tooltip title={previewOpen ? 'Hide YAML preview' : 'Show YAML preview'}>
             <IconButton
               size="small"

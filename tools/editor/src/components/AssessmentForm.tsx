@@ -23,7 +23,12 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
+import DownloadIcon from '@mui/icons-material/Download'
+import ArticleIcon from '@mui/icons-material/Article'
+import DescriptionIcon from '@mui/icons-material/Description'
 import QuickTipBanner from './QuickTipBanner'
+import ExportMenu from './ExportMenu'
+import type { ExportOption } from './ExportMenu'
 import type { ManifestData, ManifestEntry } from '../manifest'
 import { fetchRepoFile } from '../manifest'
 import CriterionScorer from './CriterionScorer'
@@ -31,6 +36,7 @@ import type { CriterionResult } from './CriterionScorer'
 import AssessmentSummary, { computeSummary, STATUS_CONFIG } from './AssessmentSummary'
 import type { RubricDimension } from './AssessmentSummary'
 import { toYaml } from '../utils/yaml'
+import { exportEvaluationToMarkdown, downloadAsFile } from '../utils/export-markdown'
 import type { PreloadedAssessment, DimWithSource, ArtifactMeta } from '../types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -414,6 +420,54 @@ export default function AssessmentForm({ manifest, preloaded, onBack }: Props) {
     setToast('Evaluation exported')
   }, [meta, preloaded, selectedEntry, dimensions, results])
 
+  const handleExportWord = useCallback(async () => {
+    const primaryRubricId = preloaded?.primaryRubricId ?? selectedEntry?.rubric_id ?? 'unknown'
+    const yamlStr = exportEvaluation(meta, primaryRubricId, dimensions, results)
+    // Parse the YAML back to get the evaluation record object for the docx API
+    const evalRecord = (await import('../utils/yaml')).toJson(yamlStr)
+    try {
+      const resp = await fetch('/api/export/docx/evaluation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(evalRecord),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: resp.statusText }))
+        setToast(`Word export failed: ${err.error ?? resp.statusText}`)
+        return
+      }
+      const blob = await resp.blob()
+      const filename = meta.title
+        ? `${meta.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-assessment`
+        : 'evaluation'
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${filename}.docx`
+      a.click()
+      URL.revokeObjectURL(url)
+      setToast('Word document exported')
+    } catch (e) {
+      setToast(`Word export failed: ${(e as Error).message}`)
+    }
+  }, [meta, preloaded, selectedEntry, dimensions, results])
+
+  const handleExportMarkdown = useCallback(() => {
+    const primaryRubricId = preloaded?.primaryRubricId ?? selectedEntry?.rubric_id ?? 'unknown'
+    const md = exportEvaluationToMarkdown(meta, primaryRubricId, dimensions, results)
+    const filename = meta.title
+      ? `${meta.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-assessment`
+      : 'evaluation'
+    downloadAsFile(md, `${filename}.md`, 'text/markdown')
+    setToast('Markdown exported')
+  }, [meta, preloaded, selectedEntry, dimensions, results])
+
+  const assessExportOptions: ExportOption[] = [
+    { key: 'yaml', label: 'YAML', icon: <DownloadIcon fontSize="small" />, onClick: handleExport },
+    { key: 'word', label: 'Word (.docx)', icon: <ArticleIcon fontSize="small" />, onClick: handleExportWord },
+    { key: 'markdown', label: 'Markdown (.md)', icon: <DescriptionIcon fontSize="small" />, onClick: handleExportMarkdown },
+  ]
+
   const hasCriteria = dimensions.length > 0
   const summary = useMemo(
     () => hasCriteria ? computeSummary(dimensions, results) : null,
@@ -472,20 +526,16 @@ export default function AssessmentForm({ manifest, preloaded, onBack }: Props) {
           )}
           <Box sx={{ flexGrow: 1 }} />
           {hasCriteria && (
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={handleExport}
-              sx={{
+            <ExportMenu
+              options={assessExportOptions}
+              buttonSx={{
                 color: 'success.main',
                 borderColor: 'success.main',
                 '&:hover': { bgcolor: 'hsl(125 50% 35% / 0.08)', borderColor: 'success.dark' },
                 textTransform: 'none',
                 fontWeight: 500,
               }}
-            >
-              Export YAML
-            </Button>
+            />
           )}
         </Toolbar>
       </AppBar>

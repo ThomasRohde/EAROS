@@ -13,6 +13,7 @@ import {
   Button,
   Tooltip,
   Alert,
+  CircularProgress,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CodeIcon from '@mui/icons-material/Code'
@@ -21,7 +22,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile'
 import DownloadIcon from '@mui/icons-material/Download'
 import NoteAddIcon from '@mui/icons-material/NoteAdd'
 import ArticleIcon from '@mui/icons-material/Article'
-import CircularProgress from '@mui/material/CircularProgress'
+import DescriptionIcon from '@mui/icons-material/Description'
 import { customRenderers } from '../renderers'
 import QuickTipBanner from './QuickTipBanner'
 import YamlPreviewPane from './YamlPreviewPane'
@@ -29,6 +30,9 @@ import StatusBar from './StatusBar'
 import { toJson, toYaml } from '../utils/yaml'
 import { validateData } from '../utils/validate'
 import type { ValidationResult } from '../utils/validate'
+import ExportMenu from './ExportMenu'
+import type { ExportOption } from './ExportMenu'
+import { exportArtifactToMarkdown, downloadAsFile } from '../utils/export-markdown'
 import { saveRepoFile } from '../manifest'
 import { loadSchema } from '../utils/schemaLoader'
 import {
@@ -278,7 +282,6 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
   const [artifactSchema, setArtifactSchema] = useState<Record<string, unknown> | null>(null)
   const [artifactUiSchema, setArtifactUiSchema] = useState<object | null>(null)
   const [schemasLoading, setSchemasLoading] = useState(true)
-  const [wordExporting, setWordExporting] = useState(false)
   const importRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -336,7 +339,6 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
   }, [data])
 
   const handleExportWord = useCallback(async () => {
-    setWordExporting(true)
     try {
       const renderedDiagrams = await renderWordExportDiagrams(data)
       const resp = await fetch('/api/export/docx', {
@@ -361,10 +363,22 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
       setToast('Word document exported')
     } catch (e) {
       setToast(`Word export failed: ${(e as Error).message}`)
-    } finally {
-      setWordExporting(false)
     }
   }, [data])
+
+  const handleExportMarkdown = useCallback(() => {
+    const d = data as any
+    const filename = d.metadata?.title?.replace(/[^a-z0-9]/gi, '-').toLowerCase() ?? 'artifact'
+    const md = exportArtifactToMarkdown(data)
+    downloadAsFile(md, `${filename}.md`, 'text/markdown')
+    setToast('Markdown exported')
+  }, [data])
+
+  const exportOptions: ExportOption[] = [
+    { key: 'yaml', label: 'YAML', icon: <DownloadIcon fontSize="small" />, onClick: handleExport },
+    { key: 'word', label: 'Word (.docx)', icon: <ArticleIcon fontSize="small" />, onClick: handleExportWord },
+    { key: 'markdown', label: 'Markdown (.md)', icon: <DescriptionIcon fontSize="small" />, onClick: handleExportMarkdown },
+  ]
 
   const handleImportClick = () => importRef.current?.click()
 
@@ -420,29 +434,7 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
           </Tooltip>
           {hasContent && (
             <>
-              <Tooltip title="Export as YAML">
-                <Button
-                  size="small"
-                  variant="outlined"
-                  startIcon={<DownloadIcon />}
-                  onClick={handleExport}
-                  sx={{ ...toolbarBtnSx, mr: 0.5 }}
-                >
-                  Export YAML
-                </Button>
-              </Tooltip>
-              <Tooltip title="Export as Word document (.docx) with browser-rendered diagrams">
-                <Button
-                  size="small"
-                  variant="outlined"
-                  startIcon={wordExporting ? <CircularProgress size={14} color="inherit" /> : <ArticleIcon />}
-                  onClick={handleExportWord}
-                  disabled={wordExporting}
-                  sx={{ ...toolbarBtnSx, mr: 0.5 }}
-                >
-                  Export Word
-                </Button>
-              </Tooltip>
+              <ExportMenu options={exportOptions} buttonSx={{ ...toolbarBtnSx, mr: 0.5 }} />
               <Tooltip title={previewOpen ? 'Hide YAML preview' : 'Show YAML preview'}>
                 <IconButton
                   size="small"

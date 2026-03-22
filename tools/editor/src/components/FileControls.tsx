@@ -1,14 +1,12 @@
 import { useRef } from 'react'
 import { Button, Tooltip } from '@mui/material'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
-import DownloadIcon from '@mui/icons-material/Download'
 
 interface Props {
   onImport: (content: string) => void
-  onExport: () => void
 }
 
-export default function FileControls({ onImport, onExport }: Props) {
+export default function FileControls({ onImport }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,17 +44,6 @@ export default function FileControls({ onImport, onExport }: Props) {
           sx={{ ...btnSx, mr: 1 }}
         >
           Import External
-        </Button>
-      </Tooltip>
-      <Tooltip title="Export as YAML">
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<DownloadIcon />}
-          onClick={onExport}
-          sx={btnSx}
-        >
-          Export
         </Button>
       </Tooltip>
     </>

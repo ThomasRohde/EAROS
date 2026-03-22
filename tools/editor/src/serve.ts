@@ -12,7 +12,7 @@ import type { AddressInfo } from 'net'
 import type { RequestHandler } from 'express'
 import yaml from 'js-yaml'
 import open from 'open'
-import { exportToDocx } from './export-docx.js'
+import { exportToDocx, exportRubricToDocx, exportEvaluationToDocx } from './export-docx.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -146,6 +146,44 @@ export async function startServer(fileArg?: string): Promise<void> {
         return
       }
       res.status(500).json({ error: message })
+    }
+  })
+
+  // POST /api/export/docx/rubric  — generate a Word document from rubric JSON
+  app.post('/api/export/docx/rubric', async (req, res) => {
+    try {
+      const data = req.body
+      if (!data || typeof data !== 'object') {
+        res.status(400).json({ error: 'Request body must be rubric JSON' })
+        return
+      }
+      const buf = await exportRubricToDocx(data)
+      const title: string =
+        (data as any)?.title?.replace(/[^a-z0-9]/gi, '-').toLowerCase() ?? 'rubric'
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+      res.setHeader('Content-Disposition', `attachment; filename="${title}.docx"`)
+      res.send(buf)
+    } catch (e) {
+      res.status(500).json({ error: e instanceof Error ? e.message : String(e) })
+    }
+  })
+
+  // POST /api/export/docx/evaluation  — generate a Word document from evaluation JSON
+  app.post('/api/export/docx/evaluation', async (req, res) => {
+    try {
+      const data = req.body
+      if (!data || typeof data !== 'object') {
+        res.status(400).json({ error: 'Request body must be evaluation JSON' })
+        return
+      }
+      const buf = await exportEvaluationToDocx(data)
+      const title: string =
+        (data as any)?.artifact_ref?.title?.replace(/[^a-z0-9]/gi, '-').toLowerCase() ?? 'evaluation'
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+      res.setHeader('Content-Disposition', `attachment; filename="${title}-assessment.docx"`)
+      res.send(buf)
+    } catch (e) {
+      res.status(500).json({ error: e instanceof Error ? e.message : String(e) })
     }
   })
 

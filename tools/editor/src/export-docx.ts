@@ -1434,3 +1434,326 @@ export async function exportToDocx(
 
   return Packer.toBuffer(doc)
 }
+
+// ─── Rubric Word Export ──────────────────────────────────────────────────────
+
+function rubricTitlePage(data: Record<string, any>): Paragraph[] {
+  const title = str(data.title) || 'EAROS Rubric'
+  const kind = str(data.kind ?? '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  return [
+    new Paragraph({ style: 'Normal', children: [], spacing: { before: 2000 } }),
+    new Paragraph({
+      style: 'Title',
+      children: [new TextRun({ text: title, font: 'Arial', size: 56, bold: true, color: NAVY })],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 0, after: 200 },
+    }),
+    new Paragraph({
+      style: 'Normal',
+      children: [new TextRun({ text: kind, font: 'Arial', size: 28, color: MID_GREY })],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 0, after: 400 },
+    }),
+    new Paragraph({
+      style: 'Normal',
+      children: [
+        new TextRun({ text: `${str(data.rubric_id)} · v${str(data.version) || '—'}`, font: 'Arial', size: 22, color: DARK_GREY }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 0, after: 80 },
+    }),
+  ]
+}
+
+export async function exportRubricToDocx(rubricData: Record<string, any>): Promise<Buffer> {
+  const children: Children = []
+
+  // Title page
+  for (const p of rubricTitlePage(rubricData)) children.push(p)
+
+  // Metadata
+  const metaPairs: Array<[string, string]> = []
+  if (rubricData.rubric_id) metaPairs.push(['Rubric ID', str(rubricData.rubric_id)])
+  if (rubricData.version) metaPairs.push(['Version', str(rubricData.version)])
+  if (rubricData.kind) metaPairs.push(['Kind', str(rubricData.kind)])
+  if (rubricData.status) metaPairs.push(['Status', str(rubricData.status)])
+  if (rubricData.artifact_type) metaPairs.push(['Artifact Type', str(rubricData.artifact_type)])
+  if (rubricData.design_method) metaPairs.push(['Design Method', str(rubricData.design_method)])
+  if (rubricData.owner) metaPairs.push(['Owner', str(rubricData.owner)])
+  if (rubricData.effective_date) metaPairs.push(['Effective Date', str(rubricData.effective_date)])
+  if (rubricData.inherits?.length) metaPairs.push(['Inherits', rubricData.inherits.join(', ')])
+  if (metaPairs.length) {
+    children.push(kvTable(metaPairs))
+    children.push(horizontalRule())
+  }
+
+  // Table of Contents
+  children.push(pageBreak())
+  children.push(new TableOfContents('Table of Contents', { hyperlink: true, headingStyleRange: '1-3' }))
+
+  // Dimensions & criteria
+  const dimensions = rubricData.dimensions ?? []
+  for (const dim of dimensions) {
+    children.push(pageBreak())
+    const weight = dim.weight != null ? ` (weight: ${dim.weight})` : ''
+    children.push(h1(`${str(dim.name)}${weight}`))
+    if (dim.description) children.push(italicNote(str(dim.description)))
+
+    const criteria = dim.criteria ?? []
+    for (const c of criteria) {
+      children.push(h2(`${str(c.id)}: ${str(c.question)}`))
+      if (c.description) children.push(body(str(c.description)))
+
+      // Gate
+      if (c.gate && typeof c.gate === 'object' && c.gate.enabled) {
+        const gateText = `${c.gate.severity ?? 'unknown'}${c.gate.failure_effect ? ` — ${c.gate.failure_effect}` : ''}`
+        children.push(label('Gate', gateText))
+      } else {
+        children.push(label('Gate', 'None'))
+      }
+
+      // Required evidence
+      if (c.required_evidence?.length) {
+        children.push(h3('Required Evidence'))
+        for (const ev of c.required_evidence) children.push(bullet(str(ev)))
+      }
+
+      // Scoring guide
+      if (c.scoring_guide) {
+        children.push(h3('Scoring Guide'))
+        const sgRows = Object.entries(c.scoring_guide).map(([level, desc]) => [level, str(desc)])
+        children.push(dataTable(['Level', 'Description'], sgRows))
+      }
+
+      // Anti-patterns
+      if (c.anti_patterns?.length) {
+        children.push(h3('Anti-patterns'))
+        for (const ap of c.anti_patterns) children.push(bullet(str(ap)))
+      }
+
+      // Examples
+      if (c.examples?.good?.length) {
+        children.push(h3('Good Examples'))
+        for (const ex of c.examples.good) children.push(bullet(str(ex)))
+      }
+      if (c.examples?.bad?.length) {
+        children.push(h3('Bad Examples'))
+        for (const ex of c.examples.bad) children.push(bullet(str(ex)))
+      }
+
+      // Decision tree
+      if (c.decision_tree) {
+        children.push(h3('Decision Tree'))
+        children.push(body(str(c.decision_tree), 1))
+      }
+
+      // Remediation hints
+      if (c.remediation_hints?.length) {
+        children.push(h3('Remediation Hints'))
+        for (const hint of c.remediation_hints) children.push(bullet(str(hint)))
+      }
+
+      children.push(horizontalRule())
+    }
+  }
+
+  // Scoring section
+  if (rubricData.scoring) {
+    children.push(pageBreak())
+    children.push(h1('Scoring Model'))
+    const scoring = rubricData.scoring
+    if (scoring.scale) children.push(label('Scale', str(scoring.scale)))
+    if (scoring.method) children.push(label('Method', str(scoring.method)))
+    if (scoring.thresholds) {
+      children.push(h2('Thresholds'))
+      const thPairs = Object.entries(scoring.thresholds).map(([k, v]) =>
+        [prettyLabel(k), str(v)] as [string, string])
+      children.push(kvTable(thPairs))
+    }
+  }
+
+  // Outputs
+  if (rubricData.outputs) {
+    children.push(pageBreak())
+    children.push(h1('Outputs'))
+    const outPairs = Object.entries(rubricData.outputs).map(([k, v]) =>
+      [prettyLabel(k), str(v)] as [string, string])
+    children.push(kvTable(outPairs))
+  }
+
+  const title = str(rubricData.title) || 'EAROS Rubric'
+  const doc = new Document({
+    title,
+    creator: str(rubricData.owner) || 'EAROS',
+    styles: { default: { document: { run: { font: 'Arial', size: 20 } } } },
+    sections: [{
+      properties: {
+        type: SectionType.CONTINUOUS,
+        page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } },
+      },
+      headers: {
+        default: new Header({
+          children: [new Paragraph({
+            style: 'Normal',
+            children: [
+              new TextRun({ text: title, font: 'Arial', size: 16, color: MID_GREY }),
+              new TextRun({ text: '\t', font: 'Arial', size: 16 }),
+              new TextRun({ text: 'EAROS Rubric Document', font: 'Arial', size: 16, color: MID_GREY }),
+            ],
+            border: { bottom: { color: 'CCCCCC', space: 1, style: BorderStyle.SINGLE, size: 4 } },
+          })],
+        }),
+      },
+      footers: {
+        default: new Footer({
+          children: [new Paragraph({
+            style: 'Normal',
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({ text: 'Page ', font: 'Arial', size: 16, color: MID_GREY }),
+              new SimpleField('PAGE'),
+              new TextRun({ text: ' of ', font: 'Arial', size: 16, color: MID_GREY }),
+              new SimpleField('NUMPAGES'),
+            ],
+            border: { top: { color: 'CCCCCC', space: 1, style: BorderStyle.SINGLE, size: 4 } },
+          })],
+        }),
+      },
+      children,
+    }],
+  })
+
+  return Packer.toBuffer(doc)
+}
+
+// ─── Evaluation Word Export ──────────────────────────────────────────────────
+
+export async function exportEvaluationToDocx(evalData: Record<string, any>): Promise<Buffer> {
+  const children: Children = []
+
+  const artifactTitle = str(evalData.artifact_ref?.title ?? evalData.artifact_title ?? 'Architecture Assessment')
+  const rubricId = str(evalData.rubric_id ?? '')
+  const evalDate = str(evalData.evaluation_date ?? '')
+
+  // Title page
+  children.push(new Paragraph({ style: 'Normal', children: [], spacing: { before: 2000 } }))
+  children.push(new Paragraph({
+    style: 'Title',
+    children: [new TextRun({ text: 'EAROS Architecture Assessment Report', font: 'Arial', size: 56, bold: true, color: NAVY })],
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 0, after: 200 },
+  }))
+  children.push(new Paragraph({
+    style: 'Normal',
+    children: [new TextRun({ text: artifactTitle, font: 'Arial', size: 28, color: MID_GREY })],
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 0, after: 400 },
+  }))
+  if (rubricId || evalDate) {
+    children.push(new Paragraph({
+      style: 'Normal',
+      children: [new TextRun({ text: `${rubricId}${evalDate ? ` · ${evalDate}` : ''}`, font: 'Arial', size: 22, color: DARK_GREY })],
+      alignment: AlignmentType.CENTER,
+    }))
+  }
+
+  // Metadata
+  const metaPairs: Array<[string, string]> = []
+  if (evalData.evaluation_id) metaPairs.push(['Evaluation ID', str(evalData.evaluation_id)])
+  if (rubricId) metaPairs.push(['Rubric', rubricId])
+  if (evalData.rubric_version) metaPairs.push(['Rubric Version', str(evalData.rubric_version)])
+  if (artifactTitle) metaPairs.push(['Artifact', artifactTitle])
+  if (evalData.artifact_ref?.artifact_version) metaPairs.push(['Artifact Version', str(evalData.artifact_ref.artifact_version)])
+  if (evalDate) metaPairs.push(['Evaluation Date', evalDate])
+  if (evalData.evaluators?.length) {
+    metaPairs.push(['Evaluators', evalData.evaluators.map((e: any) => `${str(e.role)} (${str(e.mode)})`).join(', ')])
+  }
+  if (metaPairs.length) {
+    children.push(kvTable(metaPairs))
+    children.push(horizontalRule())
+  }
+
+  // Table of Contents
+  children.push(pageBreak())
+  children.push(new TableOfContents('Table of Contents', { hyperlink: true, headingStyleRange: '1-3' }))
+
+  // Criterion results
+  const criterionResults = evalData.criterion_results ?? []
+  if (criterionResults.length > 0) {
+    children.push(pageBreak())
+    children.push(h1('Score Dashboard'))
+
+    const dashHeaders = ['Criterion', 'Score', 'Confidence', 'Evidence Class']
+    const dashRows = criterionResults.map((cr: any) => [
+      str(cr.criterion_id),
+      cr.score != null ? String(cr.score) : '-',
+      str(cr.confidence),
+      str(cr.judgment_type ?? cr.evidence_class),
+    ])
+    children.push(dataTable(dashHeaders, dashRows))
+
+    // Per-criterion details
+    children.push(pageBreak())
+    children.push(h1('Criterion Details'))
+
+    for (const cr of criterionResults) {
+      children.push(h2(str(cr.criterion_id)))
+      children.push(label('Score', cr.score != null ? String(cr.score) : '-'))
+      if (cr.confidence) children.push(label('Confidence', str(cr.confidence)))
+      if (cr.judgment_type) children.push(label('Evidence Class', str(cr.judgment_type)))
+      if (cr.rationale) children.push(body(str(cr.rationale)))
+      if (cr.evidence_refs?.length) {
+        children.push(h3('Evidence'))
+        for (const ref of cr.evidence_refs) {
+          if (ref.excerpt) children.push(bullet(str(ref.excerpt)))
+          if (ref.location && ref.location !== 'see evidence field') children.push(italicNote(`Location: ${str(ref.location)}`))
+        }
+      }
+      children.push(horizontalRule())
+    }
+  }
+
+  const title = `EAROS Assessment — ${artifactTitle}`
+  const doc = new Document({
+    title,
+    creator: 'EAROS',
+    styles: { default: { document: { run: { font: 'Arial', size: 20 } } } },
+    sections: [{
+      properties: {
+        type: SectionType.CONTINUOUS,
+        page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } },
+      },
+      headers: {
+        default: new Header({
+          children: [new Paragraph({
+            style: 'Normal',
+            children: [
+              new TextRun({ text: artifactTitle, font: 'Arial', size: 16, color: MID_GREY }),
+              new TextRun({ text: '\t', font: 'Arial', size: 16 }),
+              new TextRun({ text: 'EAROS Assessment Report', font: 'Arial', size: 16, color: MID_GREY }),
+            ],
+            border: { bottom: { color: 'CCCCCC', space: 1, style: BorderStyle.SINGLE, size: 4 } },
+          })],
+        }),
+      },
+      footers: {
+        default: new Footer({
+          children: [new Paragraph({
+            style: 'Normal',
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({ text: 'Page ', font: 'Arial', size: 16, color: MID_GREY }),
+              new SimpleField('PAGE'),
+              new TextRun({ text: ' of ', font: 'Arial', size: 16, color: MID_GREY }),
+              new SimpleField('NUMPAGES'),
+            ],
+            border: { top: { color: 'CCCCCC', space: 1, style: BorderStyle.SINGLE, size: 4 } },
+          })],
+        }),
+      },
+      children,
+    }],
+  })
+
+  return Packer.toBuffer(doc)
+}
