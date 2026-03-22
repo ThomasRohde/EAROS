@@ -12,6 +12,8 @@ At Level 2, you used the core rubric and produced evidence-backed scores. At Lev
 2. **Overlays** inject cross-cutting concerns (security, data governance, regulatory) based on context
 3. **Calibration** ensures that different reviewers on your team produce substantially similar scores for the same artifact
 
+![The assessment wizard shows all available profiles — choose the one that matches your artifact type](/screenshots/editor-profile-selection.png)
+
 ## Choosing a Profile
 
 The core meta-rubric's 10 criteria are universal --- they apply to every architecture artifact. But a reference architecture has different quality expectations than an ADR, and a capability map is evaluated differently than a roadmap. Profiles add 5--12 artifact-specific criteria on top of the core.
@@ -29,6 +31,8 @@ Every profile declares `inherits: [EAROS-CORE-002]`. This means when you evaluat
 > **How to choose:** Match the profile to the artifact's declared type. If the artifact does not fit any built-in profile, use the core rubric alone. Creating custom profiles is covered in [Scaling and Optimization](scaling-optimization.md).
 
 ## Applying Overlays
+
+![Select overlays for cross-cutting concerns — security, data governance, and regulatory compliance](/screenshots/editor-overlay-selection.png)
 
 Overlays inject cross-cutting concerns that apply across artifact types. Unlike profiles, overlays are applied **based on context**, not based on artifact type.
 
@@ -80,6 +84,8 @@ EAROS distinguishes three distinct judgment types that must never be merged into
 | **Governance fit** | Does the artifact comply with mandatory principles, standards, controls, and review expectations? | "The design uses a non-approved message broker without an exception record" |
 
 These are related but distinct. A beautifully written, complete document can describe an architecturally unsound system. A technically excellent architecture can be documented in an unmaintainable artifact. Collapsing these into one score hides critical information.
+
+![The rubric editor with file sidebar showing core, profiles, and overlays — the building blocks of governed review](/screenshots/editor-rubric-criteria.png)
 
 ## Calibrating with Your Team
 

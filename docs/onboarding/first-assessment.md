@@ -35,6 +35,8 @@ This creates a complete EAROS workspace with rubric files, JSON schemas, agent s
 
 ## Understanding the Workspace
 
+![The EAROS editor home screen with workflow options for governance teams, reviewers, and architects](/screenshots/editor-home.png)
+
 The `earos init` command creates a structured directory containing:
 
 - **Rubric files** --- the core meta-rubric and all built-in profiles and overlays (YAML)
@@ -78,6 +80,8 @@ Every criterion uses the same ordinal scale:
 
 ## Walkthrough: Scoring Your First Artifact
 
+![The New Assessment wizard — select the core rubric, then choose a profile and overlays](/screenshots/editor-new-assessment.png)
+
 Follow these steps for each of the 10 criteria:
 
 1. **Read the criterion question and scoring guide.** Open the core rubric YAML and find the criterion. Read the `question`, the `description`, and all five levels of the `scoring_guide`.
@@ -115,6 +119,8 @@ After scoring all criteria and checking gates, compute the weighted average acro
 | **Rework Required** | Overall average < 2.4, or repeated weak dimensions, or insufficient evidence |
 | **Reject** | Any critical gate failure, or mandatory control breach |
 | **Not Reviewable** | Evidence too incomplete to score responsibly |
+
+![Scoring a criterion — the editor shows the question, scoring guide, evidence fields, and assigned score](/screenshots/editor-evaluation-result.png)
 
 A Conditional Pass is not a failure --- it means the artifact is close but needs specific, named improvements before it is decision-ready. Record those improvements as actions in the evaluation record.
 
