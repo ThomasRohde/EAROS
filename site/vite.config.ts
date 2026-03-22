@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from 'path'
+import { fileURLToPath } from 'node:url'
+
+const termynalPath = fileURLToPath(new URL('./node_modules/termynal/dist/esm/termynal.js', import.meta.url))
 
 export default defineConfig({
   plugins: [react()],
@@ -11,8 +13,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      // termynal's package.json exports field is broken (points to non-existent files)
-      'termynal': path.resolve(__dirname, 'node_modules/termynal/dist/esm/termynal.js'),
+      // termynal's package.json exports field points to non-existent files;
+      // alias to the actual ESM build
+      'termynal': termynalPath,
     },
   },
   server: {
