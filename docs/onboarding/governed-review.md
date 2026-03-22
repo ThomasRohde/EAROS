@@ -101,10 +101,6 @@ Calibration is what transforms individual scoring into a team capability. Withou
 
 7. **Update decision trees.** Where disagreements clustered, refine the `decision_tree` for those criteria to reduce future ambiguity.
 
-![Profile selection in the editor](/screenshots/editor-profile-list.png)
-
-![Calibration exercise results](/screenshots/editor-calibration.png)
-
 ## Setting Up a Review Cadence
 
 Governed review is not a one-time activity. Establish a regular rhythm:

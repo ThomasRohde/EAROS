@@ -43,8 +43,6 @@ The `earos init` command creates a structured directory containing:
 - **AGENTS.md** --- agent-agnostic instructions for AI tools like Cursor, Copilot, and Windsurf
 - **Manifest** --- an inventory of all available rubrics
 
-![EAROS workspace after initialization](/screenshots/editor-workspace.png)
-
 ## The Core Meta-Rubric
 
 The core meta-rubric (`EAROS-CORE-002`) is the universal foundation. It applies to every architecture artifact regardless of type. It defines **9 dimensions** with **10 criteria**:
@@ -92,8 +90,6 @@ Follow these steps for each of the 10 criteria:
 
 5. **Move to the next criterion.** Repeat for all 10 criteria.
 
-![Scoring form with criterion expanded](/screenshots/editor-scoring-form.png)
-
 ## Understanding Gates
 
 Not all criteria are equal. Some have **gates** --- threshold controls that can block a passing status regardless of how well you score on everything else.
@@ -119,8 +115,6 @@ After scoring all criteria and checking gates, compute the weighted average acro
 | **Rework Required** | Overall average < 2.4, or repeated weak dimensions, or insufficient evidence |
 | **Reject** | Any critical gate failure, or mandatory control breach |
 | **Not Reviewable** | Evidence too incomplete to score responsibly |
-
-![Evaluation result summary](/screenshots/editor-evaluation-result.png)
 
 A Conditional Pass is not a failure --- it means the artifact is close but needs specific, named improvements before it is decision-ready. Record those improvements as actions in the evaluation record.
 

@@ -110,8 +110,6 @@ At Level 4, you begin tracking quantitative metrics for evaluation quality:
 
 Track these metrics per rubric, per team, and over time. A declining kappa suggests calibration drift --- time to re-calibrate.
 
-![Agent evaluation DAG output](/screenshots/agent-evaluation-output.png)
-
 ## Checkpoint: You Are at Level 4 When...
 
 - [ ] AI agent evaluations follow the complete 8-step DAG with no steps skipped

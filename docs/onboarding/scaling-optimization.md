@@ -121,8 +121,6 @@ Individual evaluations tell you about one artifact. Aggregated evaluations tell 
 - Which teams consistently produce higher-quality artifacts (and what practices they follow)
 - Whether quality improves after remediation actions are completed
 
-![Executive report with traffic-light dashboard](/screenshots/executive-report.png)
-
 ## Measuring Adoption
 
 At Level 5, you track KPIs for architecture review maturity itself:
