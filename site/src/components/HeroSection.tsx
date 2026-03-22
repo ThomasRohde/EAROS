@@ -47,7 +47,7 @@ const HERO_LINES = [
   { type: 'input' as const, value: 'earos validate core/core-meta-rubric.yaml' },
   { value: '\u2713 core/core-meta-rubric.yaml is valid (kind: core_rubric)' },
   { type: 'input' as const, value: 'earos' },
-  { value: 'EaROS Editor \u2192 http://localhost:3000' },
+  { value: 'EaROS Editor \u2192 http://localhost:<port>' },
 ]
 
 export default function HeroSection() {

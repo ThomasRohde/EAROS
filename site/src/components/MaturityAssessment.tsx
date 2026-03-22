@@ -123,7 +123,7 @@ const DIMENSIONS: Dimension[] = [
           'They\'re treated as one thing',
           'Reviewers know they\'re different but score them together',
           'The evaluation addresses artifact quality, architectural fitness, and governance fit',
-          'All three perspectives are scored with distinct criteria and tracked over time',
+          'All three perspectives are addressed in every evaluation narrative and tracked over time',
         ],
       },
       {

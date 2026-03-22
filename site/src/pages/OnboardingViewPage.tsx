@@ -100,7 +100,7 @@ function getDemoConfig(slug: string): ContentInjection[] {
               { value: '  earos manifest check   Verify manifest integrity' },
               { type: 'input', value: 'cd my-workspace' },
               { type: 'input', value: 'earos' },
-              { value: 'EaROS Editor \u2192 http://localhost:3000' },
+              { value: 'EaROS Editor \u2192 http://localhost:<port>' },
             ]}
           />
         ),

@@ -364,6 +364,7 @@ function statusLabel(status: string): string {
     conditional_pass: 'Conditional Pass',
     rework_required: 'Rework Required',
     reject: 'Reject',
+    not_reviewable: 'Not Reviewable',
     incomplete: 'Incomplete',
   }
   return map[status] ?? humanize(status)
@@ -388,7 +389,7 @@ export function exportEvaluationToMarkdown(
     return { id: dim.id, name: dim.name, weight: dim.weight ?? 1.0, avgScore: avg }
   })
 
-  const gateFailures: Array<{ id: string; question: string; severity: string; score: number }> = []
+  const gateFailures: Array<{ id: string; question: string; severity: string; score: number; failure_effect: string }> = []
   for (const dim of dimensions) {
     for (const c of dim.criteria) {
       if (!c.gate || typeof c.gate !== 'object' || !c.gate.enabled) continue
@@ -397,11 +398,12 @@ export function exportEvaluationToMarkdown(
       const r = results[c.id]
       if (!r || r.score === null || r.score === 'N/A') continue
       if ((r.score as number) < 2) {
-        gateFailures.push({ id: c.id, question: c.question, severity: sev, score: r.score as number })
+        gateFailures.push({ id: c.id, question: c.question, severity: sev, score: r.score as number, failure_effect: c.gate.failure_effect ?? '' })
       }
     }
   }
   const criticalFailures = gateFailures.filter((g) => g.severity === 'critical')
+  const majorFailures = gateFailures.filter((g) => g.severity === 'major')
 
   const scoredDims = dimSummaries.filter((d) => d.avgScore !== null)
   const weightedSum = scoredDims.reduce((acc, d) => acc + (d.avgScore as number) * d.weight, 0)
@@ -415,10 +417,19 @@ export function exportEvaluationToMarkdown(
   let status = 'incomplete'
   if (overallScore !== null) {
     const noLowDim = dimSummaries.every((d) => d.avgScore === null || d.avgScore >= 2.0)
-    if (criticalFailures.length > 0) status = 'reject'
-    else if (overallScore >= 3.2 && noLowDim) status = 'pass'
-    else if (overallScore >= 2.4) status = 'conditional_pass'
-    else status = 'rework_required'
+    if (criticalFailures.length > 0) {
+      const hasNotReviewable = criticalFailures.some((g) => {
+        const effect = g.failure_effect.toLowerCase()
+        return effect.includes('not_reviewable') || effect.includes('not reviewable')
+      })
+      status = hasNotReviewable ? 'not_reviewable' : 'reject'
+    } else if (overallScore >= 3.2 && noLowDim && majorFailures.length === 0) {
+      status = 'pass'
+    } else if (overallScore >= 2.4 || majorFailures.length > 0) {
+      status = 'conditional_pass'
+    } else {
+      status = 'rework_required'
+    }
   }
 
   // Title
@@ -487,8 +498,8 @@ export function exportEvaluationToMarkdown(
   if (gateFailures.length > 0) {
     lines.push('## Gate Failures\n')
     lines.push(mdTable(
-      ['Criterion', 'Question', 'Severity', 'Score'],
-      gateFailures.map((g) => [g.id, g.question, g.severity, String(g.score)]),
+      ['Criterion', 'Question', 'Severity', 'Score', 'Effect'],
+      gateFailures.map((g) => [g.id, g.question, g.severity, String(g.score), g.failure_effect || '\u2014']),
     ))
     lines.push('\n---\n')
   }

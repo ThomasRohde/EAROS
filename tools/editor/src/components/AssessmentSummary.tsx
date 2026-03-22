@@ -34,6 +34,7 @@ interface GateFailure {
   question: string
   severity: string
   score: number | 'N/A'
+  failure_effect: string
 }
 
 function getGateSeverity(gate: RubricCriterion['gate']): string | null {
@@ -77,12 +78,14 @@ export function computeSummary(
       const r = results[c.id]
       if (!r || r.score === null || r.score === 'N/A') continue
       if ((r.score as number) < 2) {
-        gateFailures.push({ criterion_id: c.id, question: c.question, severity: sev, score: r.score as number })
+        const gate = c.gate as { enabled: boolean; severity: string; failure_effect?: string }
+        gateFailures.push({ criterion_id: c.id, question: c.question, severity: sev, score: r.score as number, failure_effect: gate.failure_effect ?? '' })
       }
     }
   }
 
   const criticalFailures = gateFailures.filter((g) => g.severity === 'critical')
+  const majorFailures = gateFailures.filter((g) => g.severity === 'major')
 
   // Overall weighted score across dimensions that have any scored criteria
   const scoredDims = dimSummaries.filter((d) => d.avgScore !== null)
@@ -100,10 +103,15 @@ export function computeSummary(
   if (overallScore !== null) {
     const noLowDimension = dimSummaries.every((d) => d.avgScore === null || d.avgScore >= 2.0)
     if (criticalFailures.length > 0) {
-      status = 'reject'
-    } else if (overallScore >= 3.2 && noLowDimension) {
+      // Check failure_effect to distinguish reject vs not_reviewable
+      const hasNotReviewable = criticalFailures.some((g) => {
+        const effect = g.failure_effect.toLowerCase()
+        return effect.includes('not_reviewable') || effect.includes('not reviewable')
+      })
+      status = hasNotReviewable ? 'not_reviewable' : 'reject'
+    } else if (overallScore >= 3.2 && noLowDimension && majorFailures.length === 0) {
       status = 'pass'
-    } else if (overallScore >= 2.4) {
+    } else if (overallScore >= 2.4 || majorFailures.length > 0) {
       status = 'conditional_pass'
     } else {
       status = 'rework_required'
@@ -118,6 +126,7 @@ export const STATUS_CONFIG: Record<string, { label: string; color: string; bg: s
   conditional_pass: { label: 'Conditional Pass', color: 'hsl(31 94% 33%)', bg: 'hsl(53 100% 92%)', icon: <InfoIcon sx={{ fontSize: 16 }} /> },
   rework_required: { label: 'Rework Required', color: 'hsl(0 65% 51%)', bg: 'hsl(0 82% 96%)', icon: <WarningAmberIcon sx={{ fontSize: 16 }} /> },
   reject: { label: 'Reject', color: 'hsl(358 57% 10%)', bg: 'hsl(4 100% 92%)', icon: <CancelIcon sx={{ fontSize: 16 }} /> },
+  not_reviewable: { label: 'Not Reviewable', color: 'hsl(212 27% 35%)', bg: 'hsl(206 33% 96%)', icon: <CancelIcon sx={{ fontSize: 16 }} /> },
   incomplete: { label: 'Scoring in progress…', color: 'hsl(212 27% 35%)', bg: 'hsl(206 33% 96%)', icon: null },
 }
 
