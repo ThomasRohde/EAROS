@@ -3,6 +3,39 @@ import { Link } from 'react-router-dom'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import GitHubIcon from '@mui/icons-material/GitHub'
 import { sapphire } from '../theme'
+import TerminalDemo from './TerminalDemo'
+
+const HERO_LINES = [
+  { type: 'input' as const, value: 'npm install -g @trohde/earos' },
+  { type: 'progress' as const },
+  { value: 'added 147 packages in 8s' },
+  { type: 'input' as const, value: 'earos --help' },
+  { value: 'earos \u2014 EAROS editor and CLI' },
+  { value: '' },
+  { value: 'Usage:' },
+  { value: '  earos                             Open the editor' },
+  { value: '  earos init [dir] [--icons]        Scaffold a workspace' },
+  { value: '  earos validate <file.yaml>        Validate a rubric or evaluation' },
+  { value: '  earos export <file.yaml>          Export artifact as Word (.docx)' },
+  { value: '  earos manifest                    Regenerate manifest' },
+  { value: '  earos manifest check              Verify manifest integrity' },
+  { type: 'input' as const, value: 'earos init my-project --icons' },
+  { value: '\u2713 EAROS workspace initialized at: ./my-project' },
+  { value: '  core/              Core meta-rubric (universal foundation)' },
+  { value: '  profiles/          Artifact-specific profiles (5 included)' },
+  { value: '  overlays/          Cross-cutting overlays (3 included)' },
+  { value: '  .agents/skills/    All 10 EAROS skills for any AI agent' },
+  { value: '  AGENTS.md          Project guide for AI agents' },
+  { value: 'Downloading AWS architecture icons...' },
+  { type: 'progress' as const },
+  { value: 'Downloading Azure architecture icons...' },
+  { type: 'progress' as const },
+  { value: '\u2713 Icons downloaded to ./my-project/icons/' },
+  { type: 'input' as const, value: 'earos validate core/core-meta-rubric.yaml' },
+  { value: '\u2713 core/core-meta-rubric.yaml is valid (kind: core_rubric)' },
+  { type: 'input' as const, value: 'earos' },
+  { value: 'EAROS Editor \u2192 http://localhost:3000' },
+]
 
 export default function HeroSection() {
   const theme = useTheme()
@@ -68,7 +101,7 @@ export default function HeroSection() {
           Making architecture review irresistible
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mb: 6 }}>
           <Button
             component={Link}
             to="/docs"
@@ -91,6 +124,16 @@ export default function HeroSection() {
           >
             View on GitHub
           </Button>
+        </Box>
+
+        <Box sx={{ maxWidth: 700, mx: 'auto', textAlign: 'left' }}>
+          <TerminalDemo
+            title="terminal"
+            lines={HERO_LINES}
+            height={420}
+            startDelay={800}
+            lineDelay={800}
+          />
         </Box>
       </Box>
     </Box>
