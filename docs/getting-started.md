@@ -191,6 +191,6 @@ Target inter-rater reliability: Cohen's κ > 0.70 for well-defined criteria.
 ## Next Steps
 
 - **Create a profile** for an artifact type not yet covered → [`docs/profile-authoring-guide.md`](profile-authoring-guide.md)
-- **Set up AI-agent assessment** → [`README.md`](../README.md#ai-agent-assessment) and [`standard/EAROS.md`](../standard/EAROS.md)
+- **Set up AI-agent assessment** → [`standard/EAROS.md`](../standard/EAROS.md)
 - **Review the research behind EaROS** → `research/` directory in the repository
 - **Run a team calibration session** → `calibration/` directory in the repository

@@ -104,7 +104,7 @@ Not all criteria are equal. Some have **gates** --- threshold controls that can 
 | **Major** | A low score caps the maximum achievable status (e.g., cannot pass above Conditional Pass). |
 | **Advisory** | A low score triggers a recommendation but does not block any status. |
 
-In the core rubric, **SCP-01** (Scope and boundary clarity) has a **critical** gate: if the scope is so unclear that the artifact cannot be reviewed (score < 2), the result is "Not Reviewable" regardless of all other scores. **STK-01** (Stakeholder and purpose fit) and **TRC-01** (Traceability) have **major** gates.
+In the core rubric, two criteria have **critical** gates: **SCP-01** (Scope and boundary clarity) — if the scope is so unclear that the artifact cannot be reviewed (score < 2), the result is "Not Reviewable" regardless of all other scores; and **CMP-01** (Standards and policy compliance) — if mandatory control compliance cannot be determined, the result is "Reject". **STK-01** (Stakeholder and purpose fit) and **TRC-01** (Traceability) have **major** gates.
 
 > **Rule: Gates before averages.** Always check gate criteria first. If a critical gate fails, stop --- the result is determined by the gate's `failure_effect` (Reject or Not Reviewable). Only then compute the weighted average for the remaining status thresholds.
 

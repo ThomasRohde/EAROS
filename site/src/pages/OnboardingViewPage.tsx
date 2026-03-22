@@ -111,14 +111,15 @@ function getDemoConfig(slug: string): ContentInjection[] {
         component: (
           <TerminalDemo
             key="governed-review-demo"
-            title="terminal"
+            title="terminal — calibration exercise"
             lines={[
-              { type: 'input', value: 'earos validate core/core-meta-rubric.yaml' },
-              { value: '\u2713 core/core-meta-rubric.yaml is valid (kind: core_rubric)' },
-              { type: 'input', value: 'earos validate profiles/reference-architecture.yaml' },
-              { value: '\u2713 profiles/reference-architecture.yaml is valid (kind: profile)' },
-              { type: 'input', value: 'earos manifest check' },
-              { value: '\u2713 Manifest is consistent with filesystem' },
+              { type: 'input', value: '# 1. Each reviewer scores the same artifact independently' },
+              { type: 'input', value: 'earos assess artifact.yaml --profile reference-architecture' },
+              { value: '✓ Evaluation saved → reviewer-a.evaluation.yaml' },
+              { type: 'input', value: '# 2. Compare scores and compute inter-rater reliability' },
+              { value: "Cohen's κ = 0.74 (substantial agreement)" },
+              { type: 'input', value: '# 3. Resolve disagreements against level descriptors' },
+              { value: '2 criteria had >1-point disagreement → resolved' },
             ]}
           />
         ),

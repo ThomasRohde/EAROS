@@ -60,7 +60,7 @@ const FEATURES: Feature[] = [
   {
     icon: <TuneIcon sx={{ fontSize: 26 }} />,
     title: 'Calibration Framework',
-    description: 'Gold-standard artifacts, inter-rater reliability targets, and Wasserstein-based score alignment.',
+    description: 'Inter-rater reliability targets (Cohen\u2019s \u03BA), calibration exercises, and Wasserstein-based drift detection.',
     colorKey: 'secondary',
   },
 ]

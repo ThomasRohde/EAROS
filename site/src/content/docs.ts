@@ -20,7 +20,7 @@ export const docs: DocEntry[] = [
   {
     slug: 'standard',
     title: 'The Standard',
-    description: 'The canonical EAROS v2 standard document. Complete reference for the scoring model, gates, and evaluation flow.',
+    description: 'The EAROS standard document. Full reference for the scoring model, gates, and evaluation flow.',
     content: standardMd,
   },
   {
