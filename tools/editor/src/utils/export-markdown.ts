@@ -1,5 +1,5 @@
 /**
- * EAROS — Markdown export utilities for artifacts, rubrics, and evaluations.
+ * EaROS — Markdown export utilities for artifacts, rubrics, and evaluations.
  *
  * Pure client-side functions that convert structured data objects to Markdown strings.
  */
@@ -206,7 +206,7 @@ export function exportRubricToMarkdown(data: any): string {
   const lines: string[] = []
 
   // Title & metadata
-  const title = str(data?.title) || 'EAROS Rubric'
+  const title = str(data?.title) || 'EaROS Rubric'
   lines.push(`# ${title}`)
   lines.push('')
 
@@ -422,7 +422,7 @@ export function exportEvaluationToMarkdown(
   }
 
   // Title
-  lines.push('# EAROS Architecture Assessment Report')
+  lines.push('# EaROS Architecture Assessment Report')
   lines.push('')
   if (meta.title) lines.push(`**Artifact:** ${meta.title}`)
   if (meta.version) lines.push(`**Artifact Version:** ${meta.version}`)

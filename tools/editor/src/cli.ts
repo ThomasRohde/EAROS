@@ -57,7 +57,7 @@ async function startEditor(fileArg?: string): Promise<void> {
     server: { port, open: false },
   })
   await server.listen()
-  console.log(`EAROS Editor → http://localhost:${port}`)
+  console.log(`EaROS Editor → http://localhost:${port}`)
 
   const url = fileArg
     ? `http://localhost:${port}?file=${encodeURIComponent(fileArg)}`

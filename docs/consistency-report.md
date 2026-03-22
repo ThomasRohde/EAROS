@@ -1,4 +1,4 @@
-# EAROS Consistency Report
+# EaROS Consistency Report
 
 **Date:** 2026-03-19
 **Performed by:** Claude Sonnet 4.6 (automated + manual review)
@@ -160,7 +160,7 @@ Gate inventory:
 | `security.yaml` | 2 | 1.0.0 | ⚠ mismatch |
 | `data-governance.yaml` | 2 | 1.0.0 | ⚠ mismatch |
 
-**Remaining mismatch — `security.yaml` and `data-governance.yaml`:** These overlays have `version: 1.0.0` internally but are named `.yaml`. The `v2` in the filename appears to denote EAROS framework era rather than the file's own major version — a deliberate ambiguity in the original design. These have NOT been changed because: (1) bumping to 2.0.0 would imply a breaking change that did not occur, and (2) the `v2` naming may be intentional to signal EAROS v2 compatibility. This should be resolved by a governance decision, documented below under Judgment Calls.
+**Remaining mismatch — `security.yaml` and `data-governance.yaml`:** These overlays have `version: 1.0.0` internally but are named `.yaml`. The `v2` in the filename appears to denote EaROS framework era rather than the file's own major version — a deliberate ambiguity in the original design. These have NOT been changed because: (1) bumping to 2.0.0 would imply a breaking change that did not occur, and (2) the `v2` naming may be intentional to signal EaROS v2 compatibility. This should be resolved by a governance decision, documented below under Judgment Calls.
 
 All filenames use kebab-case ✓. No spaces in filenames ✓.
 
@@ -232,7 +232,7 @@ All files referenced in README.md were verified to exist:
 
 **Method:** Compared files by purpose and content type.
 
-`tools/scoring-sheets/EAROS_Scoring_Sheet.xlsx` (v1) and `tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx` (v2) coexist intentionally — the v1 sheet is the original tooling from EAROS v1.0, kept for reference. The README correctly lists both. Not a duplicate.
+`tools/scoring-sheets/EAROS_Scoring_Sheet.xlsx` (v1) and `tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx` (v2) coexist intentionally — the v1 sheet is the original tooling from EaROS v1.0, kept for reference. The README correctly lists both. Not a duplicate.
 
 No other duplicate files found. ✓
 
@@ -266,7 +266,7 @@ These items require deliberate decisions by the project owner:
 ### JC-1: Overlays `security.yaml` and `data-governance.yaml` — version mismatch
 
 Both have `version: 1.0.0` internally but are named `.yaml`. Two interpretations:
-- **Interpretation A:** The `v2` in the filename means EAROS-v2-era compatibility, not the file's own major version. Under this interpretation, `version: 1.0.0` is correct.
+- **Interpretation A:** The `v2` in the filename means EaROS-v2-era compatibility, not the file's own major version. Under this interpretation, `version: 1.0.0` is correct.
 - **Interpretation B:** Per CLAUDE.md §8 convention, `v<major>` in the filename must match the internal major. Under this interpretation, the internal version should be `2.0.0`.
 
 **Recommendation:** Adopt Interpretation B for consistency. Bump both overlays to `version: 2.0.0` and document in CHANGELOG. This is a non-breaking change (no scoring model change).

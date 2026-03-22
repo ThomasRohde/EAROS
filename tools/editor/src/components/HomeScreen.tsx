@@ -87,7 +87,7 @@ const ROWS: Array<{ label: string; cards: CardDef[] }> = [
         icon: <NoteAddIcon sx={{ fontSize: 28 }} />,
         title: 'Create Artifact',
         description: 'Write a new architecture document',
-        subtitle: 'Start from a template with built-in EAROS guidance',
+        subtitle: 'Start from a template with built-in EaROS guidance',
         colorKey: 'secondary',
       },
       {
@@ -95,7 +95,7 @@ const ROWS: Array<{ label: string; cards: CardDef[] }> = [
         icon: <EditNoteIcon sx={{ fontSize: 28 }} />,
         title: 'Edit Artifact',
         description: 'Improve an existing document',
-        subtitle: 'Open an architecture document and see EAROS assessment guidance',
+        subtitle: 'Open an architecture document and see EaROS assessment guidance',
         colorKey: 'secondary',
       },
     ],
@@ -133,7 +133,7 @@ export default function HomeScreen({ onSelectMode }: Props) {
     >
       <QuickTipBanner
         tipKey="home"
-        message="EAROS works best with AI agents. Open this project in Claude Code or Cursor to access 10 automated assessment skills — earos-assess, earos-create, earos-artifact-gen, and more."
+        message="EaROS works best with AI agents. Open this project in Claude Code or Cursor to access 10 automated assessment skills — earos-assess, earos-create, earos-artifact-gen, and more."
       />
 
       {/* Centred content */}
@@ -151,7 +151,7 @@ export default function HomeScreen({ onSelectMode }: Props) {
               fontSize: '2.5rem',
             }}
           >
-            EAROS Editor
+            EaROS Editor
           </Typography>
           <Typography
             variant="body1"
@@ -161,6 +161,18 @@ export default function HomeScreen({ onSelectMode }: Props) {
             }}
           >
             Enterprise Architecture Rubric Operational Standard · v2.0
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              mt: 1,
+              color: isDark ? sapphire.gray[500] : `color-mix(in srgb, ${sapphire.blue[900]} 44%, transparent)`,
+              fontWeight: 400,
+              fontStyle: 'italic',
+              letterSpacing: '0.01em',
+            }}
+          >
+            Making architecture review irresistable
           </Typography>
         </Box>
 

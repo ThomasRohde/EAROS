@@ -1,5 +1,5 @@
 /**
- * EAROS standalone Express server.
+ * EaROS standalone Express server.
  * Serves the pre-built React app from dist/ and provides the API endpoints.
  */
 
@@ -209,7 +209,7 @@ export async function startServer(fileArg?: string): Promise<void> {
     const url = fileArg
       ? `http://localhost:${port}?file=${encodeURIComponent(fileArg)}`
       : `http://localhost:${port}`
-    console.log(`EAROS Editor → ${url}`)
+    console.log(`EaROS Editor → ${url}`)
     open(url)
   })
 }

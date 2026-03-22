@@ -1,4 +1,4 @@
-# EAROS — Enterprise Architecture Rubric Operational Standard
+# EaROS — Enterprise Architecture Rubric Operational Standard
 
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![Version](https://img.shields.io/badge/Version-2.0.0-blue.svg)](CHANGELOG.md)
@@ -6,22 +6,22 @@
 
 **Version 2.0.0 · March 2026** · [github.com/ThomasRohde/EAROS](https://github.com/ThomasRohde/EAROS)
 
-EAROS is a structured, extensible framework for evaluating enterprise architecture artifacts. It provides a universal rubric foundation, artifact-specific profiles, and cross-cutting overlays that together enable consistent, evidence-anchored assessment — by human reviewers and AI agents alike.
+EaROS is a structured, extensible framework for evaluating enterprise architecture artifacts. It provides a universal rubric foundation, artifact-specific profiles, and cross-cutting overlays that together enable consistent, evidence-anchored assessment — by human reviewers and AI agents alike.
 
 <p align="center">
-  <img src="images/hero-home.png" width="49%" alt="EAROS Home Screen">
-  <img src="images/hero-editor.png" width="49%" alt="EAROS Editor Screen">
+  <img src="images/hero-home.png" width="49%" alt="EaROS Home Screen">
+  <img src="images/hero-editor.png" width="49%" alt="EaROS Editor Screen">
 </p>
 
-> EAROS is to architecture review what a marking rubric is to an exam: it makes the criteria explicit, the scoring reproducible, and the feedback actionable.
+> EaROS is to architecture review what a marking rubric is to an exam: it makes the criteria explicit, the scoring reproducible, and the feedback actionable.
 
 ---
 
-## What is EAROS?
+## What is EaROS?
 
 Architecture artifacts — solution designs, ADRs, capability maps, reference architectures, roadmaps — are evaluated constantly, but rarely consistently. Different reviewers apply different mental models. Review boards drift. AI-generated assessments hallucinate quality where there is none.
 
-EAROS solves this by codifying evaluation criteria into governed, machine-readable rubrics. Each criterion has precise descriptors for every score level, mandatory evidence requirements, and unambiguous pass/fail gates. The result is architecture governance that scales: from a single architect reviewing a colleague's design, to an AI agent running nightly quality checks across hundreds of artifacts.
+EaROS solves this by codifying evaluation criteria into governed, machine-readable rubrics. Each criterion has precise descriptors for every score level, mandatory evidence requirements, and unambiguous pass/fail gates. The result is architecture governance that scales: from a single architect reviewing a colleague's design, to an AI agent running nightly quality checks across hundreds of artifacts.
 
 ### Design Principles
 
@@ -61,7 +61,7 @@ flowchart TD
 
 ## Three Schema Types
 
-EAROS uses three distinct JSON Schemas in `standard/schemas/`, forming a deliberate derivation chain:
+EaROS uses three distinct JSON Schemas in `standard/schemas/`, forming a deliberate derivation chain:
 
 ```mermaid
 flowchart LR
@@ -83,7 +83,7 @@ flowchart LR
 | `evaluation.schema.json` | Evaluation records | `kind: evaluation` |
 | `artifact.schema.json` | Architecture artifact documents | `kind: artifact` |
 
-A well-completed artifact document satisfies the evidence requirements that rubric criteria require. When a profile adds criteria with new `required_evidence` fields, the artifact schema should be extended to add the corresponding sections. This chain makes EAROS end-to-end: rubric defines what counts as evidence → artifact schema structures how evidence is captured → evaluation schema records how it is scored. The artifact schema is also used by the editor's JSON Forms to render a structured artifact creation form.
+A well-completed artifact document satisfies the evidence requirements that rubric criteria require. When a profile adds criteria with new `required_evidence` fields, the artifact schema should be extended to add the corresponding sections. This chain makes EaROS end-to-end: rubric defines what counts as evidence → artifact schema structures how evidence is captured → evaluation schema records how it is scored. The artifact schema is also used by the editor's JSON Forms to render a structured artifact creation form.
 
 ---
 
@@ -94,7 +94,7 @@ EAROS/
 ├── earos.manifest.yaml              Inventory of all rubric files (single source of truth)
 │
 ├── standard/                        Standard documents and JSON schemas
-│   ├── EAROS.md                     The EAROS standard (canonical reference)
+│   ├── EAROS.md                     The EaROS standard (canonical reference)
 │   ├── EAROS_Standard_v2.docx       Word version of the standard
 │   └── schemas/
 │       ├── rubric.schema.json       JSON Schema for core rubric / profile / overlay files
@@ -158,7 +158,7 @@ EAROS/
 ├── docs/                            How-to guides
 │   ├── getting-started.md
 │   ├── profile-authoring-guide.md
-│   └── terminology.md               Glossary of all EAROS, statistical, and architecture terms
+│   └── terminology.md               Glossary of all EaROS, statistical, and architecture terms
 │
 └── .claude/skills/                  Claude Code skills (wraps .agents/skills/ for Claude Code)
     ├── earos-assess/
@@ -243,20 +243,20 @@ cd my-architecture
 earos
 ```
 
-`earos init` copies a complete, ready-to-use EAROS workspace into `my-architecture/` — all rubrics, schemas, templates, and agent skills bundled. The browser editor opens automatically at `http://localhost:3000`.
+`earos init` copies a complete, ready-to-use EaROS workspace into `my-architecture/` — all rubrics, schemas, templates, and agent skills bundled. The browser editor opens automatically at `http://localhost:3000`.
 
 ---
 
 ## earos init — Agent-Agnostic Workspace
 
-`earos init [dir]` scaffolds a self-contained EAROS workspace that works with any AI coding agent:
+`earos init [dir]` scaffolds a self-contained EaROS workspace that works with any AI coding agent:
 
 ```
 my-architecture/
 ├── earos.manifest.yaml          Inventory of all rubric files
 ├── AGENTS.md                    Full project guide — read by Cursor, Copilot, Windsurf, etc.
 ├── .claude/CLAUDE.md            Thin Claude Code shim — points to AGENTS.md for discovery
-├── .agents/skills/              10 EAROS skills in agent-agnostic format
+├── .agents/skills/              10 EaROS skills in agent-agnostic format
 │   ├── earos-assess/
 │   ├── earos-review/
 │   ├── earos-template-fill/
@@ -285,7 +285,7 @@ my-architecture/
 
 ```bash
 earos                              # Open the web editor (http://localhost:3000)
-earos init [dir]                   # Scaffold a new agent-agnostic EAROS workspace
+earos init [dir]                   # Scaffold a new agent-agnostic EaROS workspace
 earos validate <file>              # Validate a rubric/evaluation/artifact YAML against schemas
 earos manifest                     # Regenerate earos.manifest.yaml from the filesystem
 earos manifest add <path>          # Add a single file to the manifest
@@ -325,12 +325,12 @@ See [`docs/getting-started.md`](docs/getting-started.md) for a full walkthrough.
 
 ## AI-Agent Assessment
 
-EAROS is designed for automated evaluation. The YAML rubric files are the machine-readable specification; the evaluation record schema defines the output format.
+EaROS is designed for automated evaluation. The YAML rubric files are the machine-readable specification; the evaluation record schema defines the output format.
 
 **Minimal agent prompt pattern:**
 
 ```
-You are an architecture quality assessor. Apply the EAROS rubric defined in
+You are an architecture quality assessor. Apply the EaROS rubric defined in
 [rubric YAML] to the artifact below. For each criterion:
   1. Extract the relevant evidence from the artifact (direct quote or reference)
   2. Score 0–4 against the level descriptors
@@ -373,13 +373,13 @@ Calibrate your agent against `calibration/gold-set/` before production use. Targ
 
 ## Agent Skills
 
-EAROS ships 10 agent skills for end-to-end workflows. In scaffolded workspaces (`earos init`) they live in `.agents/skills/` — readable by any AI coding agent (Cursor, Copilot, Windsurf, Claude Code, etc.). In the EAROS development repo they additionally appear as Claude Code skills in `.claude/skills/`.
+EaROS ships 10 agent skills for end-to-end workflows. In scaffolded workspaces (`earos init`) they live in `.agents/skills/` — readable by any AI coding agent (Cursor, Copilot, Windsurf, Claude Code, etc.). In the EaROS development repo they additionally appear as Claude Code skills in `.claude/skills/`.
 
 Every skill reads the actual YAML rubric files at runtime — no embedded rubric content — so assessments always use the latest rubric version.
 
 | Skill | Purpose |
 |-------|---------|
-| `earos-assess` | Run a full EAROS evaluation on any architecture artifact (8-step DAG, RULERS protocol) |
+| `earos-assess` | Run a full EaROS evaluation on any architecture artifact (8-step DAG, RULERS protocol) |
 | `earos-review` | Challenge an existing evaluation record — check for over-scoring and unsupported claims |
 | `earos-template-fill` | Guide an artifact author through writing an assessment-ready document |
 | `earos-artifact-gen` | Guided interview → produces a schema-compliant artifact YAML document |
@@ -388,13 +388,13 @@ Every skill reads the actual YAML rubric files at runtime — no embedded rubric
 | `earos-calibrate` | Run calibration exercises and compute inter-rater reliability metrics |
 | `earos-report` | Generate executive reports and portfolio dashboards from evaluation records |
 | `earos-validate` | Health-check the repository — schema validation, ID uniqueness, cross-reference checks |
-| `earos-remediate` | Generate a prioritized improvement plan from an EAROS evaluation record |
+| `earos-remediate` | Generate a prioritized improvement plan from an EaROS evaluation record |
 
 ---
 
-## The EAROS Editor
+## The EaROS Editor
 
-A browser-based tool for creating and editing EAROS rubrics, running assessments, and authoring artifact documents. Built with React + JSON Forms + Material UI + Vite.
+A browser-based tool for creating and editing EaROS rubrics, running assessments, and authoring artifact documents. Built with React + JSON Forms + Material UI + Vite.
 
 When installed globally (`npm install -g @trohde/earos`), use the `earos` command from any workspace. When working in the development repo directly:
 
@@ -419,7 +419,7 @@ node bin.js manifest check              # check manifest matches filesystem; exi
 
 **Key features:**
 - **Assessment wizard** — guided criterion-by-criterion scoring with evidence capture, gate tracking, and automatic status determination
-- **Artifact editor** — structured document editor driven by `artifact.schema.json`; shows EAROS evidence requirements inline
+- **Artifact editor** — structured document editor driven by `artifact.schema.json`; shows EaROS evidence requirements inline
 - **Rubric editor** — tabbed JSON Forms view: Metadata / Dimensions & Criteria / Scoring & Outputs / Agent & Calibration
 - **Manifest-driven sidebar** — browse and load any rubric file via `earos.manifest.yaml`; no hardcoded paths
 - **Schemas loaded via API** — schemas are served from the canonical `standard/schemas/` paths at runtime
@@ -430,7 +430,7 @@ See [`tools/editor/README.md`](tools/editor/README.md) for full documentation.
 
 ---
 
-## Extending EAROS
+## Extending EaROS
 
 ### Creating a New Profile
 
@@ -459,17 +459,17 @@ Use `kind: overlay` and `artifact_type: any`. Overlays use `scoring.method: appe
 
 ## Glossary
 
-New to EAROS terminology? The standard uses precise vocabulary from statistics, architecture practice, and the EAROS framework itself. See [`docs/terminology.md`](docs/terminology.md) for definitions of all key terms, organized into three categories:
+New to EaROS terminology? The standard uses precise vocabulary from statistics, architecture practice, and the EaROS framework itself. See [`docs/terminology.md`](docs/terminology.md) for definitions of all key terms, organized into three categories:
 
 - **Statistical and calibration terms** — Cohen's kappa, weighted kappa, ICC, Spearman's rho, Wasserstein distance, inter-rater reliability, calibration
-- **EAROS-specific terms** — core meta-rubric, profile, overlay, gate, evidence anchor, evidence class, RULERS protocol, DAG evaluation flow, challenge pass, rubric locking, decision tree
+- **EaROS-specific terms** — core meta-rubric, profile, overlay, gate, evidence anchor, evidence class, RULERS protocol, DAG evaluation flow, challenge pass, rubric locking, decision tree
 - **Architecture terms** — architecture artifact, viewpoint, quality attribute, quality attribute scenario, fitness function, ADR, golden path, concern
 
 ---
 
 ## Standards and Research Foundation
 
-EAROS draws on and extends:
+EaROS draws on and extends:
 
 - **TOGAF** Architecture Content Framework and governance practices
 - **arc42** template structure and quality criteria
@@ -504,4 +504,4 @@ Contributions to profiles, overlays, calibration artifacts, and documentation ar
 
 This work is licensed under the [Creative Commons Attribution 4.0 International License](LICENSE) (CC BY 4.0).
 
-You are free to use, adapt, and build upon EAROS for any purpose, including commercial, provided you give appropriate credit.
+You are free to use, adapt, and build upon EaROS for any purpose, including commercial, provided you give appropriate credit.

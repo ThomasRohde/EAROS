@@ -1,8 +1,8 @@
 # @trohde/earos
 
-**CLI and web editor for the EAROS architecture assessment framework**
+**CLI and web editor for the EaROS architecture assessment framework**
 
-[EAROS](https://github.com/ThomasRohde/EAROS) (Enterprise Architecture Rubric Operational Standard) is a structured framework for evaluating architecture artifacts consistently — by humans, AI agents, or both. This package gives you the CLI to scaffold and manage an EAROS workspace and a browser-based editor to create rubrics, run assessments, and author artifacts.
+[EaROS](https://github.com/ThomasRohde/EAROS) (Enterprise Architecture Rubric Operational Standard) is a structured framework for evaluating architecture artifacts consistently — by humans, AI agents, or both. This package gives you the CLI to scaffold and manage an EaROS workspace and a browser-based editor to create rubrics, run assessments, and author artifacts.
 
 ---
 
@@ -18,7 +18,7 @@ That's it. Your workspace opens in the browser, ready to assess.
 
 Pass `--icons` to download the official architecture icon packages from **AWS**, **Azure**, and **GCP** into `./icons` during workspace initialization. The initializer creates stable Mermaid-friendly aliases under `./icons/aws/`, `./icons/azure/`, and `./icons/gcp/`.
 
-In an existing EAROS workspace, run `earos init . --icons` to fetch or refresh the icon sets without re-scaffolding the workspace.
+In an existing EaROS workspace, run `earos init . --icons` to fetch or refresh the icon sets without re-scaffolding the workspace.
 
 Override download URLs with environment variables if needed:
 - `EAROS_AWS_ICON_PACKAGE_URL` / `EAROS_AWS_ICON_PAGE_URL`
@@ -40,7 +40,7 @@ my-architecture/
 ├── templates/               Blank scaffolds for new profiles and evaluations
 ├── evaluations/             Your evaluation records go here
 ├── calibration/             Calibration artifacts and results
-├── .agents/skills/          10 EAROS skills for any AI coding agent
+├── .agents/skills/          10 EaROS skills for any AI coding agent
 ├── earos.manifest.yaml      Single source of truth — inventory of all rubric files
 └── AGENTS.md                Project guide for AI agents (agent-agnostic)
 ```
@@ -54,8 +54,8 @@ The workspace is **agent-agnostic** — the `.agents/skills/` directory works wi
 | Command | Description |
 |---------|-------------|
 | `earos` | Start the web editor (Express server, opens browser) |
-| `earos init [dir] [--icons]` | Scaffold a complete EAROS workspace in `dir` and optionally download architecture icon packages from AWS, Azure, and GCP into `icons/`, with stable aliases in `icons/aws/`, `icons/azure/`, and `icons/gcp/` |
-| `earos validate <file>` | Validate a rubric or evaluation YAML against EAROS schemas (exit 0/1) |
+| `earos init [dir] [--icons]` | Scaffold a complete EaROS workspace in `dir` and optionally download architecture icon packages from AWS, Azure, and GCP into `icons/`, with stable aliases in `icons/aws/`, `icons/azure/`, and `icons/gcp/` |
+| `earos validate <file>` | Validate a rubric or evaluation YAML against EaROS schemas (exit 0/1) |
 | `earos manifest` | Regenerate `earos.manifest.yaml` by scanning the filesystem |
 | `earos manifest add <file>` | Add a single file to the manifest |
 | `earos manifest check` | Verify the manifest matches the filesystem (exits non-zero on drift) |
@@ -84,10 +84,10 @@ Key editor features:
 
 - **Manifest-driven sidebar** — browse and load any rubric, profile, or overlay from your workspace
 - **Live YAML preview** — right panel updates in real time as you edit the form
-- **Schema validation** — status bar shows errors in real time against the EAROS JSON schemas
+- **Schema validation** — status bar shows errors in real time against the EaROS JSON schemas
 - **Kind selector** — switches the form between `core_rubric`, `profile`, `overlay`, `evaluation`, and `artifact` — reshaping validation and field layout automatically
 - **Import / Export** — drag-and-drop YAML import; export as `<rubric_id>.yaml`
-- **Context-aware help** — inline guidance tied to the EAROS standard
+- **Context-aware help** — inline guidance tied to the EaROS standard
 
 ---
 
@@ -108,13 +108,13 @@ The initialized workspace includes **10 bundled skills** in `.agents/skills/` th
 | `earos-validate` | Health check — validates all YAMLs against schemas |
 | `earos-remediate` | Generate prioritized improvement plans from evaluation results |
 
-See the [EAROS repository](https://github.com/ThomasRohde/EAROS) for full skill documentation.
+See the [EaROS repository](https://github.com/ThomasRohde/EAROS) for full skill documentation.
 
 ---
 
-## The EAROS Framework
+## The EaROS Framework
 
-EAROS uses a **three-layer model**:
+EaROS uses a **three-layer model**:
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -140,7 +140,7 @@ EAROS uses a **three-layer model**:
 
 **Status outcomes:** Pass · Conditional Pass · Rework Required · Reject · Not Reviewable
 
-For the complete standard — scoring model, gate logic, status thresholds, DAG evaluation flow, and calibration protocol — see the [EAROS repository](https://github.com/ThomasRohde/EAROS).
+For the complete standard — scoring model, gate logic, status thresholds, DAG evaluation flow, and calibration protocol — see the [EaROS repository](https://github.com/ThomasRohde/EAROS).
 
 ---
 

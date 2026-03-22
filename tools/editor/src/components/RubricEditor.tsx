@@ -234,7 +234,7 @@ function ManifestSidebar({
     return (
       <Box sx={{ p: 2 }}>
         <Typography variant="caption" display="block" sx={{ mb: 1, fontWeight: 600, color: 'text.secondary' }}>
-          EAROS Files
+          EaROS Files
         </Typography>
         <Typography variant="caption" color="text.secondary">
           Start the dev server to browse repo files.

@@ -378,7 +378,7 @@ export async function initWorkspace(targetDir: string, options: InitWorkspaceOpt
 
   if (workspaceExists && !options.downloadIcons) {
     console.error(
-      `${target} already contains an EAROS workspace (earos.manifest.yaml exists).`
+      `${target} already contains an EaROS workspace (earos.manifest.yaml exists).`
     )
     process.exit(1)
   }
@@ -387,7 +387,7 @@ export async function initWorkspace(targetDir: string, options: InitWorkspaceOpt
     mkdirSync(target, { recursive: true })
     cpSync(assetsDir, target, { recursive: true })
   } else {
-    console.log(`EAROS workspace already exists at ${target}; downloading icons only.`)
+    console.log(`EaROS workspace already exists at ${target}; downloading icons only.`)
   }
 
   let iconDownloadSummary = ''
@@ -417,7 +417,7 @@ export async function initWorkspace(targetDir: string, options: InitWorkspaceOpt
   const cdStep = isCurrentDir ? '' : `  cd ${targetDir}\n`
 
   console.log(`
-✓ EAROS workspace initialized at: ${target}
+✓ EaROS workspace initialized at: ${target}
 
 Contents:
   core/                  Core meta-rubric (universal foundation)
@@ -427,7 +427,7 @@ Contents:
   templates/             Blank templates for new profiles and evaluations
   evaluations/           Your evaluation records go here
   calibration/           Calibration artifacts and results
-  .agents/skills/        All 10 EAROS skills for any AI coding agent
+  .agents/skills/        All 10 EaROS skills for any AI coding agent
 ${iconDownloadSummary}  earos.manifest.yaml    File inventory (single source of truth)
   AGENTS.md              Project guide for AI agents (agent-agnostic)
 

@@ -15,7 +15,7 @@ metadata:
     analytics platform that combines best-of-breed services from AWS, Azure, and
     Google Cloud. It demonstrates how architecture diagrams can use vendor-specific
     icons to communicate cloud placement clearly, and serves as an example of
-    multi-cloud Mermaid diagrams with the EAROS icon system.
+    multi-cloud Mermaid diagrams with the EaROS icon system.
   decision_context: >
     Architecture Board review Q1 2026. The enterprise data platform is expanding
     from a single-cloud AWS deployment to a multi-cloud strategy. Primary compute

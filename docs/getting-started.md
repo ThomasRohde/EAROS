@@ -1,6 +1,6 @@
-# Getting Started with EAROS
+# Getting Started with EaROS
 
-This guide walks you through your first architecture artifact assessment using EAROS. By the end, you will have scored an artifact, produced a structured evaluation record, and know how to interpret the results.
+This guide walks you through your first architecture artifact assessment using EaROS. By the end, you will have scored an artifact, produced a structured evaluation record, and know how to interpret the results.
 
 ---
 
@@ -10,7 +10,7 @@ This guide walks you through your first architecture artifact assessment using E
 - The artifact you want to assess (document, YAML, or structured text)
 - About 30–60 minutes for a first assessment (subsequent assessments take 15–20 minutes once you know the rubric)
 
-**What EAROS provides:**
+**What EaROS provides:**
 - A rubric specifying exactly what to look for and how to score it
 - A scoring sheet to record your evidence and scores
 - Clear pass/fail thresholds
@@ -19,7 +19,7 @@ This guide walks you through your first architecture artifact assessment using E
 
 ## Step 1: Identify the Artifact Type
 
-EAROS has profiles for the most common enterprise architecture artifact types:
+EaROS has profiles for the most common enterprise architecture artifact types:
 
 | Artifact Type | Profile to Use |
 |--------------|----------------|
@@ -97,7 +97,7 @@ For each criterion:
 
 2. **Match the level descriptor.** Compare what you found to the descriptor for each score level. The score is the *highest level where the artifact fully satisfies the descriptor*. If it partially meets level 3 but not fully, score 2.
 
-3. **Record the evidence.** In the scoring sheet evidence field, write a brief reference: section number, page, or a short direct quote. This is mandatory — unsubstantiated scores are not valid under EAROS.
+3. **Record the evidence.** In the scoring sheet evidence field, write a brief reference: section number, page, or a short direct quote. This is mandatory — unsubstantiated scores are not valid under EaROS.
 
 4. **Flag uncertainty.** If you genuinely cannot assess the criterion (for example, the artifact references external documents you do not have access to), mark it N/A and note the reason.
 
@@ -174,7 +174,7 @@ The artifact has failed one or more gate criteria, indicating a fundamental defi
 
 ## Calibrating Your Assessments
 
-If you are introducing EAROS to a team or beginning to use it for formal governance, calibrate before going live:
+If you are introducing EaROS to a team or beginning to use it for formal governance, calibrate before going live:
 
 1. Select 3–5 artifacts of the same type with a range of quality levels
 2. Have two or more assessors score them independently using the same rubric set
@@ -190,5 +190,5 @@ Target inter-rater reliability: Cohen's κ > 0.70 for well-defined criteria.
 
 - **Create a profile** for an artifact type not yet covered → [`docs/profile-authoring-guide.md`](profile-authoring-guide.md)
 - **Set up AI-agent assessment** → [`README.md`](../README.md#ai-agent-assessment) and [`standard/EAROS.md`](../standard/EAROS.md)
-- **Review the research behind EAROS** → [`research/`](../research/)
+- **Review the research behind EaROS** → [`research/`](../research/)
 - **Run a team calibration session** → [`calibration/`](../calibration/)

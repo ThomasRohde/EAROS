@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the EAROS standard are documented here.
+All notable changes to the EaROS standard are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/).

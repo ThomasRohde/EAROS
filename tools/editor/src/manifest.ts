@@ -1,5 +1,5 @@
 /**
- * EAROS Manifest — browser-safe types and fetch helpers.
+ * EaROS Manifest — browser-safe types and fetch helpers.
  * CLI logic lives in ../manifest-cli.ts (outside Vite bundle scope).
  */
 

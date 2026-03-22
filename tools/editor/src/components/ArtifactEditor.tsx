@@ -179,7 +179,7 @@ function ImportDropZone({ onImport }: { onImport: (content: string) => void }) {
       </Button>
       <Alert severity="info" sx={{ maxWidth: 480, mt: 1 }}>
         Artifact files are YAML documents with <code>kind: artifact</code>. They follow the
-        artifact.schema.json structure derived from EAROS rubric required_evidence fields.
+        artifact.schema.json structure derived from EaROS rubric required_evidence fields.
       </Alert>
     </Box>
   )
@@ -455,8 +455,8 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
         tipKey={initialMode === 'new' ? 'create-artifact' : 'edit-artifact'}
         message={
           initialMode === 'new'
-            ? 'Each section maps to an EAROS criterion. The more sections you complete thoroughly, the higher your assessment score. Or use earos-artifact-gen in your AI agent.'
-            : 'Check the EAROS assessment mapping — each section supports specific criteria. Use earos-remediate in your AI agent to get a prioritized fix list from an evaluation record.'
+            ? 'Each section maps to an EaROS criterion. The more sections you complete thoroughly, the higher your assessment score. Or use earos-artifact-gen in your AI agent.'
+            : 'Check the EaROS assessment mapping — each section supports specific criteria. Use earos-remediate in your AI agent to get a prioritized fix list from an evaluation record.'
         }
       />
 

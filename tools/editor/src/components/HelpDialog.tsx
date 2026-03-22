@@ -139,14 +139,14 @@ interface HelpPage {
 // ─── Home help ─────────────────────────────────────────────────────────────────
 
 const HOME_HELP: HelpPage = {
-  heading: 'Welcome to EAROS',
+  heading: 'Welcome to EaROS',
   sections: [
     {
-      title: 'What is EAROS?',
+      title: 'What is EaROS?',
       content: (
         <>
           <Para>
-            EAROS (Enterprise Architecture Rubric Operational Standard) is a structured framework
+            EaROS (Enterprise Architecture Rubric Operational Standard) is a structured framework
             for evaluating architecture documents consistently. Think of it like an exam marking rubric:
             the criteria are written down, score levels are defined for each one, and feedback is
             actionable. You don't need to guess what "good" looks like — it's in the rubric. The same
@@ -154,9 +154,9 @@ const HOME_HELP: HelpPage = {
             conclusion.
           </Para>
           <Para>
-            EAROS solves the consistency problem that plagues every architecture governance function:
+            EaROS solves the consistency problem that plagues every architecture governance function:
             different reviewers apply different mental models, AI assessments hallucinate quality, and
-            feedback is rarely actionable. EAROS makes evaluation criteria explicit, scoring reproducible,
+            feedback is rarely actionable. EaROS makes evaluation criteria explicit, scoring reproducible,
             and improvement guidance concrete.
           </Para>
         </>
@@ -196,13 +196,13 @@ const HOME_HELP: HelpPage = {
           <SectionHeading>For Architects</SectionHeading>
           <Bullets items={[
             <><strong>Create Artifact</strong> — Write a new architecture document from a template. Each section maps to a rubric criterion, so completing it thoroughly produces a document that scores well.</>,
-            <><strong>Edit Artifact</strong> — Import and improve an existing document. See how each section maps to EAROS criteria and what evidence is needed.</>,
+            <><strong>Edit Artifact</strong> — Import and improve an existing document. See how each section maps to EaROS criteria and what evidence is needed.</>,
           ]} />
         </>
       ),
     },
     {
-      title: 'AI Agent Skills — the real power of EAROS',
+      title: 'AI Agent Skills — the real power of EaROS',
       content: (
         <>
           <Alert icon={<AutoAwesomeIcon fontSize="small" />} severity="success" sx={{ mb: 2 }}>
@@ -210,7 +210,7 @@ const HOME_HELP: HelpPage = {
               The editor is a manual fallback. AI agents are the primary interface.
             </Typography>
             <Typography variant="body2">
-              EAROS ships with 10 AI agent skills in <code>.claude/skills/</code> that automate the
+              EaROS ships with 10 AI agent skills in <code>.claude/skills/</code> that automate the
               entire lifecycle. Open this project in Claude Code, Cursor, or any AI coding agent and
               the skills are immediately available — no configuration needed.
             </Typography>
@@ -225,7 +225,7 @@ const HOME_HELP: HelpPage = {
             <><strong>earos-template-fill</strong> — Coaches an architect through writing an assessment-ready document, section by section.</>,
             <><strong>earos-report</strong> — Generates executive reports and portfolio views from one or more evaluation records.</>,
             <><strong>earos-calibrate</strong> — Runs calibration exercises and computes inter-rater reliability (Cohen's κ) before a rubric goes live.</>,
-            <><strong>earos-validate</strong> — Health-checks the entire EAROS repository: schema validation, ID uniqueness, manifest consistency, missing v2 fields.</>,
+            <><strong>earos-validate</strong> — Health-checks the entire EaROS repository: schema validation, ID uniqueness, manifest consistency, missing v2 fields.</>,
             <><strong>earos-profile-author</strong> — Technical YAML authoring assistant for profiles and overlays: schema compliance, field requirements, v2 structure.</>,
           ]} />
           <Para>
@@ -257,7 +257,7 @@ const HOME_HELP: HelpPage = {
       content: (
         <>
           <Para>
-            EAROS has a deliberate chain: a <strong>Rubric</strong> defines what evidence is
+            EaROS has a deliberate chain: a <strong>Rubric</strong> defines what evidence is
             needed → an <strong>Artifact Schema</strong> captures that as structured sections → a{' '}
             <strong>Template</strong> pre-fills those sections with guidance → your{' '}
             <strong>Document</strong> replaces the guidance with real content.
@@ -291,7 +291,7 @@ const CREATE_RUBRIC_HELP: HelpPage = {
           </Para>
           <Para>There are three kinds — choose based on scope:</Para>
           <Bullets items={[
-            <><strong>Core rubric</strong> — universal criteria for all artifact types. There is usually just one active core rubric in a repo. Only create one if you are establishing a new EAROS instance from scratch.</>,
+            <><strong>Core rubric</strong> — universal criteria for all artifact types. There is usually just one active core rubric in a repo. Only create one if you are establishing a new EaROS instance from scratch.</>,
             <><strong>Profile</strong> — extends the core for a specific artifact type (solution-architecture, reference-architecture, adr, capability-map, roadmap). Use a profile when core criteria alone are insufficient for the artifact type.</>,
             <><strong>Overlay</strong> — injects cross-cutting criteria on top of any core+profile combination (security, data governance, regulatory). Use an overlay when a concern spans multiple artifact types and should not be baked into any single profile.</>,
           ]} />
@@ -373,7 +373,7 @@ const CREATE_RUBRIC_HELP: HelpPage = {
       content: (
         <>
           <Para>
-            Use <strong>Save to Repo</strong> to write to the canonical EAROS file path. Use{' '}
+            Use <strong>Save to Repo</strong> to write to the canonical EaROS file path. Use{' '}
             <strong>Export</strong> to download a local copy. The editor validates against the rubric
             schema — errors appear in the status bar.
           </Para>
@@ -441,7 +441,7 @@ const EDIT_RUBRIC_HELP: HelpPage = {
       content: (
         <>
           <Para>
-            EAROS v2 added fields that older rubrics often lack. Every criterion must have all of these:
+            EaROS v2 added fields that older rubrics often lack. Every criterion must have all of these:
           </Para>
           <Bullets items={[
             <><code>scoring_guide</code> — object with keys "0" through "4", each a descriptive string. All five levels must be present.</>,
@@ -497,17 +497,17 @@ const NEW_ASSESSMENT_HELP: HelpPage = {
   badgeColor: '#2e7d32',
   sections: [
     {
-      title: 'How EAROS assessment works',
+      title: 'How EaROS assessment works',
       content: (
         <>
           <Para>
-            An EAROS assessment scores an architecture document against a rubric. For each criterion,
+            An EaROS assessment scores an architecture document against a rubric. For each criterion,
             you read the document, extract evidence (a direct quote or section reference), and assign
             a score from 0 to 4 using the criterion's level descriptors. Scores are aggregated with
             gate checks to produce an overall status: Pass, Conditional Pass, Rework Required, or Reject.
           </Para>
           <Para>
-            EAROS distinguishes three types of judgment that must not be collapsed into one score:
+            EaROS distinguishes three types of judgment that must not be collapsed into one score:
           </Para>
           <Bullets items={[
             <><strong>Artifact quality</strong> — Is the document complete, coherent, clear, and traceable?</>,
@@ -672,7 +672,7 @@ const CONTINUE_ASSESSMENT_HELP: HelpPage = {
             up exactly where you left off.
           </Para>
           <Para>
-            Evaluations are stored as <code>.evaluation.yaml</code> files in the EAROS repository
+            Evaluations are stored as <code>.evaluation.yaml</code> files in the EaROS repository
             (typically under <code>examples/</code>). If your file isn't in the list, use Import to
             load it from your local file system.
           </Para>
@@ -685,7 +685,7 @@ const CONTINUE_ASSESSMENT_HELP: HelpPage = {
         <>
           <Para>
             Click <strong>Import File</strong> or drag and drop a <code>.yaml</code> file onto the
-            drop zone to load an evaluation from disk. The file must be a valid EAROS evaluation
+            drop zone to load an evaluation from disk. The file must be a valid EaROS evaluation
             record — it will be parsed and opened in the scoring form automatically.
           </Para>
           <Para>
@@ -741,11 +741,11 @@ const CREATE_ARTIFACT_HELP: HelpPage = {
         <>
           <Para>
             An architecture artifact is a structured document describing a system design, decision,
-            capability, or technology roadmap. In EAROS, artifacts are what gets reviewed —
+            capability, or technology roadmap. In EaROS, artifacts are what gets reviewed —
             solution architectures, reference architectures, ADRs, capability maps, and roadmaps.
           </Para>
           <Para>
-            The artifact editor helps you write documents in a format that EAROS can assess reliably.
+            The artifact editor helps you write documents in a format that EaROS can assess reliably.
             A well-structured artifact is easier to score and produces clearer, more actionable
             feedback.
           </Para>
@@ -803,7 +803,7 @@ const CREATE_ARTIFACT_HELP: HelpPage = {
           ]} />
           <AgentTip
             skill="earos-artifact-gen"
-            description="Instead of filling in this form manually, ask your AI agent to run earos-artifact-gen. It interviews you about your architecture, asks the right questions for each section, and generates a schema-compliant document — ready for EAROS assessment."
+            description="Instead of filling in this form manually, ask your AI agent to run earos-artifact-gen. It interviews you about your architecture, asks the right questions for each section, and generates a schema-compliant document — ready for EaROS assessment."
           />
         </>
       ),
@@ -826,7 +826,7 @@ const EDIT_ARTIFACT_HELP: HelpPage = {
             Click <strong>Import File</strong> or drag and drop a <code>.yaml</code> artifact file
             onto the editor to load it. The form populates with the existing content. Edit any section
             in place and save via <strong>Export</strong> (local download) or{' '}
-            <strong>Save to Repo</strong> (write to the EAROS repository path).
+            <strong>Save to Repo</strong> (write to the EaROS repository path).
           </Para>
           <Para>
             You can also open an existing artifact via the YAML preview panel to see the raw structure,
@@ -836,7 +836,7 @@ const EDIT_ARTIFACT_HELP: HelpPage = {
       ),
     },
     {
-      title: 'Which sections map to which EAROS criteria',
+      title: 'Which sections map to which EaROS criteria',
       content: (
         <>
           <Para>

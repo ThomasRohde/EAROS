@@ -1,5 +1,5 @@
 /**
- * EAROS Manifest CLI — Node.js only (not bundled by Vite).
+ * EaROS Manifest CLI — Node.js only (not bundled by Vite).
  *
  * Usage (via bin.js):
  *   node bin.js manifest              # regenerate

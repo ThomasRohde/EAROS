@@ -18,10 +18,10 @@ evaluated_by:
   identity: EA reviewer
 - role: evaluator
   actor: agent
-  identity: EAROS evaluator
+  identity: EaROS evaluator
 - role: challenger
   actor: agent
-  identity: EAROS challenger
+  identity: EaROS challenger
 overall_status: conditional_pass
 overall_score: 3.0
 gate_failures: []

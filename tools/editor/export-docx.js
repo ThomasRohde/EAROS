@@ -1,5 +1,5 @@
 /**
- * EAROS — Export artifact data to a Microsoft Word (.docx) document.
+ * EaROS — Export artifact data to a Microsoft Word (.docx) document.
  *
  * Mermaid diagrams are rendered in the browser for the editor export flow and
  * passed to the server as PNGs. Kroki remains as a fallback for CLI/server-only
@@ -1199,7 +1199,7 @@ export async function exportToDocx(artifactData, browserRenderedDiagrams) {
     const title = str(meta.title) || 'Architecture Artifact';
     const doc = new Document({
         title,
-        creator: str(meta.owner) || 'EAROS',
+        creator: str(meta.owner) || 'EaROS',
         description: str(meta.purpose),
         styles: {
             default: {
@@ -1224,7 +1224,7 @@ export async function exportToDocx(artifactData, browserRenderedDiagrams) {
                                 children: [
                                     new TextRun({ text: title, font: 'Arial', size: 16, color: MID_GREY }),
                                     new TextRun({ text: '\t', font: 'Arial', size: 16 }),
-                                    new TextRun({ text: 'EAROS Architecture Document', font: 'Arial', size: 16, color: MID_GREY }),
+                                    new TextRun({ text: 'EaROS Architecture Document', font: 'Arial', size: 16, color: MID_GREY }),
                                 ],
                                 border: { bottom: { color: 'CCCCCC', space: 1, style: BorderStyle.SINGLE, size: 4 } },
                             }),
@@ -1256,7 +1256,7 @@ export async function exportToDocx(artifactData, browserRenderedDiagrams) {
 }
 // ─── Rubric Word Export ──────────────────────────────────────────────────────
 function rubricTitlePage(data) {
-    const title = str(data.title) || 'EAROS Rubric';
+    const title = str(data.title) || 'EaROS Rubric';
     const kind = str(data.kind ?? '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
     return [
         new Paragraph({ style: 'Normal', children: [], spacing: { before: 2000 } }),
@@ -1400,10 +1400,10 @@ export async function exportRubricToDocx(rubricData) {
         const outPairs = Object.entries(rubricData.outputs).map(([k, v]) => [prettyLabel(k), str(v)]);
         children.push(kvTable(outPairs));
     }
-    const title = str(rubricData.title) || 'EAROS Rubric';
+    const title = str(rubricData.title) || 'EaROS Rubric';
     const doc = new Document({
         title,
-        creator: str(rubricData.owner) || 'EAROS',
+        creator: str(rubricData.owner) || 'EaROS',
         styles: { default: { document: { run: { font: 'Arial', size: 20 } } } },
         sections: [{
                 properties: {
@@ -1417,7 +1417,7 @@ export async function exportRubricToDocx(rubricData) {
                                 children: [
                                     new TextRun({ text: title, font: 'Arial', size: 16, color: MID_GREY }),
                                     new TextRun({ text: '\t', font: 'Arial', size: 16 }),
-                                    new TextRun({ text: 'EAROS Rubric Document', font: 'Arial', size: 16, color: MID_GREY }),
+                                    new TextRun({ text: 'EaROS Rubric Document', font: 'Arial', size: 16, color: MID_GREY }),
                                 ],
                                 border: { bottom: { color: 'CCCCCC', space: 1, style: BorderStyle.SINGLE, size: 4 } },
                             })],
@@ -1453,7 +1453,7 @@ export async function exportEvaluationToDocx(evalData) {
     children.push(new Paragraph({ style: 'Normal', children: [], spacing: { before: 2000 } }));
     children.push(new Paragraph({
         style: 'Title',
-        children: [new TextRun({ text: 'EAROS Architecture Assessment Report', font: 'Arial', size: 56, bold: true, color: NAVY })],
+        children: [new TextRun({ text: 'EaROS Architecture Assessment Report', font: 'Arial', size: 56, bold: true, color: NAVY })],
         alignment: AlignmentType.CENTER,
         spacing: { before: 0, after: 200 },
     }));
@@ -1531,10 +1531,10 @@ export async function exportEvaluationToDocx(evalData) {
             children.push(horizontalRule());
         }
     }
-    const title = `EAROS Assessment — ${artifactTitle}`;
+    const title = `EaROS Assessment — ${artifactTitle}`;
     const doc = new Document({
         title,
-        creator: 'EAROS',
+        creator: 'EaROS',
         styles: { default: { document: { run: { font: 'Arial', size: 20 } } } },
         sections: [{
                 properties: {
@@ -1548,7 +1548,7 @@ export async function exportEvaluationToDocx(evalData) {
                                 children: [
                                     new TextRun({ text: artifactTitle, font: 'Arial', size: 16, color: MID_GREY }),
                                     new TextRun({ text: '\t', font: 'Arial', size: 16 }),
-                                    new TextRun({ text: 'EAROS Assessment Report', font: 'Arial', size: 16, color: MID_GREY }),
+                                    new TextRun({ text: 'EaROS Assessment Report', font: 'Arial', size: 16, color: MID_GREY }),
                                 ],
                                 border: { bottom: { color: 'CCCCCC', space: 1, style: BorderStyle.SINGLE, size: 4 } },
                             })],

@@ -296,7 +296,7 @@ export async function initWorkspace(targetDir, options = {}) {
         process.exit(1);
     }
     if (workspaceExists && !options.downloadIcons) {
-        console.error(`${target} already contains an EAROS workspace (earos.manifest.yaml exists).`);
+        console.error(`${target} already contains an EaROS workspace (earos.manifest.yaml exists).`);
         process.exit(1);
     }
     if (!workspaceExists) {
@@ -304,7 +304,7 @@ export async function initWorkspace(targetDir, options = {}) {
         cpSync(assetsDir, target, { recursive: true });
     }
     else {
-        console.log(`EAROS workspace already exists at ${target}; downloading icons only.`);
+        console.log(`EaROS workspace already exists at ${target}; downloading icons only.`);
     }
     let iconDownloadSummary = '';
     if (options.downloadIcons) {
@@ -331,7 +331,7 @@ export async function initWorkspace(targetDir, options = {}) {
     const isCurrentDir = targetDir === '.' || targetDir === './';
     const cdStep = isCurrentDir ? '' : `  cd ${targetDir}\n`;
     console.log(`
-✓ EAROS workspace initialized at: ${target}
+✓ EaROS workspace initialized at: ${target}
 
 Contents:
   core/                  Core meta-rubric (universal foundation)
@@ -341,7 +341,7 @@ Contents:
   templates/             Blank templates for new profiles and evaluations
   evaluations/           Your evaluation records go here
   calibration/           Calibration artifacts and results
-  .agents/skills/        All 10 EAROS skills for any AI coding agent
+  .agents/skills/        All 10 EaROS skills for any AI coding agent
 ${iconDownloadSummary}  earos.manifest.yaml    File inventory (single source of truth)
   AGENTS.md              Project guide for AI agents (agent-agnostic)
 
