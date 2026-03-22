@@ -80,9 +80,9 @@ function GateBadge({ severity }: { severity: string }) {
           label="CRITICAL GATE"
           size="small"
           sx={{
-            bgcolor: '#ffebee',
-            color: '#c62828',
-            border: '1px solid #ef9a9a',
+            bgcolor: 'hsl(0 82% 96%)',
+            color: 'hsl(0 65% 51%)',
+            border: '1px solid hsl(4 100% 92%)',
             fontWeight: 700,
             fontSize: '0.65rem',
             height: 22,
@@ -99,9 +99,9 @@ function GateBadge({ severity }: { severity: string }) {
           label="MAJOR GATE"
           size="small"
           sx={{
-            bgcolor: '#fff8e1',
-            color: '#e65100',
-            border: '1px solid #ffcc02',
+            bgcolor: 'hsl(53 100% 92%)',
+            color: 'hsl(31 94% 33%)',
+            border: '1px solid hsl(46 97% 65%)',
             fontWeight: 700,
             fontSize: '0.65rem',
             height: 22,
@@ -116,9 +116,9 @@ function GateBadge({ severity }: { severity: string }) {
         label="ADVISORY"
         size="small"
         sx={{
-          bgcolor: '#e3f2fd',
-          color: '#1565c0',
-          border: '1px solid #90caf9',
+          bgcolor: 'hsl(219 100% 95%)',
+          color: 'hsl(218 92% 49%)',
+          border: '1px solid hsl(214 100% 83%)',
           fontWeight: 600,
           fontSize: '0.65rem',
           height: 22,
@@ -129,15 +129,15 @@ function GateBadge({ severity }: { severity: string }) {
   return null
 }
 
-// Color for score chips in the scoring guide
+// Color for score chips in the scoring guide — Sapphire tokens
 function scoreColor(scoreKey: string) {
   switch (scoreKey) {
-    case '4': return { bg: '#e8f5e9', color: '#1b5e20', border: '#a5d6a7' }
-    case '3': return { bg: '#f1f8e9', color: '#33691e', border: '#c5e1a5' }
-    case '2': return { bg: '#fff8e1', color: '#e65100', border: '#ffe082' }
-    case '1': return { bg: '#fbe9e7', color: '#bf360c', border: '#ffab91' }
-    case '0': return { bg: '#fce4ec', color: '#880e4f', border: '#f48fb1' }
-    default: return { bg: '#f5f5f5', color: '#616161', border: '#e0e0e0' }
+    case '4': return { bg: 'hsl(129 33% 92%)', color: 'hsl(129 41% 23%)', border: 'hsl(125 46% 84%)' }
+    case '3': return { bg: 'hsl(129 33% 92%)', color: 'hsl(127 47% 30%)', border: 'hsl(124 42% 73%)' }
+    case '2': return { bg: 'hsl(53 100% 92%)', color: 'hsl(31 94% 33%)', border: 'hsl(51 90% 88%)' }
+    case '1': return { bg: 'hsl(0 82% 96%)', color: 'hsl(359 57% 36%)', border: 'hsl(4 100% 92%)' }
+    case '0': return { bg: 'hsl(0 82% 96%)', color: 'hsl(0 65% 51%)', border: 'hsl(4 100% 92%)' }
+    default: return { bg: 'hsl(206 33% 96%)', color: 'hsl(212 27% 35%)', border: 'hsl(210 26% 85%)' }
   }
 }
 
@@ -149,19 +149,19 @@ export default function CriterionScorer({ criterion, dimLabel, result, onChange 
 
   const isScored = result.score !== null
   const borderColor = gateSeverity === 'critical'
-    ? '#ef9a9a'
+    ? 'hsl(4 100% 92%)'
     : gateSeverity === 'major'
-      ? '#ffe082'
-      : '#e0e0e0'
+      ? 'hsl(51 90% 88%)'
+      : undefined
 
   return (
     <Card
       sx={{
         mb: 1.5,
-        border: `1px solid ${borderColor}`,
+        ...(borderColor ? { border: `1px solid ${borderColor}` } : {}),
         borderRadius: 2,
-        '&:hover': { boxShadow: '0 2px 12px rgba(0,0,0,0.08)' },
-        transition: 'box-shadow 0.15s',
+        '&:hover': { boxShadow: '0 2px 12px hsl(212 63% 12% / 0.08)' },
+        transition: 'box-shadow 0.2s cubic-bezier(0.7, 0, 0.2, 1)',
         opacity: isScored ? 1 : 0.85,
       }}
     >
@@ -172,16 +172,16 @@ export default function CriterionScorer({ criterion, dimLabel, result, onChange 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75, flexWrap: 'wrap' }}>
               <Typography
                 variant="caption"
-                sx={{ fontFamily: 'monospace', bgcolor: '#f5f5f5', px: 0.75, py: 0.25, borderRadius: 1, color: '#555', fontSize: '0.7rem' }}
+                sx={{ fontFamily: 'monospace', bgcolor: 'action.hover', px: 0.75, py: 0.25, borderRadius: 1, color: 'text.secondary', fontSize: '0.7rem' }}
               >
                 {criterion.id}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#888', fontSize: '0.7rem' }}>
+              <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.7rem' }}>
                 {dimLabel}
               </Typography>
               {gateSeverity && <GateBadge severity={gateSeverity} />}
             </Box>
-            <Typography variant="body2" sx={{ fontWeight: 500, lineHeight: 1.6, color: '#1a1a2e' }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, lineHeight: 1.6, color: 'text.primary' }}>
               {criterion.question}
             </Typography>
           </Box>
@@ -196,8 +196,8 @@ export default function CriterionScorer({ criterion, dimLabel, result, onChange 
             elevation={0}
             sx={{
               mb: 2,
-              bgcolor: '#fafafa',
-              border: '1px solid #eeeeee',
+              bgcolor: (theme) => theme.palette.mode === 'dark' ? 'hsl(213 48% 17% / 0.5)' : 'hsl(60 9% 96%)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               borderRadius: '8px !important',
               '&:before': { display: 'none' },
               '& .MuiAccordionSummary-root': { minHeight: 36, px: 1.5, py: 0 },
@@ -205,7 +205,7 @@ export default function CriterionScorer({ criterion, dimLabel, result, onChange 
             }}
           >
             <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}>
-              <Typography variant="caption" sx={{ fontWeight: 600, color: '#555', letterSpacing: 0.3 }}>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', letterSpacing: 0.3 }}>
                 Scoring Guide — what each level means for this criterion
               </Typography>
             </AccordionSummary>
@@ -228,19 +228,19 @@ export default function CriterionScorer({ criterion, dimLabel, result, onChange 
                         minWidth: 80,
                       }}
                     />
-                    <Typography variant="caption" sx={{ color: '#444', lineHeight: 1.5, pt: 0.25 }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.5, pt: 0.25 }}>
                       {criterion.scoring_guide![key]}
                     </Typography>
                   </Box>
                 )
               })}
               {criterion.required_evidence && criterion.required_evidence.length > 0 && (
-                <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid #eeeeee' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#666', display: 'block', mb: 0.5 }}>
+                <Box sx={{ mt: 1.5, pt: 1.5, borderTop: (theme) => `1px solid ${theme.palette.divider}` }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5 }}>
                     Required evidence to look for:
                   </Typography>
                   {criterion.required_evidence.map((ev, i) => (
-                    <Typography key={i} variant="caption" sx={{ display: 'block', color: '#555', pl: 1, lineHeight: 1.6 }}>
+                    <Typography key={i} variant="caption" sx={{ display: 'block', color: 'text.secondary', pl: 1, lineHeight: 1.6 }}>
                       · {ev}
                     </Typography>
                   ))}

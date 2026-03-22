@@ -144,6 +144,21 @@ export default function App() {
   )
 }
 
+// ─── Floating action button style ─────────────────────────────────────────────
+
+const fabSx = {
+  position: 'fixed' as const,
+  zIndex: 1300,
+  color: (theme: any) => theme.palette.mode === 'dark' ? 'hsl(211 22% 63%)' : 'hsl(212 27% 35%)',
+  bgcolor: (theme: any) => theme.palette.mode === 'dark' ? 'hsl(213 48% 17%)' : '#ffffff',
+  border: (theme: any) => `1px solid ${theme.palette.mode === 'dark' ? 'hsl(212 33% 27% / 0.6)' : 'hsl(212 63% 12% / 0.08)'}`,
+  boxShadow: '0px 4px 24px 0px hsl(212 63% 12% / 0.06)',
+  '&:hover': {
+    color: (theme: any) => theme.palette.mode === 'dark' ? '#ffffff' : 'hsl(210 100% 14%)',
+    bgcolor: (theme: any) => theme.palette.mode === 'dark' ? 'hsl(212 33% 27%)' : 'hsl(206 33% 96%)',
+  },
+}
+
 function ThemeToggleButton() {
   const { mode, setMode } = useContext(ThemeModeContext)
 
@@ -163,25 +178,7 @@ function ThemeToggleButton() {
 
   return (
     <Tooltip title={`Theme: ${modeLabel}`} placement="left">
-      <IconButton
-        onClick={handleToggle}
-        size="large"
-        sx={{
-          position: 'fixed',
-          bottom: 24,
-          right: 88,
-          zIndex: 1300,
-          color: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.6)',
-          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)',
-          backdropFilter: 'blur(10px)',
-          border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-          '&:hover': { 
-            color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#000',
-            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.8)'
-          },
-        }}
-      >
+      <IconButton onClick={handleToggle} size="large" sx={{ ...fabSx, bottom: 24, right: 88 }}>
         {getIcon()}
       </IconButton>
     </Tooltip>
@@ -193,25 +190,7 @@ function ThemeToggleButton() {
 function HelpButton({ onClick }: { onClick: () => void }) {
   return (
     <Tooltip title="Help" placement="left">
-      <IconButton
-        onClick={onClick}
-        size="large"
-        sx={{
-          position: 'fixed',
-          bottom: 24,
-          right: 24,
-          zIndex: 1300,
-          color: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.6)',
-          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)',
-          backdropFilter: 'blur(10px)',
-          border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-          '&:hover': { 
-            color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#000',
-            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.8)'
-          },
-        }}
-      >
+      <IconButton onClick={onClick} size="large" sx={{ ...fabSx, bottom: 24, right: 24 }}>
         <HelpOutlineIcon fontSize="medium" />
       </IconButton>
     </Tooltip>

@@ -5,13 +5,11 @@ import {
   Chip,
   LinearProgress,
   Tooltip,
-  Button,
 } from '@mui/material'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import InfoIcon from '@mui/icons-material/Info'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
-import DownloadIcon from '@mui/icons-material/Download'
 import type { CriterionResult, RubricCriterion } from './CriterionScorer'
 
 export interface RubricDimension {
@@ -116,20 +114,20 @@ function computeSummary(
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
-  pass: { label: 'Pass', color: '#1b5e20', bg: '#e8f5e9', icon: <CheckCircleIcon sx={{ fontSize: 16 }} /> },
-  conditional_pass: { label: 'Conditional Pass', color: '#e65100', bg: '#fff8e1', icon: <InfoIcon sx={{ fontSize: 16 }} /> },
-  rework_required: { label: 'Rework Required', color: '#b71c1c', bg: '#ffebee', icon: <WarningAmberIcon sx={{ fontSize: 16 }} /> },
-  reject: { label: 'Reject', color: '#4a0000', bg: '#ffcdd2', icon: <CancelIcon sx={{ fontSize: 16 }} /> },
-  incomplete: { label: 'Scoring in progress…', color: '#455a64', bg: '#eceff1', icon: null },
+  pass: { label: 'Pass', color: 'hsl(129 41% 23%)', bg: 'hsl(129 33% 92%)', icon: <CheckCircleIcon sx={{ fontSize: 16 }} /> },
+  conditional_pass: { label: 'Conditional Pass', color: 'hsl(31 94% 33%)', bg: 'hsl(53 100% 92%)', icon: <InfoIcon sx={{ fontSize: 16 }} /> },
+  rework_required: { label: 'Rework Required', color: 'hsl(0 65% 51%)', bg: 'hsl(0 82% 96%)', icon: <WarningAmberIcon sx={{ fontSize: 16 }} /> },
+  reject: { label: 'Reject', color: 'hsl(358 57% 10%)', bg: 'hsl(4 100% 92%)', icon: <CancelIcon sx={{ fontSize: 16 }} /> },
+  incomplete: { label: 'Scoring in progress…', color: 'hsl(212 27% 35%)', bg: 'hsl(206 33% 96%)', icon: null },
 }
 
 interface Props {
   dimensions: RubricDimension[]
   results: Record<string, CriterionResult>
-  onExport: () => void
+  onExport?: () => void
 }
 
-export default function AssessmentSummary({ dimensions, results, onExport }: Props) {
+export default function AssessmentSummary({ dimensions, results }: Props) {
   const { dimSummaries, gateFailures, overallScore, scoredCriteria, totalCriteria, status } =
     useMemo(() => computeSummary(dimensions, results), [dimensions, results])
 
@@ -140,8 +138,8 @@ export default function AssessmentSummary({ dimensions, results, onExport }: Pro
     <Box
       sx={{
         flexShrink: 0,
-        bgcolor: '#fff',
-        borderTop: '2px solid #e0e0e0',
+        bgcolor: (theme) => theme.palette.mode === 'dark' ? 'hsl(213 48% 17%)' : '#ffffff',
+        borderTop: (theme) => `1px solid ${theme.palette.divider}`,
         px: 3,
         py: 1.5,
       }}
@@ -153,10 +151,10 @@ export default function AssessmentSummary({ dimensions, results, onExport }: Pro
             <LinearProgress
               variant="determinate"
               value={progress}
-              sx={{ height: 6, borderRadius: 3, bgcolor: '#e0e0e0', '& .MuiLinearProgress-bar': { bgcolor: '#1a237e' } }}
+              sx={{ height: 6, borderRadius: 3, bgcolor: 'hsl(210 26% 85%)', '& .MuiLinearProgress-bar': { bgcolor: 'hsl(218 92% 49%)' } }}
             />
           </Box>
-          <Typography variant="caption" sx={{ color: '#666', whiteSpace: 'nowrap' }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
             {scoredCriteria} / {totalCriteria} scored
           </Typography>
         </Box>
@@ -164,10 +162,10 @@ export default function AssessmentSummary({ dimensions, results, onExport }: Pro
         {/* Overall score */}
         {overallScore !== null && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: '#1a237e', fontSize: '1.1rem' }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main', fontSize: '1.1rem' }}>
               {overallScore.toFixed(1)}
             </Typography>
-            <Typography variant="caption" sx={{ color: '#888' }}>/4.0</Typography>
+            <Typography variant="caption" sx={{ color: 'text.disabled' }}>/4.0</Typography>
           </Box>
         )}
 
@@ -179,7 +177,7 @@ export default function AssessmentSummary({ dimensions, results, onExport }: Pro
               title={`${d.name}: ${d.avgScore !== null ? d.avgScore.toFixed(1) : 'not yet scored'} (${d.scoredCount}/${d.totalCount})`}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Typography variant="caption" sx={{ color: '#888', fontSize: '0.65rem', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {d.name.split(' ').slice(0, 2).join(' ')}
                 </Typography>
                 <Box
@@ -188,16 +186,16 @@ export default function AssessmentSummary({ dimensions, results, onExport }: Pro
                     height: 6,
                     borderRadius: 3,
                     bgcolor: d.avgScore === null
-                      ? '#e0e0e0'
+                      ? 'hsl(210 26% 85%)'
                       : d.avgScore >= 3.2
-                        ? '#66bb6a'
+                        ? 'hsl(125 50% 35%)'
                         : d.avgScore >= 2.4
-                          ? '#ffa726'
-                          : '#ef5350',
+                          ? 'hsl(41 95% 46%)'
+                          : 'hsl(0 65% 51%)',
                   }}
                 />
                 {d.avgScore !== null && (
-                  <Typography variant="caption" sx={{ color: '#555', fontSize: '0.68rem', minWidth: 20 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.68rem', minWidth: 20 }}>
                     {d.avgScore.toFixed(1)}
                   </Typography>
                 )}
@@ -212,7 +210,7 @@ export default function AssessmentSummary({ dimensions, results, onExport }: Pro
             <Chip
               label={`${gateFailures.length} gate failure${gateFailures.length > 1 ? 's' : ''}`}
               size="small"
-              sx={{ bgcolor: '#ffebee', color: '#c62828', border: '1px solid #ef9a9a', fontSize: '0.7rem', height: 22 }}
+              sx={{ bgcolor: 'hsl(0 82% 96%)', color: 'hsl(0 65% 51%)', border: '1px solid hsl(4 100% 92%)', fontSize: '0.7rem', height: 22 }}
             />
           </Tooltip>
         )}
@@ -232,23 +230,6 @@ export default function AssessmentSummary({ dimensions, results, onExport }: Pro
           }}
         />
 
-        {/* Export */}
-        <Button
-          size="small"
-          variant="contained"
-          startIcon={<DownloadIcon />}
-          onClick={onExport}
-          disabled={scoredCriteria === 0}
-          sx={{
-            bgcolor: '#2e7d32',
-            '&:hover': { bgcolor: '#1b5e20' },
-            textTransform: 'none',
-            fontWeight: 500,
-            ml: 'auto',
-          }}
-        >
-          Export YAML
-        </Button>
       </Box>
     </Box>
   )

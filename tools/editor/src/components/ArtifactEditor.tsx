@@ -139,9 +139,9 @@ function ImportDropZone({ onImport }: { onImport: (content: string) => void }) {
         alignItems: 'center',
         justifyContent: 'center',
         gap: 2,
-        border: `2px dashed ${dragging ? '#f57c00' : '#ffcc80'}`,
+        border: `2px dashed ${dragging ? 'hsl(32 47% 48%)' : 'hsl(45 57% 73%)'}`,
         borderRadius: 3,
-        bgcolor: dragging ? '#fff8e1' : '#fffde7',
+        bgcolor: dragging ? 'hsl(53 100% 92%)' : 'hsl(60 9% 96%)',
         transition: 'all 0.2s',
         p: 6,
         m: 1,
@@ -154,8 +154,8 @@ function ImportDropZone({ onImport }: { onImport: (content: string) => void }) {
         style={{ display: 'none' }}
         onChange={handleChange}
       />
-      <NoteAddIcon sx={{ fontSize: 56, color: '#ffb300', opacity: 0.7 }} />
-      <Typography variant="h6" sx={{ color: '#e65100', fontWeight: 600 }}>
+      <NoteAddIcon sx={{ fontSize: 56, color: 'hsl(32 47% 48%)', opacity: 0.7 }} />
+      <Typography variant="h6" sx={{ color: 'hsl(32 59% 28%)', fontWeight: 600 }}>
         Open an architecture document
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', maxWidth: 400 }}>
@@ -166,8 +166,8 @@ function ImportDropZone({ onImport }: { onImport: (content: string) => void }) {
         startIcon={<UploadFileIcon />}
         onClick={() => inputRef.current?.click()}
         sx={{
-          bgcolor: '#f57c00',
-          '&:hover': { bgcolor: '#e65100' },
+          bgcolor: 'hsl(32 47% 48%)',
+          '&:hover': { bgcolor: 'hsl(32 59% 28%)' },
           mt: 1,
         }}
       >
@@ -208,19 +208,19 @@ function ArtifactInfoBar({
         display: 'flex',
         alignItems: 'center',
         gap: 1,
-        bgcolor: '#fff3e0',
-        borderBottom: '1px solid #ffcc80',
+        bgcolor: (theme: any) => theme.palette.mode === 'dark' ? 'hsl(32 47% 48% / 0.08)' : 'hsl(45 57% 73% / 0.18)',
+        borderBottom: (theme: any) => `1px solid ${theme.palette.divider}`,
         minHeight: 30,
         flexShrink: 0,
       }}
     >
       {filename ? (
         <>
-          <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#e65100' }}>
+          <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.78rem', color: 'secondary.main' }}>
             {filename}
           </Typography>
           {artifactType && (
-            <Chip label={artifactType} size="small" sx={{ ...chipSx, bgcolor: '#ffe0b2', color: '#e65100' }} />
+            <Chip label={artifactType} size="small" sx={{ ...chipSx, bgcolor: 'hsl(45 57% 73% / 0.25)', color: 'secondary.main' }} />
           )}
           {title && (
             <Typography variant="caption" sx={{ color: '#444', fontSize: '0.72rem' }}>
@@ -239,7 +239,7 @@ function ArtifactInfoBar({
           )}
           <Box sx={{ flexGrow: 1 }} />
           <Tooltip title={`Save to ${currentFile}`}>
-            <IconButton size="small" onClick={onSave} sx={{ color: '#e65100', p: 0.25 }}>
+            <IconButton size="small" onClick={onSave} sx={{ color: 'secondary.main', p: 0.25 }}>
               <SaveIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Tooltip>
@@ -250,7 +250,7 @@ function ArtifactInfoBar({
             unsaved
           </Typography>
           {artifactType && (
-            <Chip label={artifactType} size="small" sx={{ ...chipSx, bgcolor: '#e0e0e0', color: '#666' }} />
+            <Chip label={artifactType} size="small" sx={{ ...chipSx, bgcolor: 'action.hover', color: 'text.secondary' }} />
           )}
           <Box sx={{ flexGrow: 1 }} />
         </>
@@ -378,21 +378,21 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
   }
 
   const toolbarBtnSx = {
-    color: 'white',
-    borderColor: 'rgba(255,255,255,0.4)',
-    '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.08)' },
+    color: 'text.primary',
+    borderColor: 'divider',
+    '&:hover': { borderColor: 'text.primary', bgcolor: 'action.hover' },
     textTransform: 'none' as const,
-    fontWeight: 400,
+    fontWeight: 500,
   }
 
   const title = initialMode === 'new' ? 'Create Artifact' : 'Edit Artifact'
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#f0f2f5' }}>
-      <AppBar position="static" sx={{ bgcolor: '#e65100' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: 'background.default' }}>
+      <AppBar position="static" sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'hsl(213 48% 17%)' : '#ffffff', borderBottom: (theme) => `1px solid ${theme.palette.divider}`, color: 'text.primary', boxShadow: 'none' }}>
         <Toolbar variant="dense" sx={{ gap: 1.5 }}>
           <Tooltip title="Back to home">
-            <IconButton size="small" onClick={onBack} sx={{ color: 'rgba(255,255,255,0.8)', mr: 0.5 }}>
+            <IconButton size="small" onClick={onBack} sx={{ color: 'text.secondary', mr: 0.5 }}>
               <ArrowBackIcon fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -447,7 +447,7 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
                 <IconButton
                   size="small"
                   onClick={() => setPreviewOpen((v) => !v)}
-                  sx={{ color: previewOpen ? 'white' : 'rgba(255,255,255,0.5)' }}
+                  sx={{ color: previewOpen ? 'primary.main' : 'text.disabled' }}
                 >
                   <CodeIcon />
                 </IconButton>
@@ -475,7 +475,7 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
             <Paper sx={{ flex: 1, overflow: 'auto', p: 2 }}>
               {schemasLoading ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, gap: 2 }}>
-                  <CircularProgress size={24} sx={{ color: '#e65100' }} />
+                  <CircularProgress size={24} sx={{ color: 'secondary.main' }} />
                   <Typography variant="body2" color="text.secondary">Loading schemas…</Typography>
                 </Box>
               ) : (

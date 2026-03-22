@@ -218,11 +218,11 @@ function DropZone({ onFile, onError }: DropZoneProps) {
       onDragLeave={() => setDragging(false)}
       onDrop={handleDrop}
       sx={{
-        border: `2px dashed ${dragging ? '#2e7d32' : '#ccc'}`,
+        border: `2px dashed ${dragging ? 'hsl(125 50% 35%)' : 'hsl(210 26% 85%)'}`,
         borderRadius: 3,
         p: 4,
         textAlign: 'center',
-        bgcolor: dragging ? '#f1f8e9' : '#fafafa',
+        bgcolor: dragging ? 'hsl(129 33% 92%)' : 'hsl(60 9% 96%)',
         transition: 'border-color 0.15s, background-color 0.15s',
         cursor: 'pointer',
       }}
@@ -235,7 +235,7 @@ function DropZone({ onFile, onError }: DropZoneProps) {
         style={{ display: 'none' }}
         onChange={handleInputChange}
       />
-      <UploadFileIcon sx={{ fontSize: 40, color: dragging ? '#2e7d32' : '#bbb', mb: 1 }} />
+      <UploadFileIcon sx={{ fontSize: 40, color: dragging ? 'hsl(125 50% 35%)' : 'text.disabled', mb: 1 }} />
       <Typography variant="body2" color="text.secondary">
         Drag and drop a <strong>.evaluation.yaml</strong> file here, or click to browse
       </Typography>
@@ -295,15 +295,15 @@ export default function ContinueAssessment({ manifest, onBack, onLoad }: Props) 
   )
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#f5f7fa' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: 'background.default' }}>
       {/* AppBar */}
-      <AppBar position="static" sx={{ bgcolor: '#e65100', flexShrink: 0 }}>
+      <AppBar position="static" sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'hsl(213 48% 17%)' : '#ffffff', borderBottom: (theme) => `1px solid ${theme.palette.divider}`, color: 'text.primary', boxShadow: 'none', flexShrink: 0 }}>
         <Toolbar variant="dense" sx={{ gap: 1 }}>
           <Tooltip title="Back to home">
             <IconButton
               size="small"
               onClick={onBack}
-              sx={{ color: 'rgba(255,255,255,0.8)', mr: 0.5 }}
+              sx={{ color: 'text.secondary', mr: 0.5 }}
             >
               <ArrowBackIcon fontSize="small" />
             </IconButton>
@@ -344,12 +344,12 @@ export default function ContinueAssessment({ manifest, onBack, onLoad }: Props) 
               sx={{
                 px: 2.5,
                 py: 1.5,
-                bgcolor: '#fff3e0',
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'hsl(125 50% 35% / 0.08)' : 'hsl(129 33% 92%)',
                 borderBottom: '1px solid',
                 borderColor: 'divider',
               }}
             >
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#e65100' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'success.main' }}>
                 Saved evaluations
               </Typography>
               <Typography variant="caption" color="text.secondary">
@@ -384,7 +384,7 @@ export default function ContinueAssessment({ manifest, onBack, onLoad }: Props) 
                         {opening === file.path ? (
                           <CircularProgress size={20} />
                         ) : (
-                          <AssignmentIcon sx={{ color: '#e65100', fontSize: 20 }} />
+                          <AssignmentIcon sx={{ color: 'success.main', fontSize: 20 }} />
                         )}
                       </ListItemIcon>
                       <ListItemText

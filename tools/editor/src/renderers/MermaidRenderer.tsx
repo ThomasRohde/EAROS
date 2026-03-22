@@ -217,15 +217,15 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
               fontFamily: 'Consolas, "Courier New", monospace',
               fontSize: '0.82rem',
               lineHeight: 1.6,
-              bgcolor: '#1e1e2e',
-              color: '#cdd6f4',
-              border: '1px solid #45475a',
+              bgcolor: 'hsl(210 100% 9%)',
+              color: 'hsl(211 22% 77%)',
+              border: '1px solid hsl(212 33% 27%)',
               borderRadius: 1,
               resize: 'vertical',
               outline: 'none',
               boxSizing: 'border-box',
               display: 'block',
-              '&:focus': { borderColor: '#89b4fa' },
+              '&:focus': { borderColor: 'hsl(216 100% 63%)' },
             }}
           />
         )}

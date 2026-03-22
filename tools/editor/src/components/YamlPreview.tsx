@@ -93,8 +93,8 @@ export default function YamlPreview({ data, open, onToggle, debounceMs = 700 }: 
           fontSize: '0.72rem',
           lineHeight: 1.6,
           whiteSpace: 'pre',
-          bgcolor: (theme) => theme.palette.mode === 'dark' ? '#1e1e2e' : '#f8f9fa',
-          color: (theme) => theme.palette.mode === 'dark' ? '#cdd6f4' : 'text.primary',
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'hsl(210 100% 9%)' : 'hsl(60 9% 96%)',
+          color: (theme) => theme.palette.mode === 'dark' ? 'hsl(211 22% 77%)' : 'text.primary',
         }}
       >
         {yamlText || '# Generating preview…'}

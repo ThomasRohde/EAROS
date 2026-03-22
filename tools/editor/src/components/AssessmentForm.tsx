@@ -159,7 +159,7 @@ function SetupPanel({
         <Box sx={{ p: 2.5 }}>
           {/* Rubric selector */}
           <Box sx={{ mb: 2.5 }}>
-            <Typography variant="caption" sx={{ fontWeight: 600, color: '#333', display: 'block', mb: 1 }}>
+            <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary', display: 'block', mb: 1 }}>
               1. Which rubric are you scoring against?
             </Typography>
             {manifest ? (
@@ -255,13 +255,13 @@ function DimensionSection({ dim, results, onChange }: DimSectionProps) {
           {dim.name}
         </Typography>
         {dim.source === 'core' && (
-          <Chip label="Core" size="small" sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(21, 101, 192, 0.2)' : '#e3f2fd', color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#1565c0', border: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#1565c0' : '#90caf9', fontSize: '0.65rem', height: 20 }} />
+          <Chip label="Core" size="small" sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'hsl(218 92% 49% / 0.12)' : 'hsl(219 100% 95%)', color: (theme) => theme.palette.mode === 'dark' ? 'hsl(216 100% 63%)' : 'hsl(218 92% 49%)', border: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? 'hsl(218 92% 49% / 0.3)' : 'hsl(214 100% 83%)', fontSize: '0.65rem', height: 20 }} />
         )}
         {dim.source === 'profile' && (
-          <Chip label="Profile" size="small" sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(106, 27, 154, 0.2)' : '#f3e5f5', color: (theme) => theme.palette.mode === 'dark' ? '#ce93d8' : '#6a1b9a', border: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#6a1b9a' : '#ce93d8', fontSize: '0.65rem', height: 20 }} />
+          <Chip label="Profile" size="small" sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'hsl(32 47% 48% / 0.12)' : 'hsl(45 57% 73% / 0.18)', color: (theme) => theme.palette.mode === 'dark' ? 'hsl(40 57% 62%)' : 'hsl(32 47% 48%)', border: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? 'hsl(32 47% 48% / 0.3)' : 'hsl(45 57% 73%)', fontSize: '0.65rem', height: 20 }} />
         )}
         {dim.source === 'overlay' && (
-          <Chip label="Overlay" size="small" sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(136, 14, 79, 0.2)' : '#fce4ec', color: (theme) => theme.palette.mode === 'dark' ? '#f48fb1' : '#880e4f', border: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? '#880e4f' : '#f48fb1', fontSize: '0.65rem', height: 20 }} />
+          <Chip label="Overlay" size="small" sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'hsl(18 52% 49% / 0.12)' : 'hsl(24 65% 77% / 0.25)', color: (theme) => theme.palette.mode === 'dark' ? 'hsl(24 65% 77%)' : 'hsl(20 64% 27%)', border: '1px solid', borderColor: (theme) => theme.palette.mode === 'dark' ? 'hsl(18 52% 49% / 0.3)' : 'hsl(24 65% 77%)', fontSize: '0.65rem', height: 20 }} />
         )}
         {dim.weight && dim.weight !== 1.0 && (
           <Chip label={`×${dim.weight}`} size="small" variant="outlined" sx={{ fontSize: '0.65rem', height: 20, color: 'text.disabled' }} />
@@ -303,10 +303,10 @@ function EmptyState() {
         py: 8,
       }}
     >
-      <Typography variant="h6" sx={{ mb: 1, color: '#ccc' }}>
+      <Typography variant="h6" sx={{ mb: 1, color: 'text.disabled' }}>
         Select a rubric above to begin scoring
       </Typography>
-      <Typography variant="body2" sx={{ color: '#bbb' }}>
+      <Typography variant="body2" sx={{ color: 'text.disabled' }}>
         Criteria will appear here once a rubric is loaded
       </Typography>
     </Box>
@@ -422,8 +422,7 @@ export default function AssessmentForm({ manifest, preloaded, onBack }: Props) {
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: 'background.default' }}>
       {/* AppBar */}
       <AppBar position="static" sx={{ 
-          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.7)',
-          backdropFilter: 'blur(12px)',
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'hsl(213 48% 17%)' : '#ffffff',
           borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
           color: 'text.primary',
           boxShadow: 'none',
@@ -457,11 +456,11 @@ export default function AssessmentForm({ manifest, preloaded, onBack }: Props) {
               variant="outlined"
               onClick={handleExport}
               sx={{
-                color: 'text.primary',
-                borderColor: 'divider',
-                '&:hover': { borderColor: 'text.primary', bgcolor: 'action.hover' },
+                color: 'success.main',
+                borderColor: 'success.main',
+                '&:hover': { bgcolor: 'hsl(125 50% 35% / 0.08)', borderColor: 'success.dark' },
                 textTransform: 'none',
-                fontWeight: 400,
+                fontWeight: 500,
               }}
             >
               Export YAML

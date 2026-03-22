@@ -22,9 +22,9 @@ interface ExamplesPanelProps {
 function ExamplesPanel({ title, items, onAdd, onRemove, type }: ExamplesPanelProps) {
   const [inputValue, setInputValue] = useState('')
   const isGood = type === 'good'
-  const headerBg = isGood ? '#2e7d32' : '#c62828'
-  const bodyBg = isGood ? '#f1f8e9' : '#ffebee'
-  const borderColor = isGood ? '#a5d6a7' : '#ef9a9a'
+  const headerBg = isGood ? 'hsl(127 47% 30%)' : 'hsl(0 65% 51%)'
+  const bodyBg = isGood ? 'hsl(129 33% 92%)' : 'hsl(0 82% 96%)'
+  const borderColor = isGood ? 'hsl(125 46% 84%)' : 'hsl(4 100% 92%)'
   const chipColor = isGood ? ('success' as const) : ('error' as const)
   const placeholder = isGood
     ? 'Example of strong evidence for this criterion'

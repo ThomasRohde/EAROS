@@ -327,7 +327,7 @@ function FileInfoBar({
         display: 'flex',
         alignItems: 'center',
         gap: 1,
-        bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)',
+        bgcolor: (theme) => theme.palette.mode === 'dark' ? 'hsl(210 100% 9% / 0.3)' : 'hsl(60 9% 96%)',
         borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
         minHeight: 30,
         flexShrink: 0,
@@ -490,9 +490,8 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: 'background.default' }}>
-      <AppBar position="static" sx={{ 
-          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.7)',
-          backdropFilter: 'blur(12px)',
+      <AppBar position="static" sx={{
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'hsl(213 48% 17%)' : '#ffffff',
           borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
           color: 'text.primary',
           boxShadow: 'none'

@@ -8,20 +8,20 @@ const CHIP_CONFIG = {
   required_evidence: {
     label: 'Required Evidence',
     chipColor: 'primary' as const,
-    bgColor: '#e3f2fd',
-    borderColor: '#90caf9',
+    bgColor: 'hsl(219 100% 95%)',
+    borderColor: 'hsl(214 100% 83%)',
   },
   anti_patterns: {
     label: 'Anti-Patterns',
     chipColor: 'error' as const,
-    bgColor: '#ffebee',
-    borderColor: '#ef9a9a',
+    bgColor: 'hsl(0 82% 96%)',
+    borderColor: 'hsl(4 100% 92%)',
   },
   remediation_hints: {
     label: 'Remediation Hints',
     chipColor: 'success' as const,
-    bgColor: '#e8f5e9',
-    borderColor: '#a5d6a7',
+    bgColor: 'hsl(129 33% 92%)',
+    borderColor: 'hsl(125 46% 84%)',
   },
 }
 

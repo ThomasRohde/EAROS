@@ -4,11 +4,11 @@ import type { ControlProps } from '@jsonforms/core'
 import { Box, TextField, Typography } from '@mui/material'
 
 const LEVELS = [
-  { key: '0', label: '0 — Absent', headerColor: '#b71c1c', bgColor: '#ffebee' },
-  { key: '1', label: '1 — Weak', headerColor: '#e65100', bgColor: '#fff3e0' },
-  { key: '2', label: '2 — Partial', headerColor: '#f57f17', bgColor: '#fffde7' },
-  { key: '3', label: '3 — Good', headerColor: '#2e7d32', bgColor: '#f1f8e9' },
-  { key: '4', label: '4 — Strong', headerColor: '#1b5e20', bgColor: '#e8f5e9' },
+  { key: '0', label: '0 — Absent', headerColor: 'hsl(0 65% 51%)', bgColor: 'hsl(0 82% 96%)' },
+  { key: '1', label: '1 — Weak', headerColor: 'hsl(359 57% 36%)', bgColor: 'hsl(0 82% 96%)' },
+  { key: '2', label: '2 — Partial', headerColor: 'hsl(31 94% 33%)', bgColor: 'hsl(53 100% 92%)' },
+  { key: '3', label: '3 — Good', headerColor: 'hsl(127 47% 30%)', bgColor: 'hsl(129 33% 92%)' },
+  { key: '4', label: '4 — Strong', headerColor: 'hsl(129 41% 23%)', bgColor: 'hsl(129 33% 92%)' },
 ]
 
 export const scoringGuideTester = rankWith(

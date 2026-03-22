@@ -475,8 +475,7 @@ export default function AssessmentWizard({ manifest, onBack, onStart }: Props) {
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: 'background.default' }}>
       {/* AppBar */}
       <AppBar position="static" sx={{ 
-          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.7)',
-          backdropFilter: 'blur(12px)',
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'hsl(213 48% 17%)' : '#ffffff',
           borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
           color: 'text.primary',
           boxShadow: 'none',

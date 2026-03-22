@@ -21,11 +21,11 @@ export default function FileControls({ onImport, onExport }: Props) {
   }
 
   const btnSx = {
-    color: 'white',
-    borderColor: 'rgba(255,255,255,0.4)',
-    '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.08)' },
+    color: 'text.primary',
+    borderColor: 'divider',
+    '&:hover': { borderColor: 'text.primary', bgcolor: 'action.hover' },
     textTransform: 'none',
-    fontWeight: 400,
+    fontWeight: 500,
   }
 
   return (

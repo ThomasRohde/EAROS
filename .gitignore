@@ -48,6 +48,7 @@ calibration/results/*.draft.*
 .env
 .env.*
 !.env.example
+.mcp.json
 
 # npm tarballs
 *.tgz
