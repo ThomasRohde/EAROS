@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useId } from 'react'
 // @ts-expect-error — termynal has no type declarations
 import Termynal from 'termynal'
 import '../../node_modules/termynal/dist/style.css'
@@ -28,10 +28,14 @@ export default function TerminalDemo({
   const containerRef = useRef<HTMLDivElement>(null)
   const initializedRef = useRef(false)
   const styleRef = useRef<HTMLStyleElement | null>(null)
+  const cssId = useId().replace(/:/g, '')
 
   useEffect(() => {
+    // Reset on remount (React StrictMode or page navigation)
+    initializedRef.current = false
+
     const el = containerRef.current
-    if (!el || initializedRef.current) return
+    if (!el) return
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -39,23 +43,26 @@ export default function TerminalDemo({
           initializedRef.current = true
           observer.disconnect()
 
-          // Build line data — add default "$ " prompt for input lines
+          // Build line data — fast delay for output, normal typing for input
           const lineData = lines.map((line) => {
             const entry: Record<string, unknown> = {}
             if (line.type) entry.type = line.type
             if (line.value !== undefined) entry.value = line.value
-            // Default prompt for input lines
-            if (line.type === 'input') entry.prompt = line.prompt ?? '$'
+            if (line.type === 'input') {
+              entry.prompt = line.prompt ?? '$'
+            } else if (line.type !== 'progress') {
+              // Output lines appear fast (not typed char by char)
+              entry.delay = line.delay ?? 300
+            }
             if (line.delay !== undefined) entry.delay = line.delay
             return entry
           })
 
           // Set custom title via scoped CSS class
           if (title) {
-            const id = `termynal-${Math.random().toString(36).slice(2, 8)}`
-            el.classList.add(id)
+            el.classList.add(cssId)
             const style = document.createElement('style')
-            style.textContent = `.${id}[data-termynal]::after { content: "${title}"; }`
+            style.textContent = `.${cssId}[data-termynal]::after { content: "${title}"; }`
             document.head.appendChild(style)
             styleRef.current = style
           }
@@ -71,13 +78,13 @@ export default function TerminalDemo({
 
     return () => {
       observer.disconnect()
-      // Clean up injected style on unmount
+      initializedRef.current = false
       if (styleRef.current) {
         styleRef.current.remove()
         styleRef.current = null
       }
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- run once on mount only
+  }, [lines, title, startDelay, typeDelay, lineDelay, cssId])
 
   return (
     <>
@@ -88,6 +95,10 @@ export default function TerminalDemo({
           width: 100%;
           max-width: 100%;
           margin: 1.5rem 0;
+        }
+        .termynal-wrapper[data-termynal] pre {
+          line-height: 1.4;
+          margin: 0;
         }
       `}</style>
       <div
