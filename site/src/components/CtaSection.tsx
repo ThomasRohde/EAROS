@@ -37,7 +37,7 @@ export default function CtaSection() {
             mb: 4,
           }}
         >
-          Install the CLI, then run <code>earos init</code> to scaffold a workspace with the editor, all 10 agent skills, and the full rubric framework.
+          Install the CLI, then run <code>earos init</code> to scaffold a workspace with rubrics, schemas, templates, and all 10 agent skills. Run <code>earos</code> to open the editor.
         </Typography>
 
         {/* Install command */}

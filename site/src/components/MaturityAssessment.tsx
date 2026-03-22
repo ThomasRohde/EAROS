@@ -281,7 +281,12 @@ const DIMENSIONS: Dimension[] = [
 
 const STORAGE_KEY = 'earos-maturity-assessment-v2'
 
-/** Map a 1.0–4.0 dimension average to a maturity level 1–5. */
+/**
+ * Map a 1.0–4.0 dimension average to a maturity level 1–5.
+ * These thresholds are informal heuristics for this self-assessment widget only —
+ * they are NOT part of the EAROS standard scoring model (which uses a 0–4 ordinal
+ * scale with explicit gate logic, see core/core-meta-rubric.yaml).
+ */
 function scoreToLevel(score: number): number {
   if (score < 1.5) return 1
   if (score < 2.5) return 2
@@ -390,7 +395,8 @@ export default function MaturityAssessment() {
     const overallAvg = scored.reduce((s, d) => s + d.avg, 0) / scored.length
     const uncapped = scoreToLevel(overallAvg)
     const minLevel = Math.min(...scored.map(d => d.level))
-    // Your overall level can't exceed your weakest dimension + 1
+    // Heuristic: overall level can't exceed weakest dimension + 1.
+    // This is a self-assessment UX rule, not an EAROS standard rule.
     overallLevel = Math.min(uncapped, minLevel + 1)
   }
 
@@ -420,7 +426,8 @@ export default function MaturityAssessment() {
         Where Are You Today?
       </Typography>
       <Typography sx={{ color: isDark ? sapphire.gray[400] : sapphire.gray[600], mb: 4, fontSize: '0.95rem' }}>
-        Answer {totalQuestions} questions across {DIMENSIONS.length} dimensions to determine your architecture review maturity level.
+        Answer {totalQuestions} questions across {DIMENSIONS.length} dimensions to get an indicative picture of your architecture review maturity.
+        Levels are informal guides to help you choose the right onboarding path — they are not formal EAROS scores.
       </Typography>
 
       {/* ── Results card ── */}

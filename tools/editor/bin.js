@@ -84,7 +84,7 @@ Usage:
   earos                             Open the editor in your browser
   earos <file.yaml>                 Open the editor with a file pre-loaded
   earos init [dir] [--icons]        Scaffold a new EAROS workspace (default: current dir)
-  earos validate <file.yaml>        Validate a rubric or evaluation YAML (exit 0/1)
+  earos validate <file.yaml>        Validate any EAROS YAML — rubric, evaluation, or artifact (exit 0/1)
   earos export <file.yaml>          Export artifact YAML as Word document (.docx)
   earos manifest                    Regenerate earos.manifest.yaml
   earos manifest add <file>         Add a file to the manifest

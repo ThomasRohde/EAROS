@@ -55,7 +55,7 @@ The workspace is **agent-agnostic** — the `.agents/skills/` directory works wi
 |---------|-------------|
 | `earos` | Start the web editor (Express server, opens browser) |
 | `earos init [dir] [--icons]` | Scaffold a complete EaROS workspace in `dir` and optionally download architecture icon packages from AWS, Azure, and GCP into `icons/`, with stable aliases in `icons/aws/`, `icons/azure/`, and `icons/gcp/` |
-| `earos validate <file>` | Validate a rubric or evaluation YAML against EaROS schemas (exit 0/1) |
+| `earos validate <file>` | Validate any EaROS YAML (rubric, evaluation, or artifact) against schemas (exit 0/1) |
 | `earos manifest` | Regenerate `earos.manifest.yaml` by scanning the filesystem |
 | `earos manifest add <file>` | Add a single file to the manifest |
 | `earos manifest check` | Verify the manifest matches the filesystem (exits non-zero on drift) |
