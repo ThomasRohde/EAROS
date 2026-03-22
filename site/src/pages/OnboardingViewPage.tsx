@@ -6,7 +6,153 @@ import { onboardingGuides, getOnboardingBySlug } from '../content/onboarding'
 import MarkdownRenderer from '../components/MarkdownRenderer'
 import MaturityBadge from '../components/MaturityBadge'
 import MaturityAssessment from '../components/MaturityAssessment'
+import TerminalDemo from '../components/TerminalDemo'
 import { sapphire } from '../theme'
+
+/* ── Content injection helper ─────────────────────────────────── */
+
+interface ContentInjection {
+  /** Markdown heading to inject AFTER (heading renders first, then component) */
+  marker: string
+  component: React.ReactNode
+}
+
+/**
+ * Split markdown content at each marker heading and interleave React components.
+ * Markers that are not found in the content are silently skipped.
+ */
+function renderContentWithInjections(
+  content: string,
+  injections: ContentInjection[],
+): React.ReactNode {
+  if (!injections.length) return <MarkdownRenderer content={content} />
+
+  // Locate each marker and filter out any that aren't found
+  const located = injections
+    .map((inj) => ({ ...inj, idx: content.indexOf(inj.marker) }))
+    .filter((inj) => inj.idx >= 0)
+    .sort((a, b) => a.idx - b.idx)
+
+  if (!located.length) return <MarkdownRenderer content={content} />
+
+  const segments: React.ReactNode[] = []
+  let cursor = 0
+
+  for (let i = 0; i < located.length; i++) {
+    const { marker, component, idx } = located[i]
+    // Find the end of the heading line so the heading is included in "before"
+    const headingEnd = content.indexOf('\n', idx)
+    const splitPos = headingEnd >= 0 ? headingEnd + 1 : idx + marker.length
+
+    // Text from cursor up to (and including) the heading line
+    const before = content.slice(cursor, splitPos)
+    if (before) segments.push(<MarkdownRenderer key={`md-${i}`} content={before} />)
+    segments.push(<Box key={`inj-${i}`}>{component}</Box>)
+    cursor = splitPos
+  }
+
+  // Remaining content after the last injection
+  const tail = content.slice(cursor)
+  if (tail) segments.push(<MarkdownRenderer key="md-tail" content={tail} />)
+
+  return <>{segments}</>
+}
+
+/* ── Demo configurations per slug ─────────────────────────────── */
+
+const DEMO_CONFIG: Record<string, ContentInjection[]> = {
+  overview: [
+    {
+      marker: '## How to Use This Guide',
+      component: <MaturityAssessment />,
+    },
+  ],
+  'first-assessment': [
+    {
+      marker: '## Understanding the Workspace',
+      component: (
+        <TerminalDemo
+          title="terminal"
+          lines={[
+            { type: 'input', value: 'npm install -g @trohde/earos' },
+            { type: 'progress' },
+            { value: 'added 147 packages in 8s' },
+            { type: 'input', value: 'earos init my-workspace' },
+            { value: '\u2713 EAROS workspace initialized at: ./my-workspace' },
+            { value: '' },
+            { value: 'Contents:' },
+            { value: '  core/                  Core meta-rubric (universal foundation)' },
+            { value: '  profiles/              Artifact-specific profiles (5 included)' },
+            { value: '  overlays/              Cross-cutting concern overlays (3 included)' },
+            { value: '  standard/schemas/      JSON schemas for validation' },
+            { value: '  .agents/skills/        All 10 EAROS skills for any AI coding agent' },
+            { value: '  earos.manifest.yaml    File inventory (single source of truth)' },
+            { value: '  AGENTS.md              Project guide for AI agents' },
+            { type: 'input', value: 'cd my-workspace' },
+            { type: 'input', value: 'earos' },
+            { value: 'EAROS Editor \u2192 http://localhost:3000' },
+          ]}
+        />
+      ),
+    },
+  ],
+  'governed-review': [
+    {
+      marker: '## Calibrating with Your Team',
+      component: (
+        <TerminalDemo
+          title="terminal"
+          lines={[
+            { type: 'input', value: 'earos validate core/core-meta-rubric.yaml' },
+            { value: '\u2713 core/core-meta-rubric.yaml is valid (kind: core_rubric)' },
+            { type: 'input', value: 'earos validate profiles/reference-architecture.yaml' },
+            { value: '\u2713 profiles/reference-architecture.yaml is valid (kind: profile)' },
+            { type: 'input', value: 'earos manifest check' },
+            { value: '\u2713 Manifest is consistent with filesystem' },
+          ]}
+        />
+      ),
+    },
+  ],
+  'agent-assisted': [
+    {
+      marker: '## Running Your First Agent Assessment',
+      component: (
+        <>
+          <TerminalDemo
+            title="Claude Code"
+            lines={[
+              { type: 'input', value: 'claude -p "Assess the reference architecture in artifact.yaml using EAROS"' },
+              { value: '\u280b Reading rubric files...' },
+              { value: '\u280b Running structural validation...' },
+              { value: '\u280b Scoring 19 criteria with RULERS protocol...' },
+              { value: '\u2713 Evaluation complete' },
+              { value: '' },
+              { value: 'Status: Pass (3.73 / 4.0)' },
+              { value: '  No critical gate failures' },
+              { value: '  All dimensions \u2265 2.0' },
+              { value: '' },
+              { value: 'Output: artifact.evaluation.yaml' },
+            ]}
+          />
+          <Box sx={{ height: 24 }} />
+          <TerminalDemo
+            title="GitHub Copilot"
+            lines={[
+              { type: 'input', value: 'copilot "Run an EAROS assessment on solution-design.yaml"' },
+              { value: 'Reading AGENTS.md for project context...' },
+              { value: 'Loading earos-assess skill...' },
+              { value: 'Applying EAROS-CORE-002 + EAROS-SOL-001...' },
+              { value: '\u2713 14 criteria scored, 0 gate failures' },
+              { value: 'Status: Conditional Pass (2.8 / 4.0)' },
+              { value: 'Output: solution-design.evaluation.yaml' },
+            ]}
+          />
+        </>
+      ),
+    },
+  ],
+}
 
 function getSidebarDotColor(level: number, isDark: boolean) {
   switch (level) {
@@ -160,21 +306,10 @@ export default function OnboardingViewPage() {
             />
           </Box>
 
-          {/* Markdown content — for overview, inject assessment between sections */}
-          {slug === 'overview' ? (() => {
-            const marker = '## How to Use This Guide'
-            const idx = guide.content.indexOf(marker)
-            const before = idx >= 0 ? guide.content.slice(0, idx) : guide.content
-            const after = idx >= 0 ? guide.content.slice(idx) : ''
-            return (
-              <>
-                <MarkdownRenderer content={before} />
-                <MaturityAssessment />
-                {after && <MarkdownRenderer content={after} />}
-              </>
-            )
-          })() : (
-            <MarkdownRenderer content={guide.content} />
+          {/* Markdown content with injected interactive demos */}
+          {renderContentWithInjections(
+            guide.content,
+            (slug && DEMO_CONFIG[slug]) || [],
           )}
 
           {/* Prev / Next navigation */}
