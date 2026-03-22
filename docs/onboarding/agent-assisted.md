@@ -36,7 +36,7 @@ Agent evaluations follow an 8-step directed acyclic graph (DAG). Each step must 
 
 ### With Claude Code
 
-The `earos init` command scaffolds agent skills into `.claude/skills/` in your workspace. These are ready to use immediately:
+The `earos init` command scaffolds agent skills into `.agents/skills/` in your workspace. These are ready to use immediately:
 
 ```bash
 earos init my-workspace

@@ -420,7 +420,7 @@ change_log:
     date: "2026-03-18"
     author: "Thomas Rohde"
     changes:
-      - Initial reference architecture profile for EAROS v2.0
+      - Initial reference architecture profile
       - 9 criteria across 6 dimensions (19 total when combined with the 10 core criteria)
       - Designed using pattern_library method
       - Incorporates golden path, diagram-as-code, and operational readiness research

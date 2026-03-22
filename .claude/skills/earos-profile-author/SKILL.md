@@ -179,7 +179,7 @@ change_log:
     date: "[today]"
     author: "[author]"
     changes:
-      - Initial profile for EAROS v2.0
+      - Initial profile
 ```
 
 ---

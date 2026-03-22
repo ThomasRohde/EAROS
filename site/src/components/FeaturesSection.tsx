@@ -35,7 +35,7 @@ const FEATURES: Feature[] = [
   },
   {
     icon: <SecurityIcon sx={{ fontSize: 26 }} />,
-    title: 'Gate-Based Pass/Fail',
+    title: 'Gate-Based Status Model',
     description: 'Critical criteria block passing regardless of average score. Bad scores cannot hide behind weighted means.',
     colorKey: 'primary',
   },

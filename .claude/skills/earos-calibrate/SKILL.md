@@ -54,7 +54,7 @@ For each calibration artifact, run a full EAROS assessment using the `earos-asse
 
 **This step cannot be skipped or abbreviated.** Independent scoring is the entire point of calibration. If you score after seeing the benchmark, you measure nothing.
 
-> **For the full assessment protocol**, see `.claude/skills/earos-assess/SKILL.md`.
+> **For the full assessment protocol**, see `.agents/skills/earos-assess/SKILL.md`.
 
 ---
 

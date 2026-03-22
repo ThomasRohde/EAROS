@@ -6,11 +6,11 @@ This checklist covers all pre-publication quality checks for a new EAROS rubric 
 
 ## Quick Reference — What "Valid" Means
 
-A valid EAROS v2 rubric file:
+A valid EAROS rubric file:
 1. Passes schema validation against `standard/schemas/rubric.schema.json`
 2. Has a unique rubric ID and unique criterion IDs (no conflicts across the entire repo)
 3. Has the correct YAML structure for its kind (profile, overlay, or core rubric)
-4. Has all 13 v2 required fields on every criterion
+4. Has all 13 required fields on every criterion
 5. Has a calibrated gate model (not over- or under-gated)
 6. Does not duplicate what `EAROS-CORE-002` already covers
 

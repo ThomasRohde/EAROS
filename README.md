@@ -1,10 +1,9 @@
 # EaROS — Enterprise Architecture Rubric Operational Standard
 
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Version](https://img.shields.io/badge/Version-2.0.0-blue.svg)](CHANGELOG.md)
 [![GitHub](https://img.shields.io/badge/GitHub-ThomasRohde%2FEAROS-blue?logo=github)](https://github.com/ThomasRohde/EAROS)
 
-**Version 2.0.0 · March 2026** · [github.com/ThomasRohde/EAROS](https://github.com/ThomasRohde/EAROS)
+**March 2026** · [github.com/ThomasRohde/EAROS](https://github.com/ThomasRohde/EAROS)
 
 EaROS is a structured, extensible framework for evaluating enterprise architecture artifacts. It provides a universal rubric foundation, artifact-specific profiles, and cross-cutting overlays that together enable consistent, evidence-anchored assessment — by human reviewers and AI agents alike.
 

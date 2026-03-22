@@ -1,7 +1,6 @@
 # Enterprise Architecture Rubric Operational Standard (EAROS)
 
-*Version: 2.0
-Status: Draft for review
+*Status: Draft for review
 Audience: Enterprise architects, architecture boards, design authorities, reviewers, and LLM/automation teams*
 
 > See [docs/terminology.md](../docs/terminology.md) for definitions of all technical terms used in this standard.
@@ -29,18 +28,9 @@ This standard assumes a simple but important distinction:
 These must not be collapsed into one opaque score. They are related but distinct judgments.
 
 
-### What is new in version 2.0
+### Research foundations
 
-Version 2.0 incorporates findings from a comprehensive research programme conducted in March 2026, covering 63 sources across academic literature, industry frameworks, and emerging AI evaluation methods. Key enhancements include:
-
-1. **Strengthened design foundations** with explicit alignment to Microsoft's LLM-Rubric (ACL 2024), the RULERS framework (2026), and the CARO confusion-aware rubric optimization approach.
-2. **New principle on artifact machine-readability** (Principle 8), establishing requirements for structured, parseable artifact formats.
-3. **Expanded scoring guidance** with discussion of the 0–3 vs 0–4 scale tradeoff based on empirical evidence.
-4. **Enhanced agentic operating pattern** with DAG-based evaluation flow, the RULERS evidence-anchoring protocol, and calibrated aggregation.
-5. **New section on artifact format requirements** (Section 12) covering ArchiMate exchange format, ADR machine-readable formats, diagram-as-code, and metadata conventions.
-6. **Expanded calibration methodology** with explicit inter-rater reliability targets and weighted kappa benchmarks.
-7. **New section on rubric design for AI agents** (Section 13) with seven empirically grounded design principles.
-8. **Updated references** with 63 additional sources.
+This standard incorporates findings from a comprehensive research programme covering 63 sources across academic literature, industry frameworks, and emerging AI evaluation methods. Key foundations include alignment to Microsoft's LLM-Rubric (ACL 2024), the RULERS framework, and the CARO confusion-aware rubric optimization approach.
 
 ## 2. Design foundations
 
@@ -292,7 +282,7 @@ Do **not** multiply score by confidence. A low-confidence evaluation and a poor 
 
 Empirical research on LLM-based evaluation suggests that smaller scales (0–3) produce higher inter-rater reliability between AI agents and human reviewers. The 0–3 scale reduces the ambiguous middle zone that plagues wider scales.
 
-However, the 0–4 scale used in EAROS v1 was chosen deliberately to distinguish between "good" (adequate with minor gaps) and "strong" (fully addressed and decision-ready). This distinction matters in architecture governance because the gap between "adequate" and "excellent" is precisely where reviewer judgment adds most value.
+However, the 0–4 scale was chosen deliberately to distinguish between "good" (adequate with minor gaps) and "strong" (fully addressed and decision-ready). This distinction matters in architecture governance because the gap between "adequate" and "excellent" is precisely where reviewer judgment adds most value.
 
 **Recommended approach:** Retain the 0–4 scale for human and hybrid evaluation modes. For fully agentic evaluation, organisations may optionally collapse to a 0–3 scale by merging levels 3 and 4, provided the rubric profiles define the mapping explicitly. Any scale collapse must be recorded in the evaluation metadata.
 
@@ -1187,9 +1177,9 @@ The enterprise standard should be:
 
 All architecture rubrics shall be managed as governed, versioned, evidence-based evaluation assets composed from a common core meta-rubric, artifact-specific profiles, and context overlays. All scoring shall be explainable, evidence-linked, calibrated, and suitable for both human and agent-assisted application.
 
-## 33. Recommended next deliverables (updated for v2.0)
+## 33. Recommended next deliverables
 
-To operationalize this standard, create these next (additions for v2.0 marked with *):
+To operationalize this standard, create these next:
 
 1. core-meta-rubric.yaml
 2. solution-architecture.yaml

@@ -11,7 +11,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Summary
 
-Version 2.0 is a major revision of the standard, expanding the rubric architecture from a single monolithic rubric to a three-layer model (core + profiles + overlays), adding first-class support for AI-agent evaluation, and formalising the calibration and governance requirements.
+Initial release of the standard, establishing a three-layer rubric architecture (core + profiles + overlays), first-class support for AI-agent evaluation, and formalised calibration and governance requirements.
 
 ### Added
 
@@ -67,24 +67,6 @@ Version 2.0 is a major revision of the standard, expanding the rubric architectu
 
 ---
 
-## [1.0.0] — 2025 (Internal Draft — Never Published)
+## Pre-release — 2025 (Internal Draft — Never Published)
 
-### Summary
-
-Version 1.0 was an internal draft that established the initial rubric concept and scoring model. It was never formally published or deployed in production. All files from this draft were superseded by the v2.0 release. No v1 files exist in this repository; the v2.0 files (`solution-architecture.yaml`, `adr.yaml`, etc.) are not renames of v1 originals — they are new implementations of the v2 three-layer model.
-
-### What existed in the draft
-
-- Core rubric (EAROS-CORE-001): 9 dimensions, basic 0–4 scoring, preliminary thresholds
-- Draft profiles for solution architecture and ADRs (internal, never approved)
-- Excel scoring tool for manual assessment (`EAROS_Scoring_Sheet.xlsx`, retained for reference)
-
-### Known limitations addressed in v2.0
-
-- No formal support for AI-agent evaluation
-- No overlay mechanism for cross-cutting concerns
-- No calibration protocol or inter-rater reliability targets
-- No machine-readable format guidance
-- No JSON schemas for validation
-- Limited profile coverage
-- Evidence recording was optional, not enforced by tooling
+Internal draft that explored the initial rubric concept and scoring model. Never formally published or deployed. No files from this draft exist in the repository — the current standard is a clean implementation.

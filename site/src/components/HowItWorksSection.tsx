@@ -28,7 +28,7 @@ const STEPS: Step[] = [
     icon: <VerifiedIcon sx={{ fontSize: 28 }} />,
     number: '3',
     title: 'Get an actionable assessment',
-    description: 'Gates checked first, then weighted average. Clear status: Pass, Conditional Pass, Rework Required, or Reject.',
+    description: 'Gates checked first, then weighted average. Clear status: Pass, Conditional Pass, Rework Required, Reject, or Not Reviewable.',
   },
 ]
 

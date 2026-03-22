@@ -41,7 +41,7 @@ The `earos init` command creates a structured directory containing:
 
 - **Rubric files** --- the core meta-rubric and all built-in profiles and overlays (YAML)
 - **JSON schemas** --- for validating rubrics, evaluation records, and artifact documents
-- **Agent skills** --- 10 pre-configured skills for AI-assisted evaluation (in `.claude/skills/` and `.agents/skills/`)
+- **Agent skills** --- 10 pre-configured skills for AI-assisted evaluation (in `.agents/skills/`)
 - **AGENTS.md** --- agent-agnostic instructions for AI tools like Cursor, Copilot, and Windsurf
 - **Manifest** --- an inventory of all available rubrics
 
@@ -100,13 +100,13 @@ Not all criteria are equal. Some have **gates** --- threshold controls that can 
 
 | Gate Severity | What Happens |
 |---------------|-------------|
-| **Critical** | If the score is below the gate threshold, the artifact is automatically **Rejected**. No amount of high scores elsewhere can override this. |
+| **Critical** | If the score is below the gate threshold, the artifact is blocked from passing. The `failure_effect` determines the outcome --- typically **Reject**, or **Not Reviewable** when evidence is too incomplete to score. |
 | **Major** | A low score caps the maximum achievable status (e.g., cannot pass above Conditional Pass). |
 | **Advisory** | A low score triggers a recommendation but does not block any status. |
 
 In the core rubric, **SCP-01** (Scope and boundary clarity) has a **critical** gate: if the scope is so unclear that the artifact cannot be reviewed (score < 2), the result is "Not Reviewable" regardless of all other scores. **STK-01** (Stakeholder and purpose fit) and **TRC-01** (Traceability) have **major** gates.
 
-> **Rule: Gates before averages.** Always check gate criteria first. If a critical gate fails, stop --- the result is Reject. Only then compute the weighted average for the remaining status thresholds.
+> **Rule: Gates before averages.** Always check gate criteria first. If a critical gate fails, stop --- the result is determined by the gate's `failure_effect` (Reject or Not Reviewable). Only then compute the weighted average for the remaining status thresholds.
 
 ## Interpreting Your Results
 

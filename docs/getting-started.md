@@ -64,10 +64,9 @@ Apply overlays selectively. Not every artifact needs every overlay.
 
 ## Step 3: Open the Scoring Sheet
 
-Open the appropriate Excel scoring sheet from `tools/scoring-sheets/`:
+Open the Excel scoring sheet from `tools/scoring-sheets/`:
 
-- **`EAROS_Scoring_Sheet_v2.xlsx`** — use for most artifact types
-- **`EAROS_RefArch_Scoring_Sheet.xlsx`** — use specifically for reference architectures
+- **`EAROS_Scoring_Sheet_v2.xlsx`** — general-purpose, works for all artifact types
 
 The scoring sheet has:
 - One tab per rubric section (core dimensions + profile dimensions)
@@ -115,7 +114,7 @@ You read the artifact and find a scope statement that defines what is in scope b
 
 Before calculating the aggregate, check every criterion with a `gate` object (not `gate: false`) in the rubric files. Gate behaviour depends on severity:
 
-- **`critical`** — Any score below the threshold triggers an immediate **Reject**, regardless of the aggregate score.
+- **`critical`** — Any score below the threshold blocks passing. The gate's `failure_effect` determines the outcome: **Reject** (mandatory control breach) or **Not Reviewable** (evidence too incomplete to score).
 - **`major`** — A weak score (typically < 2) caps the status at **Conditional Pass** at best; cannot achieve a Pass.
 - **`advisory`** — Triggers a recommendation but does not cap the status.
 
@@ -129,10 +128,11 @@ The scoring sheet calculates the weighted dimension average automatically. Read 
 
 | Weighted Average | Status |
 |-----------------|--------|
-| ≥ 3.2 | **Pass** |
-| 2.4 – 3.19 | **Conditional Pass** |
+| ≥ 3.2 (no critical gate failure, no dimension < 2.0) | **Pass** |
+| 2.4 – 3.19 (no critical gate failure) | **Conditional Pass** |
 | < 2.4 | **Rework Required** |
-| Any gate at 0 | **Reject** |
+| Critical gate failure (mandatory control breach) | **Reject** |
+| Critical gate failure (evidence too incomplete to score) | **Not Reviewable** |
 
 **Conditional Pass** means the artifact is acceptable for use but has identified remediation items that must be addressed before the next formal review. Document each item with the criterion ID, the score, and the specific improvement needed.
 

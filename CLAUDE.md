@@ -1,6 +1,6 @@
 # CLAUDE.md — EAROS Project Guide
 
-**Enterprise Architecture Rubric Operational Standard · Version 2.0**
+**Enterprise Architecture Rubric Operational Standard**
 
 This file tells Claude how to work effectively in this project.
 
@@ -489,7 +489,7 @@ The `rubric_locked: true` flag in `agent_evaluation` means an agent must not mod
 
 ## 10. The Reference Architecture Profile — Model for Other Profiles
 
-`profiles/reference-architecture.yaml` (`EAROS-REFARCH-001`) is the first full profile in EAROS v2 and serves as the reference implementation for how profiles should be built.
+`profiles/reference-architecture.yaml` (`EAROS-REFARCH-001`) is the first full profile and serves as the reference implementation for how profiles should be built.
 
 **Why it is a good model:**
 - Uses `design_method: pattern_library` (Method E) — appropriate for recurring platform blueprints
@@ -522,7 +522,7 @@ This pattern — count observable features, branch on presence — is the right 
 
 ## 11. Agent Skills
 
-The `.claude/skills/` directory contains Claude agent skills for working with EAROS. Each skill lives in its own subdirectory with a `SKILL.md` file. Skills are auto-triggered when their description matches the user's request — no slash command needed.
+The `.claude/skills/` directory contains Claude Code skills for working with EAROS in this development repo. In scaffolded workspaces (`earos init`), skills live in `.agents/skills/` — an agent-agnostic convention readable by Cursor, Copilot, Windsurf, and other AI coding tools. Each skill lives in its own subdirectory with a `SKILL.md` file. Skills are auto-triggered when their description matches the user's request — no slash command needed.
 
 ```
 .claude/skills/
@@ -530,7 +530,7 @@ The `.claude/skills/` directory contains Claude agent skills for working with EA
 ├── earos-review/SKILL.md        Challenger — audits an existing evaluation record for over-scoring and unsupported claims
 ├── earos-template-fill/SKILL.md Author guide — coaches artifact authors through writing assessment-ready documents
 ├── earos-create/SKILL.md        Rubric creation — guided interview + YAML generation for profiles, overlays, and core rubrics
-├── earos-profile-author/SKILL.md Profile YAML authoring — technical reference for v2 field structure and schema compliance
+├── earos-profile-author/SKILL.md Profile YAML authoring — technical reference for field structure and schema compliance
 ├── earos-calibrate/SKILL.md     Calibration — runs calibration exercises and computes inter-rater reliability
 ├── earos-report/SKILL.md        Reporting — generates executive reports from evaluation records
 ├── earos-validate/SKILL.md      Health check — validates all YAML rubrics against schemas and checks consistency

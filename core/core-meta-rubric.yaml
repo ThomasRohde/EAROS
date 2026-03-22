@@ -635,7 +635,7 @@ change_log:
       - Added reliability_targets to scoring
       - Added evidence_class and evidence_anchors to outputs
       - Added DAG evaluation steps
-      - Updated from EAROS v1 based on 63-source research programme
+      - Incorporated findings from 63-source research programme
   - version: "1.0.0"
     date: "2026-03-16"
     author: "Thomas Rohde"

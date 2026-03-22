@@ -210,7 +210,7 @@ const HOME_HELP: HelpPage = {
               The editor is a manual fallback. AI agents are the primary interface.
             </Typography>
             <Typography variant="body2">
-              EaROS ships with 10 AI agent skills in <code>.claude/skills/</code> that automate the
+              EaROS ships with 10 AI agent skills in <code>.agents/skills/</code> that automate the
               entire lifecycle. Open this project in Claude Code, Cursor, or any AI coding agent and
               the skills are immediately available — no configuration needed.
             </Typography>
