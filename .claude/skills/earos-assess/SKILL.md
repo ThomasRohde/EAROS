@@ -156,11 +156,11 @@ Quick self-checks:
 
 ### Step 8 — Status Determination
 
-**Gates first** — check gate criteria before computing any weighted average. A single critical gate failure = Reject, no matter how high the average is.
+**Gates first** — check gate criteria before computing any weighted average. A single critical gate failure blocks a passing status, no matter how high the average is. The specific outcome (`reject` or `not_reviewable`) is determined by the criterion's `failure_effect`.
 
 | Gate type | Effect |
 |-----------|--------|
-| `critical` failure | Status = `reject` regardless of average |
+| `critical` failure | Status = `reject` or `not_reviewable` (per `failure_effect`) regardless of average |
 | `major` failure | Status cannot exceed `conditional_pass` |
 
 Then compute the weighted overall average and apply thresholds:

@@ -327,10 +327,10 @@ Start from `templates/new-profile.template.yaml`. Set:
 - `design_method` from step 2
 - `rubric_id` using pattern `EAROS-<ARTIFACT>-<NNN>`
 
-### Step 4 — Write 5–12 criteria
+### Step 4 — Write up to 12 criteria
 
 Rules:
-- Add **no more than 5–12 criteria** (the core already has 10)
+- Add **no more than 12 criteria** (the core already has 10; built-in profiles use 3–9)
 - Every criterion needs: `question`, `description`, `scoring_guide` (all 5 levels 0–4), `required_evidence`, `anti_patterns`, `examples.good`, `examples.bad`, `decision_tree`, `remediation_hints`
 - Assign each criterion to a dimension with an appropriate `weight`
 - Designate gate types deliberately — not every criterion needs a gate; over-gating creates false rejects
@@ -467,7 +467,7 @@ The `rubric_locked: true` flag in `agent_evaluation` means an agent must not mod
 
 1. **Never collapse the three evaluation types.** Artifact quality, architectural fitness, and governance fit are distinct judgments. Never merge them into a single opaque score.
 
-2. **Gates before averages.** Always check gates before computing a weighted average. A single critical gate failure = Reject, no matter how high the average.
+2. **Gates before averages.** Always check gates before computing a weighted average. A single critical gate failure blocks a passing status — the outcome (`Reject` or `Not Reviewable`) depends on the criterion's `failure_effect`.
 
 3. **Evidence first.** Every score requires a cited excerpt or reference. "Evidence: section 3 states X" is valid. "The artifact seems to address this" is not. Use RULERS anchoring.
 
@@ -592,7 +592,7 @@ The full glossary is in [`docs/terminology.md`](docs/terminology.md). It covers 
 | Term | Definition |
 |------|------------|
 | **Core meta-rubric** | Universal foundation rubric (`EAROS-CORE-002`): 9 dimensions, 10 criteria, applied to every artifact |
-| **Profile** | Artifact-type extension of the core (5–12 extra criteria). Declares `inherits: [EAROS-CORE-002]` |
+| **Profile** | Artifact-type extension of the core (additional criteria, typically 3–9). Declares `inherits: [EAROS-CORE-002]` |
 | **Overlay** | Cross-cutting concern extension (e.g. security). Applied by context, not artifact type. Uses `append_to_base_rubric` scoring |
 | **Gate** | Criterion-level control that blocks a passing status regardless of average. Types: `none`, `advisory`, `major`, `critical` |
 | **Evidence anchor** | Specific reference (section, page, diagram ID) in the artifact supporting a score. Required by RULERS protocol |

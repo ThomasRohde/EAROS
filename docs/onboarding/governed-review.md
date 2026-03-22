@@ -16,7 +16,7 @@ At Level 2, you used the core rubric and produced evidence-backed scores. At Lev
 
 ## Choosing a Profile
 
-The core meta-rubric's 10 criteria are universal --- they apply to every architecture artifact. But a reference architecture has different quality expectations than an ADR, and a capability map is evaluated differently than a roadmap. Profiles add 5--12 artifact-specific criteria on top of the core.
+The core meta-rubric's 10 criteria are universal --- they apply to every architecture artifact. But a reference architecture has different quality expectations than an ADR, and a capability map is evaluated differently than a roadmap. Profiles add artifact-specific criteria on top of the core --- typically 3 to 9, depending on the artifact type.
 
 | Profile | Artifact Type | What It Adds |
 |---------|--------------|-------------|
@@ -26,7 +26,7 @@ The core meta-rubric's 10 criteria are universal --- they apply to every archite
 | `capability-map.yaml` | Capability maps, business architecture | Capability decomposition, business alignment, gap analysis |
 | `roadmap.yaml` | Architecture roadmaps, transition plans | Sequencing, dependency management, milestone definition, risk on timeline |
 
-Every profile declares `inherits: [EAROS-CORE-002]`. This means when you evaluate a reference architecture, you score it against all 10 core criteria **plus** the profile's additional criteria --- typically 19--21 criteria total.
+Every profile declares `inherits: [EAROS-CORE-002]`. This means when you evaluate a reference architecture, you score it against all 10 core criteria **plus** the profile's additional criteria --- 13--19 criteria total depending on the profile.
 
 > **How to choose:** Match the profile to the artifact's declared type. If the artifact does not fit any built-in profile, use the core rubric alone. Creating custom profiles is covered in [Scaling and Optimization](scaling-optimization.md).
 

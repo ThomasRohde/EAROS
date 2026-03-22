@@ -99,7 +99,7 @@ Before finalising scores, run the internal challenge:
 ### 2.4 Determine status for each artifact
 
 Apply the status thresholds:
-1. Check gate failures first — any critical gate failure = reject
+1. Check gate failures first — any critical gate failure blocks a passing status (outcome per `failure_effect`: `reject` or `not_reviewable`)
 2. Check overall score: ≥ 3.2 = pass, 2.4–3.19 = conditional_pass, < 2.4 = rework_required
 3. Check dimension floor: no dimension < 2.0 for a pass status
 

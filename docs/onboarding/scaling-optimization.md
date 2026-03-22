@@ -60,7 +60,7 @@ The five built-in profiles (solution-architecture, reference-architecture, adr, 
 
 3. **Start from the template.** Copy `templates/new-profile.template.yaml` and set the required fields: `kind: profile`, `inherits: [EAROS-CORE-002]`, and `design_method`.
 
-4. **Write 5--12 criteria.** Each criterion needs all required fields: `question`, `description`, `scoring_guide` (all 5 levels), `required_evidence`, `anti_patterns`, `examples.good`, `examples.bad`, `decision_tree`, and `remediation_hints`.
+4. **Write up to 12 criteria.** Each criterion needs all required fields: `question`, `description`, `scoring_guide` (all 5 levels), `required_evidence`, `anti_patterns`, `examples.good`, `examples.bad`, `decision_tree`, and `remediation_hints`.
 
 5. **Calibrate before production.** Score 3--5 representative artifacts with 2+ reviewers. Target kappa > 0.70.
 

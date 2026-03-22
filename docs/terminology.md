@@ -41,13 +41,13 @@ The rule that disagreements of exactly one score level (e.g., 3 vs. 4) are treat
 The universal evaluation foundation (`core/core-meta-rubric.yaml`, `rubric_id: EAROS-CORE-002`) defining nine dimensions and ten criteria applied to every architecture artifact regardless of type. All profiles inherit from the core. Used in: Section 5.1, all profile `inherits` fields.
 
 **Profile**
-An artifact-type extension that inherits the core meta-rubric and adds 5–12 criteria specific to a particular artifact type (e.g., solution architecture, reference architecture, ADR). Profiles use `kind: profile` and must declare `inherits: [EAROS-CORE-002]`. Used in: Section 5.2, `profiles/` directory.
+An artifact-type extension that inherits the core meta-rubric and adds criteria specific to a particular artifact type (e.g., solution architecture, reference architecture, ADR). Profiles use `kind: profile` and must declare `inherits: [EAROS-CORE-002]`. Used in: Section 5.2, `profiles/` directory.
 
 **Overlay**
 A set of cross-cutting criteria injected on top of any core+profile combination, independent of artifact type. Overlays address concerns that recur across artifact types (security, data governance, regulatory compliance). They use `kind: overlay`, `artifact_type: any`, and `scoring.method: append_to_base_rubric`. Applied by context, not artifact type; they cannot remove or weaken base gates. Used in: Section 5.3, `overlays/` directory.
 
 **Gate**
-A criterion-level enforcement mechanism that prevents a poor score on a critical criterion being masked by high scores elsewhere. Gates are evaluated before any weighted average is computed. Gate severities: `none`, `advisory`, `major`, `critical` — a critical gate failure results in `Reject` regardless of the average. Used in: Section 7.3, all rubric YAML `gate` fields.
+A criterion-level enforcement mechanism that prevents a poor score on a critical criterion being masked by high scores elsewhere. Gates are evaluated before any weighted average is computed. Gate severities: `none`, `advisory`, `major`, `critical` — a critical gate failure blocks a passing status regardless of the average --- the specific outcome (`Reject` or `Not Reviewable`) depends on the criterion's `failure_effect`. Used in: Section 7.3, all rubric YAML `gate` fields.
 
 **Evidence anchor**
 A direct pointer to the specific excerpt, diagram, section, or reference in the artifact that supports a score. Required for every scored criterion under the RULERS protocol. Anchors are classified as `observed`, `inferred`, or `external`. "The artifact seems to address this" is not a valid evidence anchor. Used in: Section 10.1, all evaluation record `evidence_anchor` fields.

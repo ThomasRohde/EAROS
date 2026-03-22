@@ -28,7 +28,7 @@ Agent evaluations follow an 8-step directed acyclic graph (DAG). Each step must 
 
 **Step 7 --- Calibration.** The agent aligns its score distribution to reference human distributions using the Wasserstein-based method (`rulers_wasserstein`). This prevents systematic over-scoring or under-scoring relative to human reviewers.
 
-**Step 8 --- Status Determination.** Gates are checked first (critical gate failure equals Reject), then the weighted average is computed and applied against the status thresholds.
+**Step 8 --- Status Determination.** Gates are checked first (a critical gate failure blocks a passing status --- the specific outcome, `Reject` or `Not Reviewable`, is determined by the criterion's `failure_effect`), then the weighted average is computed and applied against the status thresholds.
 
 > **The DAG is not optional.** Skipping steps --- particularly the challenge pass (Step 6) --- undermines evaluation quality. An agent evaluation without a challenge pass is an unchecked evaluation.
 

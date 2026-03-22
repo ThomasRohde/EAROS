@@ -73,7 +73,7 @@ Architecture evaluation is continuous and integrated into delivery workflows. Ca
 
 ## How to Use This Guide
 
-The onboarding guide is organized as five pages, one for each level transition:
+The onboarding guide is organized as four transition guides, one for each level transition:
 
 1. [Your First Assessment](first-assessment.md) --- Level 1 to 2: Ad Hoc to Rubric-Based
 2. [Governed Review](governed-review.md) --- Level 2 to 3: Rubric-Based to Governed

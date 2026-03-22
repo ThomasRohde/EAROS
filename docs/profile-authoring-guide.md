@@ -24,7 +24,7 @@ Profiles extend the Core Meta-Rubric for specific artifact types. This guide exp
 ## Profile Rules
 
 - Inherit the core scale (0-4) and status model unless approved exception
-- Add no more than 5-12 specific criteria
+- Add no more than 12 specific criteria (most built-in profiles use 3–9)
 - Map every criterion to a dimension
 - Define evidence anchors, gate types, and applicability rules
 - Include examples, anti-patterns, and remediation hints
