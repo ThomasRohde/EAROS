@@ -895,6 +895,80 @@ const EDIT_ARTIFACT_HELP: HelpPage = {
 
 // ─── Mode → page config ────────────────────────────────────────────────────────
 
+const VIEW_ASSESSMENT_HELP: HelpPage = {
+  heading: 'Assessment Viewer Help',
+  badge: 'All Roles',
+  badgeColor: '#546e7a',
+  sections: [
+    {
+      title: 'Reading the dashboard',
+      content: (
+        <>
+          <Para>
+            This is a <strong>read-only view</strong> of a completed EaROS evaluation record. You cannot
+            edit scores here — use "Continue Assessment" from the home screen to modify an evaluation.
+          </Para>
+          <SectionHeading>Hero summary</SectionHeading>
+          <Para>
+            The top card shows three key metrics: <strong>Overall Status</strong> (Pass, Conditional Pass,
+            Rework Required, or Reject), <strong>Overall Score</strong> (weighted average out of 4.0), and
+            <strong> Gate Failures</strong> (critical/major control violations).
+          </Para>
+          <SectionHeading>Dimension overview</SectionHeading>
+          <Para>
+            Each dimension card shows its weighted average score with a progress bar. Green means above the
+            Pass threshold (3.2), yellow means Conditional Pass range (2.4–3.19), red means below 2.4.
+          </Para>
+        </>
+      ),
+    },
+    {
+      title: 'Understanding gates and status',
+      content: (
+        <>
+          <Bullets items={[
+            <><strong>Critical gate failure</strong> — immediately triggers Reject status, regardless of average score.</>,
+            <><strong>Major gate failure</strong> — caps status at Conditional Pass; the artifact cannot achieve Pass.</>,
+            <><strong>Advisory</strong> — informational only; does not affect status.</>,
+          ]} />
+          <Para>
+            Gates are checked <em>before</em> the weighted average is computed. A single critical failure
+            overrides everything else.
+          </Para>
+        </>
+      ),
+    },
+    {
+      title: 'Criterion details and evidence',
+      content: (
+        <>
+          <Para>
+            Click any criterion row to expand its evidence, rationale, and recommended actions. Evidence
+            references show the exact section and quotation from the artifact (the RULERS protocol).
+          </Para>
+          <Bullets items={[
+            <><strong>Observed</strong> evidence — directly quoted from the artifact. Highest credibility.</>,
+            <><strong>Inferred</strong> evidence — reasonable interpretation not directly stated.</>,
+            <><strong>External</strong> evidence — based on a standard or policy outside the artifact.</>,
+          ]} />
+        </>
+      ),
+    },
+    {
+      title: 'Exporting',
+      content: (
+        <>
+          <Para>
+            Use the export button in the top-right to download the evaluation as YAML or Word. The YAML
+            export preserves the full evaluation record for re-import. The Word export produces a
+            formatted assessment report suitable for governance review.
+          </Para>
+        </>
+      ),
+    },
+  ],
+}
+
 function getHelpPage(mode: AppMode): HelpPage {
   switch (mode) {
     case 'home':                return HOME_HELP
@@ -905,6 +979,7 @@ function getHelpPage(mode: AppMode): HelpPage {
     case 'continue-assessment': return CONTINUE_ASSESSMENT_HELP
     case 'new-artifact':        return CREATE_ARTIFACT_HELP
     case 'edit-artifact':       return EDIT_ARTIFACT_HELP
+    case 'view-assessment':     return VIEW_ASSESSMENT_HELP
     default:                    return HOME_HELP
   }
 }

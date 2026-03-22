@@ -1,6 +1,6 @@
 {
   "name": "@trohde/earos",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Schema-driven editor and CLI for EaROS architecture assessment rubrics and evaluations",
   "type": "module",
   "bin": {
@@ -13,13 +13,20 @@
     "postbuild": "node scripts/postbuild.mjs",
     "preview": "vite preview",
     "prepublishOnly": "npm run build",
-    "prepare": "cd ../.. && git config core.hooksPath tools || true"
+    "prepare": "cd ../.. && git config core.hooksPath tools || true",
+    "release:patch": "npm version patch --no-git-tag-version && npm publish --access public",
+    "release:minor": "npm version minor --no-git-tag-version && npm publish --access public",
+    "release:major": "npm version major --no-git-tag-version && npm publish --access public",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version"
   },
   "files": [
     "dist/",
     "bin.js",
     "serve.js",
     "init.js",
+    "export-docx.js",
     "manifest-cli.mjs",
     "schemas/",
     "assets/",

@@ -74,22 +74,53 @@ export async function startServer(fileArg?: string): Promise<void> {
   app.get('/api/manifest', manifestHandler)
   app.get('/api/files', manifestHandler)
 
-  // GET /api/evaluations
+  // GET /api/evaluations — recursively scan for evaluation files
+  function findEvaluationFiles(baseDir: string, prefix: string): Array<{ path: string; name: string }> {
+    const found: Array<{ path: string; name: string }> = []
+    if (!existsSync(baseDir)) return found
+    try {
+      for (const entry of readdirSync(baseDir, { withFileTypes: true })) {
+        if (entry.isDirectory()) {
+          found.push(...findEvaluationFiles(resolve(baseDir, entry.name), `${prefix}${entry.name}/`))
+        } else if (entry.name.endsWith('.evaluation.yaml') || entry.name === 'evaluation.yaml') {
+          found.push({ path: `${prefix}${entry.name}`, name: entry.name })
+        }
+      }
+    } catch { /* skip unreadable dirs */ }
+    return found
+  }
+
   app.get('/api/evaluations', (_req, res) => {
     const files: Array<{ path: string; name: string }> = []
     for (const dir of ['examples', 'evaluations']) {
-      const dirPath = resolve(REPO_ROOT, dir)
-      if (existsSync(dirPath)) {
-        try {
-          for (const entry of readdirSync(dirPath)) {
-            if (entry.endsWith('.evaluation.yaml')) {
-              files.push({ path: `${dir}/${entry}`, name: entry })
-            }
-          }
-        } catch { /* skip unreadable dirs */ }
-      }
+      files.push(...findEvaluationFiles(resolve(REPO_ROOT, dir), `${dir}/`))
     }
     res.json({ files })
+  })
+
+  // GET /api/evaluations/summary — lightweight metadata per evaluation file
+  app.get('/api/evaluations/summary', (_req, res) => {
+    const files: Array<{ path: string; name: string }> = []
+    for (const dir of ['examples', 'evaluations']) {
+      files.push(...findEvaluationFiles(resolve(REPO_ROOT, dir), `${dir}/`))
+    }
+    const summaries = files.map((f) => {
+      const absPath = resolve(REPO_ROOT, f.path)
+      try {
+        const data = yaml.load(readFileSync(absPath, 'utf8')) as Record<string, any>
+        return {
+          path: f.path,
+          name: f.name,
+          overall_status: data?.overall_status ?? undefined,
+          overall_score: data?.overall_score ?? undefined,
+          evaluation_date: data?.evaluation_date ?? undefined,
+          title: data?.artifact_ref?.title ?? data?.artifact_id ?? f.name.replace(/\.evaluation\.yaml$|\.yaml$/, ''),
+        }
+      } catch {
+        return { path: f.path, name: f.name, title: f.name }
+      }
+    })
+    res.json({ summaries })
   })
 
   // GET /api/file/:path  (path may contain slashes)

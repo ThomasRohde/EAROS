@@ -1504,7 +1504,7 @@ export async function exportEvaluationToDocx(evalData) {
             str(cr.criterion_id),
             cr.score != null ? String(cr.score) : '-',
             str(cr.confidence),
-            str(cr.judgment_type ?? cr.evidence_class),
+            str(cr.evidence_class ?? cr.judgment_type),
         ]);
         children.push(dataTable(dashHeaders, dashRows));
         // Per-criterion details
@@ -1515,17 +1515,24 @@ export async function exportEvaluationToDocx(evalData) {
             children.push(label('Score', cr.score != null ? String(cr.score) : '-'));
             if (cr.confidence)
                 children.push(label('Confidence', str(cr.confidence)));
-            if (cr.judgment_type)
-                children.push(label('Evidence Class', str(cr.judgment_type)));
+            const evClass = cr.evidence_class ?? cr.judgment_type;
+            if (evClass)
+                children.push(label('Evidence Class', str(evClass)));
             if (cr.rationale)
                 children.push(body(str(cr.rationale)));
             if (cr.evidence_refs?.length) {
                 children.push(h3('Evidence'));
                 for (const ref of cr.evidence_refs) {
-                    if (ref.excerpt)
-                        children.push(bullet(str(ref.excerpt)));
-                    if (ref.location && ref.location !== 'see evidence field')
-                        children.push(italicNote(`Location: ${str(ref.location)}`));
+                    if (typeof ref === 'string') {
+                        children.push(bullet(str(ref)));
+                        continue;
+                    }
+                    const quote = ref.quotation ?? ref.excerpt;
+                    const source = ref.section ?? ref.location;
+                    if (quote)
+                        children.push(bullet(str(quote)));
+                    if (source && source !== 'see evidence field')
+                        children.push(italicNote(`Location: ${str(source)}`));
                 }
             }
             children.push(horizontalRule());

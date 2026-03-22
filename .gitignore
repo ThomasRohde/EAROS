@@ -64,3 +64,6 @@ icons/
 
 # Stitch
 .stitch/
+
+# Site (GitHub Pages landing page)
+site/dist/

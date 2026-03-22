@@ -1,9 +1,11 @@
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Box,
   Typography,
   Card,
   CardActionArea,
   CardContent,
+  Chip,
   useTheme,
 } from '@mui/material'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
@@ -12,12 +14,17 @@ import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import NoteAddIcon from '@mui/icons-material/NoteAdd'
 import EditNoteIcon from '@mui/icons-material/EditNote'
+import FileOpenIcon from '@mui/icons-material/FileOpen'
+import yaml from 'js-yaml'
 import { sapphire } from '../theme'
+import { STATUS_CONFIG } from './AssessmentSummary'
 import type { AppMode } from '../App'
+import type { LoadedEvaluation, EvaluationSummaryEntry } from '../types'
 import QuickTipBanner from './QuickTipBanner'
 
 interface Props {
   onSelectMode: (mode: AppMode) => void
+  onViewAssessment?: (evaluation: LoadedEvaluation, rawYaml?: string) => void
 }
 
 interface CardDef {
@@ -115,12 +122,50 @@ const subtleBg = (isDark: boolean) => ({
   secondary: isDark ? 'hsl(32 47% 48% / 0.12)' : 'hsl(45 57% 73% / 0.18)',
 })
 
-export default function HomeScreen({ onSelectMode }: Props) {
+export default function HomeScreen({ onSelectMode, onViewAssessment }: Props) {
   const theme = useTheme()
   const isDark = theme.palette.mode === 'dark'
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const accents = accentColors(isDark)
   const bgs = subtleBg(isDark)
+
+  // Fetch evaluation summaries
+  const [evalSummaries, setEvalSummaries] = useState<EvaluationSummaryEntry[]>([])
+  useEffect(() => {
+    fetch('/api/evaluations/summary')
+      .then((r) => r.json())
+      .then((data) => { if (data?.summaries) setEvalSummaries(data.summaries) })
+      .catch(() => {})
+  }, [])
+
+  const handleOpenEval = useCallback(async (path: string) => {
+    if (!onViewAssessment) return
+    try {
+      const res = await fetch(`/api/file/${encodeURIComponent(path)}`)
+      if (!res.ok) return
+      const data = await res.json()
+      onViewAssessment(data as LoadedEvaluation)
+    } catch { /* ignore */ }
+  }, [onViewAssessment])
+
+  const handleFileImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !onViewAssessment) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        const rawYaml = reader.result as string
+        const data = yaml.load(rawYaml) as LoadedEvaluation
+        if (data?.criterion_results) {
+          onViewAssessment(data, rawYaml)
+        }
+      } catch { /* ignore invalid files */ }
+    }
+    reader.readAsText(file)
+    // Reset so the same file can be re-imported
+    e.target.value = ''
+  }, [onViewAssessment])
 
   return (
     <Box
@@ -279,6 +324,115 @@ export default function HomeScreen({ onSelectMode }: Props) {
             </Box>
           ))}
         </Box>
+
+        {/* ── Completed Assessments strip ──────────────────────────────────── */}
+        {onViewAssessment && (
+          <Box sx={{ maxWidth: 860, width: '100%', mt: 6 }}>
+            {/* Section header */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography
+                sx={{
+                  color: isDark ? sapphire.gray[400] : `color-mix(in srgb, ${sapphire.blue[900]} 64%, transparent)`,
+                  fontWeight: 600,
+                  letterSpacing: '0.08em',
+                  fontSize: '0.75rem',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Completed Assessments
+              </Typography>
+              <Typography
+                component="button"
+                onClick={() => fileInputRef.current?.click()}
+                sx={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: isDark ? sapphire.blue[400] : sapphire.blue[500],
+                  fontSize: '0.8rem',
+                  fontWeight: 500,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  '&:hover': { textDecoration: 'underline' },
+                }}
+              >
+                <FileOpenIcon sx={{ fontSize: 16 }} />
+                Open file...
+              </Typography>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".yaml,.yml"
+                style={{ display: 'none' }}
+                onChange={handleFileImport}
+              />
+            </Box>
+
+            {/* Evaluation list */}
+            <Card sx={{ bgcolor: isDark ? sapphire.gray[800] : '#ffffff' }}>
+              {evalSummaries.length === 0 ? (
+                <Box sx={{ px: 3, py: 2.5 }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                    No completed assessments found. Run an assessment or import an <code>.evaluation.yaml</code> file.
+                  </Typography>
+                </Box>
+              ) : (
+                evalSummaries.slice(0, 5).map((entry, i) => {
+                  const sCfg = STATUS_CONFIG[entry.overall_status ?? ''] ?? STATUS_CONFIG.incomplete
+                  return (
+                    <Box
+                      key={entry.path}
+                      onClick={() => handleOpenEval(entry.path)}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        px: 3,
+                        py: 1.5,
+                        cursor: 'pointer',
+                        borderBottom: i < Math.min(evalSummaries.length, 5) - 1 ? '1px solid' : 'none',
+                        borderColor: 'divider',
+                        '&:hover': { bgcolor: isDark ? 'hsl(212 33% 27% / 0.3)' : 'hsl(206 33% 96%)' },
+                        transition: 'background-color 0.15s',
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ flex: 1, fontWeight: 500, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {entry.title}
+                      </Typography>
+                      <Chip
+                        label={sCfg.label}
+                        size="small"
+                        sx={{
+                          bgcolor: sCfg.bg,
+                          color: sCfg.color,
+                          fontWeight: 600,
+                          fontSize: '0.68rem',
+                          height: 22,
+                          flexShrink: 0,
+                        }}
+                      />
+                      {entry.overall_score != null && (
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '0.85rem', minWidth: 32, textAlign: 'right', flexShrink: 0 }}>
+                          {entry.overall_score.toFixed(1)}
+                        </Typography>
+                      )}
+                      {entry.evaluation_date && (
+                        <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.72rem', minWidth: 50, textAlign: 'right', flexShrink: 0 }}>
+                          {(() => {
+                            try {
+                              return new Date(entry.evaluation_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                            } catch { return entry.evaluation_date }
+                          })()}
+                        </Typography>
+                      )}
+                    </Box>
+                  )
+                })
+              )}
+            </Card>
+          </Box>
+        )}
 
       </Box> {/* end centred content */}
     </Box>

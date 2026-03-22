@@ -13,8 +13,9 @@ import ArtifactEditor from './components/ArtifactEditor'
 import AssessmentForm from './components/AssessmentForm'
 import AssessmentWizard from './components/AssessmentWizard'
 import ContinueAssessment from './components/ContinueAssessment'
+import AssessmentViewer from './components/AssessmentViewer'
 import HelpDialog from './components/HelpDialog'
-import type { PreloadedAssessment } from './types'
+import type { PreloadedAssessment, LoadedEvaluation } from './types'
 
 export type AppMode =
   | 'home'
@@ -25,11 +26,13 @@ export type AppMode =
   | 'assess'
   | 'new-artifact'
   | 'edit-artifact'
+  | 'view-assessment'
 
 export default function App() {
   const [mode, setMode] = useState<AppMode>('home')
   const [manifest, setManifest] = useState<ManifestData | null>(null)
   const [preloaded, setPreloaded] = useState<PreloadedAssessment | null>(null)
+  const [viewEvalData, setViewEvalData] = useState<{ evaluation: LoadedEvaluation; rawYaml?: string } | null>(null)
   const [helpOpen, setHelpOpen] = useState(false)
 
   useEffect(() => {
@@ -134,10 +137,34 @@ export default function App() {
     )
   }
 
+  if (mode === 'view-assessment' && viewEvalData) {
+    return (
+      <Box sx={{ position: 'relative' }}>
+        <AssessmentViewer
+          evaluation={viewEvalData.evaluation}
+          rawYaml={viewEvalData.rawYaml}
+          onBack={() => {
+            setViewEvalData(null)
+            setMode('home')
+          }}
+        />
+        <HelpButton onClick={() => setHelpOpen(true)} />
+        <ThemeToggleButton />
+        <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} mode={mode} />
+      </Box>
+    )
+  }
+
   // Home screen
   return (
     <Box sx={{ position: 'relative' }}>
-      <HomeScreen onSelectMode={setMode} />
+      <HomeScreen
+        onSelectMode={setMode}
+        onViewAssessment={(evaluation, rawYaml) => {
+          setViewEvalData({ evaluation, rawYaml })
+          setMode('view-assessment')
+        }}
+      />
       <HelpButton onClick={() => setHelpOpen(true)} />
       <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} mode="home" />
     </Box>
