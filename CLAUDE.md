@@ -612,6 +612,43 @@ The full glossary is in [`docs/terminology.md`](docs/terminology.md). It covers 
 
 ---
 
+## 14. Publishing the CLI to npm
+
+The `@trohde/earos` CLI is published from `tools/editor/`. A GitHub Actions workflow (`.github/workflows/publish-npm.yml`) auto-publishes when the version in `tools/editor/package.json` changes on `master`.
+
+### When the user says "publish to npm"
+
+1. **Review all changes since the last publish** — run `git log` to see commits since the last `release:` commit
+2. **Choose the version bump** based on what changed:
+   - **patch** — bug fixes, documentation, typo fixes, dependency updates, minor UI tweaks
+   - **minor** — new features, new commands, new editor capabilities, new schema fields, new skills bundled in `assets/init/`
+   - **major** — breaking CLI changes (renamed commands, removed flags), breaking changes to `earos init` scaffold structure, incompatible schema changes
+3. **Bump, commit, and push:**
+   ```bash
+   cd tools/editor && npm run version:patch  # or version:minor / version:major
+   cd ../..
+   git add tools/editor/package.json
+   git commit -m "release: v<NEW_VERSION>"
+   git push origin master
+   ```
+4. **Watch the workflow** — `gh run watch` on the triggered run to confirm publish succeeds
+5. **Report the result** — tell the user the new version and confirm it's live
+
+### Version scripts (in `tools/editor/`)
+
+| Script | Effect |
+|--------|--------|
+| `npm run version:patch` | Bump patch (1.0.1 → 1.0.2) |
+| `npm run version:minor` | Bump minor (1.0.2 → 1.1.0) |
+| `npm run version:major` | Bump major (1.1.0 → 2.0.0) |
+| `npm run release:patch` | Bump + publish locally (bypasses CI) |
+| `npm run release:minor` | Bump + publish locally (bypasses CI) |
+| `npm run release:major` | Bump + publish locally (bypasses CI) |
+
+**CI token note:** The `NPM_TOKEN` GitHub secret holds a granular access token with "Bypass 2FA" enabled, scoped to `@trohde`. It expires periodically and must be rotated on npmjs.com → Access Tokens.
+
+---
+
 ## Quick Reference
 
 | Task | Where to start |
@@ -633,3 +670,4 @@ The full glossary is in [`docs/terminology.md`](docs/terminology.md). It covers 
 | Regenerate the manifest | `node tools/editor/bin.js manifest` |
 | Add a new rubric to the manifest | `node tools/editor/bin.js manifest add <path>` |
 | Check manifest-filesystem consistency | `node tools/editor/bin.js manifest check` |
+| Publish CLI to npm | Say "publish to npm" — Claude chooses version bump, commits, pushes, CI publishes |
