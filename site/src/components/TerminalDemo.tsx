@@ -131,7 +131,7 @@ export default function TerminalDemo({
         }
         .termynal-shell__body {
           overflow-y: auto;
-          padding: 12px 20px 16px;
+          padding: 12px 24px 16px;
         }
         /* Override termynal defaults — we handle chrome ourselves */
         .termynal-shell__body[data-termynal] {
@@ -152,6 +152,7 @@ export default function TerminalDemo({
         .termynal-shell__body[data-termynal] pre {
           line-height: 1.4;
           margin: 0;
+          padding-left: 8px;
           white-space: pre-wrap;
           word-break: break-all;
         }
