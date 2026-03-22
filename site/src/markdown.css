@@ -72,6 +72,18 @@
   margin-bottom: 0.5rem;
 }
 
+/* Task lists — hide bullet when checkbox is present */
+.markdown-body .contains-task-list {
+  list-style: none;
+  padding-left: 0.5rem;
+}
+.markdown-body .task-list-item {
+  list-style: none;
+}
+.markdown-body .task-list-item input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
 /* Blockquotes */
 .markdown-body blockquote {
   margin: 0 0 1rem;
