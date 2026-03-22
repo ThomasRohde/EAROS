@@ -18,13 +18,15 @@ At Level 2, you used the core rubric and produced evidence-backed scores. At Lev
 
 The core meta-rubric's 10 criteria are universal --- they apply to every architecture artifact. But a reference architecture has different quality expectations than an ADR, and a capability map is evaluated differently than a roadmap. Profiles add artifact-specific criteria on top of the core --- typically 3 to 9, depending on the artifact type.
 
-| Profile | Artifact Type | What It Adds |
-|---------|--------------|-------------|
-| `solution-architecture.yaml` | Solution designs, HLDs, LLDs | Implementation specificity, integration patterns, deployment readiness |
-| `reference-architecture.yaml` | Reference architectures, platform blueprints | Architectural views, pattern reusability, adoption guidance, evolution strategy |
-| `adr.yaml` | Architecture Decision Records | Decision context, options analysis, consequence tracking, revisit triggers |
-| `capability-map.yaml` | Capability maps, business architecture | Capability decomposition, business alignment, gap analysis |
-| `roadmap.yaml` | Architecture roadmaps, transition plans | Sequencing, dependency management, milestone definition, risk on timeline |
+| Profile | Artifact Type | Status | What It Adds |
+|---------|--------------|--------|-------------|
+| `solution-architecture.yaml` | Solution designs, HLDs, LLDs | Approved | Implementation specificity, integration patterns, deployment readiness |
+| `reference-architecture.yaml` | Reference architectures, platform blueprints | Draft | Architectural views, pattern reusability, adoption guidance, evolution strategy |
+| `adr.yaml` | Architecture Decision Records | Approved | Decision context, options analysis, consequence tracking, revisit triggers |
+| `capability-map.yaml` | Capability maps, business architecture | Approved | Capability decomposition, business alignment, gap analysis |
+| `roadmap.yaml` | Architecture roadmaps, transition plans | Draft | Sequencing, dependency management, milestone definition, risk on timeline |
+
+> **Status key:** *Approved* profiles have been calibrated and are ready for governed use. *Draft* profiles are usable but have not completed the full calibration process (see [Calibrating with Your Team](#calibrating-with-your-team)).
 
 Every profile declares `inherits: [EAROS-CORE-002]`. This means when you evaluate a reference architecture, you score it against all 10 core criteria **plus** the profile's additional criteria --- 13--19 criteria total depending on the profile.
 
@@ -36,11 +38,11 @@ Every profile declares `inherits: [EAROS-CORE-002]`. This means when you evaluat
 
 Overlays inject cross-cutting concerns that apply across artifact types. Unlike profiles, overlays are applied **based on context**, not based on artifact type.
 
-| Overlay | Apply When... |
-|---------|--------------|
-| **Security** (`security.yaml`) | The design touches authentication, authorization, encryption, personal data, or network boundaries |
-| **Data Governance** (`data-governance.yaml`) | The artifact describes data flows, data retention, data classification, or data lineage |
-| **Regulatory** (`regulatory.yaml`) | The artifact operates in a regulated domain: payments, healthcare, financial reporting, privacy |
+| Overlay | Status | Apply When... |
+|---------|--------|--------------|
+| **Security** (`security.yaml`) | Approved | The design touches authentication, authorization, encryption, personal data, or network boundaries |
+| **Data Governance** (`data-governance.yaml`) | Approved | The artifact describes data flows, data retention, data classification, or data lineage |
+| **Regulatory** (`regulatory.yaml`) | Draft | The artifact operates in a regulated domain: payments, healthcare, financial reporting, privacy |
 
 Overlays are additive --- they append criteria to the base rubric (core + profile). They cannot remove or weaken gates from the base. An overlay's critical gate adds to the gate model; it does not replace it.
 
@@ -75,7 +77,7 @@ Observed evidence is always preferred. If you find yourself relying heavily on i
 
 ## The Three Evaluation Types
 
-EAROS distinguishes three distinct judgment types that must never be merged into a single score:
+EAROS distinguishes three distinct judgment types that should not be collapsed into a single opaque score:
 
 | Type | Question It Answers | Example |
 |------|-------------------|---------|
@@ -84,6 +86,8 @@ EAROS distinguishes three distinct judgment types that must never be merged into
 | **Governance fit** | Does the artifact comply with mandatory principles, standards, controls, and review expectations? | "The design uses a non-approved message broker without an exception record" |
 
 These are related but distinct. A beautifully written, complete document can describe an architecturally unsound system. A technically excellent architecture can be documented in an unmaintainable artifact. Collapsing these into one score hides critical information.
+
+In practice, EAROS criteria map to these three types through the dimension structure --- the narrative summary in the evaluation record should address all three perspectives. The rubric's criterion scores provide the evidence base; the narrative synthesizes them into these three distinct judgments.
 
 ![The rubric editor with file sidebar showing core, profiles, and overlays — the building blocks of governed review](/screenshots/editor-rubric-criteria.png)
 
@@ -125,7 +129,7 @@ For more on evaluation record structure, see the [Getting Started guide](../gett
 - [ ] You have completed a calibration exercise with kappa > 0.70
 - [ ] Overlays are applied based on context (not arbitrarily or never)
 - [ ] Evaluation records are structured and conform to `evaluation.schema.json`
-- [ ] The three evaluation types (artifact quality, architectural fitness, governance fit) are reported separately in every evaluation
+- [ ] The evaluation narrative addresses all three perspectives: artifact quality, architectural fitness, and governance fit
 
 ## Next Steps
 

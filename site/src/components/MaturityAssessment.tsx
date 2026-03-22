@@ -56,7 +56,7 @@ const LEVELS: LevelData[] = [
       'You apply overlays based on context (security, data governance, regulatory)',
       'Your team has completed a calibration exercise with inter-rater agreement measured',
       'Evidence is classified as observed, inferred, or external',
-      'Artifact quality, architectural fitness, and governance fit are reported separately',
+      'The evaluation narrative addresses all three perspectives: artifact quality, architectural fitness, and governance fit',
     ],
   },
   {

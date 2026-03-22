@@ -21,14 +21,16 @@ This guide walks you through your first architecture artifact assessment using E
 
 EaROS has profiles for the most common enterprise architecture artifact types:
 
-| Artifact Type | Profile to Use |
-|--------------|----------------|
-| Solution architecture document | `profiles/solution-architecture.yaml` |
-| Reference architecture | `profiles/reference-architecture.yaml` |
-| Architecture Decision Record (ADR) | `profiles/adr.yaml` |
-| Capability map | `profiles/capability-map.yaml` |
-| Architecture roadmap | `profiles/roadmap.yaml` |
-| Other / unknown | Core only: `core/core-meta-rubric.yaml` |
+| Artifact Type | Profile to Use | Status |
+|--------------|----------------|--------|
+| Solution architecture document | `profiles/solution-architecture.yaml` | Approved |
+| Reference architecture | `profiles/reference-architecture.yaml` | Draft |
+| Architecture Decision Record (ADR) | `profiles/adr.yaml` | Approved |
+| Capability map | `profiles/capability-map.yaml` | Approved |
+| Architecture roadmap | `profiles/roadmap.yaml` | Draft |
+| Other / unknown | Core only: `core/core-meta-rubric.yaml` | --- |
+
+> **Status:** *Approved* profiles have completed calibration. *Draft* profiles are usable but have not yet been calibrated with inter-rater reliability measured. Check `earos.manifest.yaml` for the latest status of each rubric.
 
 If your artifact does not match any profile, apply only the core rubric. The core dimensions are universal.
 

@@ -28,10 +28,9 @@ export default function DemoPage() {
             mx: 'auto',
           }}
         >
-          Try the EaROS artifact editor, rubric editor, and assessment workflow directly in your browser.
+          Interactive browser demos are coming soon. In the meantime, install the CLI to explore the full editor experience.
         </Typography>
 
-        {/* Placeholder card for future JSON Forms embed */}
         <Card sx={{ bgcolor: isDark ? sapphire.gray[800] : '#ffffff' }}>
           <CardContent sx={{ py: 8 }}>
             <Box
@@ -58,7 +57,7 @@ export default function DemoPage() {
                 fontSize: '1.1rem',
               }}
             >
-              Coming soon
+              Install the CLI
             </Typography>
             <Typography
               variant="body2"
@@ -66,10 +65,26 @@ export default function DemoPage() {
                 color: isDark ? sapphire.gray[400] : sapphire.gray[600],
                 maxWidth: 400,
                 mx: 'auto',
+                mb: 2,
               }}
             >
-              Interactive demos with embedded JSON Forms editors will be available here.
-              In the meantime, install the CLI to explore the full editor experience.
+              The EAROS CLI includes a local editor with artifact editing, rubric browsing, and assessment workflows.
+            </Typography>
+            <Typography
+              variant="body2"
+              component="code"
+              sx={{
+                display: 'inline-block',
+                px: 2,
+                py: 1,
+                borderRadius: '8px',
+                bgcolor: isDark ? sapphire.gray[900] : sapphire.gray[50],
+                color: isDark ? sapphire.gray[300] : sapphire.gray[700],
+                fontFamily: 'monospace',
+                fontSize: '0.9rem',
+              }}
+            >
+              npm install -g @trohde/earos
             </Typography>
           </CardContent>
         </Card>
