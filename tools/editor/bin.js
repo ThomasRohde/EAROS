@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { spawnSync } from 'child_process'
@@ -28,13 +28,17 @@ function findSchemasDir() {
 
 // ─── validate command ─────────────────────────────────────────────────────────
 
-async function validateFile(filePath) {
+async function validateFile(filePath, jsonMode) {
   const absPath = resolve(filePath)
   let content
   try {
     content = readFileSync(absPath, 'utf8')
   } catch {
-    console.error(`Cannot read file: ${absPath}`)
+    if (jsonMode) {
+      process.stdout.write(JSON.stringify({ valid: false, file: filePath, errors: [{ path: '(root)', message: `Cannot read file: ${absPath}` }] }) + '\n')
+    } else {
+      console.error(`Cannot read file: ${absPath}`)
+    }
     process.exit(1)
   }
 
@@ -42,7 +46,11 @@ async function validateFile(filePath) {
   try {
     data = yaml.load(content)
   } catch (e) {
-    console.error(`YAML parse error: ${e.message}`)
+    if (jsonMode) {
+      process.stdout.write(JSON.stringify({ valid: false, file: filePath, errors: [{ path: '(root)', message: `YAML parse error: ${e.message}` }] }) + '\n')
+    } else {
+      console.error(`YAML parse error: ${e.message}`)
+    }
     process.exit(1)
   }
 
@@ -64,40 +72,81 @@ async function validateFile(filePath) {
   const valid = validate(data)
 
   if (valid) {
-    console.log(`✓ ${filePath} is valid (kind: ${kind ?? 'unknown'})`)
+    if (jsonMode) {
+      process.stdout.write(JSON.stringify({ valid: true, file: filePath, kind: kind ?? 'unknown' }) + '\n')
+    } else {
+      console.log(`✓ ${filePath} is valid (kind: ${kind ?? 'unknown'})`)
+    }
     process.exit(0)
   } else {
-    console.error(`✗ ${filePath} — ${validate.errors.length} error(s):`)
-    for (const err of validate.errors) {
-      console.error(`  ${err.instancePath || '(root)'} ${err.message}`)
+    const result = {
+      valid: false,
+      file: filePath,
+      kind: kind ?? 'unknown',
+      errors: validate.errors.map(err => ({
+        path: err.instancePath || '(root)',
+        message: err.message
+      }))
+    }
+    if (jsonMode) {
+      process.stdout.write(JSON.stringify(result) + '\n')
+    } else {
+      console.error(`✗ ${filePath} — ${validate.errors.length} error(s):`)
+      for (const err of validate.errors) {
+        console.error(`  ${err.instancePath || '(root)'} ${err.message}`)
+      }
     }
     process.exit(1)
   }
 }
 
+// ─── list evaluations helper ────────────────────────────────────────────────
+
+function findEvaluationFiles(baseDir, prefix) {
+  const found = []
+  if (!existsSync(baseDir)) return found
+  try {
+    for (const entry of readdirSync(baseDir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        found.push(...findEvaluationFiles(resolve(baseDir, entry.name), `${prefix}${entry.name}/`))
+      } else if (entry.name.endsWith('.evaluation.yaml') || entry.name === 'evaluation.yaml') {
+        found.push({ path: `${prefix}${entry.name}`, name: entry.name })
+      }
+    }
+  } catch { /* skip unreadable dirs */ }
+  return found
+}
+
 // ─── CLI dispatch ──────────────────────────────────────────────────────────────
 
 if (args[0] === '--help' || args[0] === '-h') {
-  console.log(`earos — EAROS editor and CLI
+  console.log(`earos — EaROS editor and CLI
 
 Usage:
   earos                             Open the editor in your browser
   earos <file.yaml>                 Open the editor with a file pre-loaded
-  earos init [dir] [--icons]        Scaffold a new EAROS workspace (default: current dir)
-  earos validate <file.yaml>        Validate any EAROS YAML — rubric, evaluation, or artifact (exit 0/1)
-  earos export <file.yaml>          Export artifact YAML as Word document (.docx)
+  earos init [dir] [--icons]        Scaffold a new EaROS workspace (default: current dir)
+  earos validate <file.yaml> [--json]  Validate any EaROS YAML (exit 0/1)
+  earos export <file.yaml> [--format docx|md]  Export YAML as Word or Markdown (default: docx)
+  earos list evaluations [--json]   List evaluation files with summary metadata
   earos manifest                    Regenerate earos.manifest.yaml
   earos manifest add <file>         Add a file to the manifest
-  earos manifest check              Verify manifest matches filesystem
-  earos dev                         Start Vite dev server (development only)`)
+  earos manifest check [--json]     Verify manifest matches filesystem
+  earos manifest list [--json]      List manifest contents
+  earos dev                         Start Vite dev server (development only)
+
+  Environment: EAROS_HOST=0.0.0.0 earos   Bind to all interfaces (default: 127.0.0.1)`)
   process.exit(0)
 } else if (args[0] === 'export') {
-  // Export artifact YAML → Word document
+  // Export YAML → Word document or Markdown
   if (!args[1]) {
-    console.error('Usage: earos export <file.yaml>')
+    console.error('Usage: earos export <file.yaml> [--format docx|md]')
     process.exit(1)
   }
-  const inputPath = resolve(args[1])
+  const formatArg = args.indexOf('--format')
+  const format = formatArg >= 0 && args[formatArg + 1] ? args[formatArg + 1] : 'docx'
+  const fileArg = args.find((a, i) => i > 0 && a !== '--format' && (i < formatArg || i > formatArg + 1 || formatArg < 0)) ?? args[1]
+  const inputPath = resolve(fileArg)
   if (!existsSync(inputPath)) {
     console.error(`File not found: ${inputPath}`)
     process.exit(1)
@@ -107,27 +156,97 @@ Usage:
     console.error(`Cannot read file: ${e.message}`)
     process.exit(1)
   }
-  let artifactData
-  try { artifactData = yaml.load(exportContent) } catch (e) {
+  let exportData
+  try { exportData = yaml.load(exportContent) } catch (e) {
     console.error(`YAML parse error: ${e.message}`)
     process.exit(1)
   }
-  if (artifactData?.kind !== 'artifact') {
-    console.error('File does not appear to be an artifact (expected kind: artifact)')
-    process.exit(1)
-  }
-  const { exportToDocx } = await import('./export-docx.js')
-  const outputPath = inputPath.replace(/\.(yaml|yml)$/i, '') + '.docx'
-  console.log('Rendering diagrams and building Word document…')
-  try {
-    const { writeFileSync } = await import('fs')
-    const buf = await exportToDocx(artifactData)
-    writeFileSync(outputPath, buf)
+
+  const kind = exportData?.kind
+
+  if (format === 'md') {
+    // Markdown export
+    const { exportArtifactToMarkdown, exportRubricToMarkdown } = await import('./utils/export-markdown.js')
+    let md
+    if (kind === 'artifact' || !kind) {
+      md = exportArtifactToMarkdown(exportData)
+    } else if (kind === 'core_rubric' || kind === 'profile' || kind === 'overlay') {
+      md = exportRubricToMarkdown(exportData)
+    } else if (kind === 'evaluation') {
+      // Evaluation markdown requires assembled dimensions — export as YAML-derived summary
+      md = exportRubricToMarkdown(exportData)
+    } else {
+      console.error(`Unsupported kind for Markdown export: ${kind}`)
+      process.exit(1)
+    }
+    const outputPath = inputPath.replace(/\.(yaml|yml)$/i, '') + '.md'
+    writeFileSync(outputPath, md, 'utf8')
     console.log(`✓ Exported → ${outputPath}`)
-  } catch (e) {
-    console.error(`Export failed: ${e.message}`)
-    process.exit(1)
+  } else {
+    // DOCX export — route by kind
+    const { exportToDocx, exportRubricToDocx, exportEvaluationToDocx } = await import('./export-docx.js')
+    let buf, outputPath
+    if (kind === 'artifact' || !kind) {
+      outputPath = inputPath.replace(/\.(yaml|yml)$/i, '') + '.docx'
+      console.log('Rendering diagrams and building Word document…')
+      buf = await exportToDocx(exportData)
+    } else if (kind === 'evaluation') {
+      outputPath = inputPath.replace(/\.(yaml|yml)$/i, '') + '-assessment.docx'
+      console.log('Building evaluation Word document…')
+      buf = await exportEvaluationToDocx(exportData)
+    } else if (kind === 'core_rubric' || kind === 'profile' || kind === 'overlay') {
+      outputPath = inputPath.replace(/\.(yaml|yml)$/i, '') + '.docx'
+      console.log('Building rubric Word document…')
+      buf = await exportRubricToDocx(exportData)
+    } else {
+      console.error(`Unsupported kind for export: ${kind}`)
+      process.exit(1)
+    }
+    try {
+      writeFileSync(outputPath, buf)
+      console.log(`✓ Exported → ${outputPath}`)
+    } catch (e) {
+      console.error(`Export failed: ${e.message}`)
+      process.exit(1)
+    }
   }
+} else if (args[0] === 'list' && args[1] === 'evaluations') {
+  // List evaluation files with summary metadata
+  const REPO_ROOT = findRepoRoot()
+  const jsonMode = args.includes('--json')
+  const files = []
+  for (const dir of ['examples', 'evaluations']) {
+    files.push(...findEvaluationFiles(resolve(REPO_ROOT, dir), `${dir}/`))
+  }
+  const summaries = files.map(f => {
+    const absPath = resolve(REPO_ROOT, f.path)
+    try {
+      const data = yaml.load(readFileSync(absPath, 'utf8'))
+      return {
+        path: f.path,
+        overall_status: data?.overall_status ?? undefined,
+        overall_score: data?.overall_score ?? undefined,
+        evaluation_date: data?.evaluation_date ?? undefined,
+        title: data?.artifact_ref?.title ?? data?.artifact_id ?? f.name.replace(/\.evaluation\.yaml$|\.yaml$/, ''),
+      }
+    } catch {
+      return { path: f.path, title: f.name }
+    }
+  })
+  if (jsonMode) {
+    process.stdout.write(JSON.stringify({ summaries }, null, 2) + '\n')
+  } else {
+    if (summaries.length === 0) {
+      console.log('No evaluation files found in examples/ or evaluations/')
+    } else {
+      for (const s of summaries) {
+        const score = s.overall_score != null ? ` (${s.overall_score.toFixed(2)})` : ''
+        const status = s.overall_status ? ` [${s.overall_status}]` : ''
+        console.log(`  ${s.path}  ${s.title}${score}${status}`)
+      }
+    }
+  }
+  process.exit(0)
 } else if (args[0] === 'init') {
   const initArgs = args.slice(1)
   let targetDir = '.'
@@ -153,11 +272,12 @@ Usage:
   const { initWorkspace } = await import('./init.js')
   await initWorkspace(targetDir, { downloadIcons })
 } else if (args[0] === 'validate') {
-  if (!args[1]) {
-    console.error('Usage: earos validate <file.yaml>')
+  const valFile = args.find((a, i) => i > 0 && a !== '--json')
+  if (!valFile) {
+    console.error('Usage: earos validate <file.yaml> [--json]')
     process.exit(1)
   }
-  await validateFile(args[1])
+  await validateFile(valFile, args.includes('--json'))
 } else if (args[0] === 'manifest') {
   const manifestCli = resolve(__dirname, 'manifest-cli.mjs')
   const result = spawnSync(process.execPath, [manifestCli, ...args.slice(1)], {

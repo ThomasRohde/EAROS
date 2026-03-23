@@ -11,6 +11,7 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import InfoIcon from '@mui/icons-material/Info'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import type { CriterionResult, RubricCriterion } from './CriterionScorer'
+import { getGateSeverity } from '../utils/score-helpers'
 
 export interface RubricDimension {
   id: string
@@ -35,13 +36,6 @@ interface GateFailure {
   severity: string
   score: number | 'N/A'
   failure_effect: string
-}
-
-function getGateSeverity(gate: RubricCriterion['gate']): string | null {
-  if (!gate) return null
-  if (typeof gate === 'boolean') return null
-  if (!gate.enabled) return null
-  return gate.severity ?? null
 }
 
 export function computeSummary(

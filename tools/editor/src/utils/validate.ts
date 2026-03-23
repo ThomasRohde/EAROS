@@ -24,8 +24,14 @@ function getValidator(schema: Record<string, unknown>) {
     const { $schema: _s, ...rest } = schema as any
     try {
       cache.set(key, ajv.compile(rest))
-    } catch {
-      return null
+    } catch (e) {
+      console.warn('[validate] Schema compilation failed:', e)
+      const failValidator = Object.assign(
+        () => false,
+        { errors: [{ instancePath: '', message: 'Schema compilation failed', keyword: 'schema', schemaPath: '', params: {} }] }
+      ) as unknown as ReturnType<typeof ajv.compile>
+      cache.set(key, failValidator)
+      return failValidator
     }
   }
   return cache.get(key)!
@@ -46,7 +52,7 @@ export function validateData(
   schema: Record<string, unknown>,
 ): ValidationResult {
   const validate = getValidator(schema)
-  if (!validate) return { valid: true, errors: [] }
+  if (!validate) return { valid: false, errors: [{ path: '(root)', message: 'Schema unavailable' }] }
 
   const valid = validate(data) as boolean
   if (valid) return { valid: true, errors: [] }

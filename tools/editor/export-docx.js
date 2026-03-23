@@ -7,7 +7,7 @@
  */
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, ImageRun, AlignmentType, WidthType, BorderStyle, PageBreak, Header, Footer, SectionType, SimpleField, TableOfContents, } from 'docx';
 import { existsSync, readFileSync } from 'node:fs';
-import { dirname, extname, resolve } from 'node:path';
+import { dirname, extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 function loadArtifactSchema() {
@@ -27,7 +27,13 @@ function loadArtifactSchema() {
     console.warn('[export-docx] Artifact schema not found; falling back to shape-driven rendering');
     return null;
 }
-const ARTIFACT_SCHEMA = loadArtifactSchema();
+let _artifactSchema;
+function getArtifactSchema() {
+    if (_artifactSchema === undefined) {
+        _artifactSchema = loadArtifactSchema();
+    }
+    return _artifactSchema;
+}
 // ─── Kroki Mermaid rendering ──────────────────────────────────────────────────
 const KROKI_URL = 'https://kroki.io/mermaid/png';
 const LOCAL_MERMAID_IMAGE_PREFIXES = ['/icons/', '/mermaid-icons/'];
@@ -49,6 +55,8 @@ function resolveLocalMermaidImage(assetPath) {
     const relativePath = assetPath.replace(/^\/+/, '');
     for (const baseDir of LOCAL_MERMAID_IMAGE_DIRS) {
         const candidate = resolve(baseDir, relativePath);
+        if (!candidate.startsWith(baseDir + sep))
+            continue;
         if (existsSync(candidate))
             return candidate;
     }
@@ -371,11 +379,11 @@ function itemSchema(schema) {
     return isPlainObject(schema?.items) ? schema.items : undefined;
 }
 function sectionSchema(key) {
-    const sections = propertySchema(ARTIFACT_SCHEMA, 'sections');
+    const sections = propertySchema(getArtifactSchema(), 'sections');
     return propertySchema(sections, key);
 }
 function topLevelSchema(key) {
-    return propertySchema(ARTIFACT_SCHEMA, key);
+    return propertySchema(getArtifactSchema(), key);
 }
 function orderedObjectKeys(items, schema) {
     const objects = Array.isArray(items) ? items.filter(isPlainObject) : [items].filter(isPlainObject);

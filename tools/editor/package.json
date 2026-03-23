@@ -27,6 +27,7 @@
     "serve.js",
     "init.js",
     "export-docx.js",
+    "utils/",
     "manifest-cli.mjs",
     "schemas/",
     "assets/",
@@ -58,7 +59,6 @@
     "express": "^4.22.1",
     "js-yaml": "^4.1.0",
     "jszip": "^3.10.1",
-    "mermaid": "^11.13.0",
     "open": "^10.1.0"
   },
   "devDependencies": {
@@ -76,6 +76,7 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.2.1",
     "esbuild": "^0.27.4",
+    "mermaid": "^11.13.0",
     "tsx": "^4.21.0",
     "typescript": "^5.4.5",
     "vite": "^5.2.8"

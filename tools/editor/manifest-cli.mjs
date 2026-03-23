@@ -1,10 +1,11 @@
 /**
- * EAROS Manifest CLI (compiled JS — do not edit; source is manifest-cli.ts)
+ * EAROS Manifest CLI
  *
  * Usage (via bin.js):
  *   earos manifest              # regenerate
  *   earos manifest add <file>   # add entry
- *   earos manifest check        # verify consistency
+ *   earos manifest check [--json]  # verify consistency
+ *   earos manifest list [--json]   # list manifest contents
  *
  * EAROS_REPO_ROOT env var is set by bin.js to the detected repo root.
  */
@@ -154,6 +155,7 @@ if (subCmd === 'check') {
     console.error('No earos.manifest.yaml found. Run `earos manifest` first.')
     process.exit(1)
   }
+  const jsonMode = subArgs.includes('--json')
   const errors = []
   const warnings = []
 
@@ -187,6 +189,11 @@ if (subCmd === 'check') {
     }
   }
 
+  if (jsonMode) {
+    process.stdout.write(JSON.stringify({ consistent: errors.length === 0, errors, warnings }, null, 2) + '\n')
+    process.exit(errors.length > 0 ? 1 : 0)
+  }
+
   if (errors.length === 0 && warnings.length === 0) {
     console.log('✓ Manifest is consistent with filesystem')
     process.exit(0)
@@ -202,6 +209,28 @@ if (subCmd === 'check') {
   process.exit(errors.length > 0 ? 1 : 0)
 }
 
+if (subCmd === 'list') {
+  const manifest = loadManifest()
+  if (!manifest) {
+    console.error('No earos.manifest.yaml found. Run `earos manifest` first.')
+    process.exit(1)
+  }
+  if (subArgs.includes('--json')) {
+    process.stdout.write(JSON.stringify(manifest, null, 2) + '\n')
+  } else {
+    const sections = ['core', 'profiles', 'overlays']
+    for (const section of sections) {
+      const entries = manifest[section] ?? []
+      if (entries.length === 0) continue
+      console.log(`\n${section}:`)
+      for (const e of entries) {
+        console.log(`  ${e.path}  ${e.rubric_id ?? ''}  ${e.title ?? ''}`)
+      }
+    }
+  }
+  process.exit(0)
+}
+
 console.error(`Unknown manifest subcommand: ${subCmd}`)
-console.error('Usage: earos manifest [generate|add <file>|check]')
+console.error('Usage: earos manifest [generate|add <file>|check|list]')
 process.exit(1)

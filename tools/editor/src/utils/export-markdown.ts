@@ -37,6 +37,7 @@ function isPlainObject(v: any): v is Record<string, any> {
 }
 
 export function downloadAsFile(content: string, filename: string, mimeType: string): void {
+  if (typeof document === 'undefined') return // Node.js — no browser download
   const blob = new Blob([content], { type: mimeType })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')

@@ -5,12 +5,12 @@
     "moduleResolution": "NodeNext",
     "rootDir": "src",
     "outDir": ".",
-    "strict": false,
+    "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "noEmit": false,
     "declaration": false
   },
-  "files": ["src/serve.ts", "src/init.ts", "src/export-docx.ts"]
+  "files": ["src/serve.ts", "src/init.ts", "src/export-docx.ts", "src/utils/export-markdown.ts"]
 }

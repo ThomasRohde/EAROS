@@ -28,7 +28,7 @@ import {
   type IRunOptions,
 } from 'docx'
 import { existsSync, readFileSync } from 'node:fs'
-import { dirname, extname, resolve } from 'node:path'
+import { dirname, extname, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -79,7 +79,13 @@ function loadArtifactSchema(): JsonSchemaNode | null {
   return null
 }
 
-const ARTIFACT_SCHEMA = loadArtifactSchema()
+let _artifactSchema: JsonSchemaNode | null | undefined
+function getArtifactSchema(): JsonSchemaNode | null {
+  if (_artifactSchema === undefined) {
+    _artifactSchema = loadArtifactSchema()
+  }
+  return _artifactSchema
+}
 
 // ─── Kroki Mermaid rendering ──────────────────────────────────────────────────
 
@@ -104,6 +110,7 @@ function resolveLocalMermaidImage(assetPath: string): string | null {
   const relativePath = assetPath.replace(/^\/+/, '')
   for (const baseDir of LOCAL_MERMAID_IMAGE_DIRS) {
     const candidate = resolve(baseDir, relativePath)
+    if (!candidate.startsWith(baseDir + sep)) continue
     if (existsSync(candidate)) return candidate
   }
   return null
@@ -490,12 +497,12 @@ function itemSchema(schema?: JsonSchemaNode | null): JsonSchemaNode | undefined 
 }
 
 function sectionSchema(key: string): JsonSchemaNode | undefined {
-  const sections = propertySchema(ARTIFACT_SCHEMA, 'sections')
+  const sections = propertySchema(getArtifactSchema(), 'sections')
   return propertySchema(sections, key)
 }
 
 function topLevelSchema(key: string): JsonSchemaNode | undefined {
-  return propertySchema(ARTIFACT_SCHEMA, key)
+  return propertySchema(getArtifactSchema(), key)
 }
 
 function orderedObjectKeys(

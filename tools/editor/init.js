@@ -240,15 +240,20 @@ function createIconAliases(iconsDir, extractedEntries, config) {
     let aliasCount = 0;
     const missingAliases = [];
     for (const spec of config.aliasSpecs) {
-        const bestCandidate = extractedEntries
-            .map((entry) => ({ entry, score: scoreAliasCandidate(entry, spec, config) }))
-            .filter((candidate) => Number.isFinite(candidate.score))
-            .sort((left, right) => right.score - left.score)[0];
-        if (!bestCandidate) {
+        let bestScore = Number.NEGATIVE_INFINITY;
+        let bestEntry = null;
+        for (const entry of extractedEntries) {
+            const score = scoreAliasCandidate(entry, spec, config);
+            if (score > bestScore) {
+                bestScore = score;
+                bestEntry = entry;
+            }
+        }
+        if (!bestEntry) {
             missingAliases.push(spec.alias);
             continue;
         }
-        copyFileSync(bestCandidate.entry.outputPath, join(aliasDir, `${spec.alias}.svg`));
+        copyFileSync(bestEntry.outputPath, join(aliasDir, `${spec.alias}.svg`));
         aliasCount += 1;
     }
     return { aliasCount, missingAliases };
@@ -309,16 +314,16 @@ export async function initWorkspace(targetDir, options = {}) {
     let iconDownloadSummary = '';
     if (options.downloadIcons) {
         const results = [];
-        for (const config of ICON_PACKAGES) {
-            try {
-                const result = await downloadIconPackage(target, config);
-                results.push(result);
-                if (result.missingAliases.length) {
-                    console.warn(`  Missing ${config.name} icon aliases: ${result.missingAliases.join(', ')}`);
+        const settled = await Promise.allSettled(ICON_PACKAGES.map(config => downloadIconPackage(target, config)));
+        for (const outcome of settled) {
+            if (outcome.status === 'fulfilled') {
+                results.push(outcome.value);
+                if (outcome.value.missingAliases.length) {
+                    console.warn(`  Missing ${outcome.value.name} icon aliases: ${outcome.value.missingAliases.join(', ')}`);
                 }
             }
-            catch (error) {
-                console.error(`  Failed to download ${config.name} icons: ${error.message}`);
+            else {
+                console.error(`  Failed to download icons: ${outcome.reason instanceof Error ? outcome.reason.message : String(outcome.reason)}`);
             }
         }
         if (results.length) {

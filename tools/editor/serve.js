@@ -5,7 +5,7 @@
 import express from 'express';
 import { createServer } from 'http';
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
-import { resolve, dirname } from 'path';
+import { resolve, dirname, sep } from 'path';
 import { fileURLToPath } from 'url';
 import yaml from 'js-yaml';
 import open from 'open';
@@ -24,7 +24,7 @@ function findRepoRoot() {
 function safeRepoPath(repoRoot, rawPath) {
     const decoded = decodeURIComponent(rawPath);
     const abs = resolve(repoRoot, decoded);
-    if (!abs.startsWith(repoRoot))
+    if (abs !== repoRoot && !abs.startsWith(repoRoot + sep))
         return null;
     return abs;
 }
@@ -45,6 +45,8 @@ function findAvailablePort(preferred) {
         });
     });
 }
+let evalCache = null;
+const EVAL_CACHE_TTL = 5000;
 export async function startServer(fileArg) {
     const REPO_ROOT = findRepoRoot();
     const distDir = resolve(__dirname, 'dist');
@@ -53,7 +55,12 @@ export async function startServer(fileArg) {
         process.exit(1);
     }
     const app = express();
-    app.use(express.json({ limit: '25mb' }));
+    app.use(express.json({ limit: '1mb' }));
+    app.use((_req, res, next) => {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        next();
+    });
     // GET /api/manifest  or  GET /api/files
     const manifestHandler = (_req, res) => {
         const manifestPath = resolve(REPO_ROOT, 'earos.manifest.yaml');
@@ -84,19 +91,23 @@ export async function startServer(fileArg) {
         catch { /* skip unreadable dirs */ }
         return found;
     }
-    app.get('/api/evaluations', (_req, res) => {
+    function getCachedEvaluationFiles(repoRoot) {
+        if (evalCache && Date.now() - evalCache.ts < EVAL_CACHE_TTL)
+            return evalCache.files;
         const files = [];
         for (const dir of ['examples', 'evaluations']) {
-            files.push(...findEvaluationFiles(resolve(REPO_ROOT, dir), `${dir}/`));
+            files.push(...findEvaluationFiles(resolve(repoRoot, dir), `${dir}/`));
         }
+        evalCache = { files, ts: Date.now() };
+        return files;
+    }
+    app.get('/api/evaluations', (_req, res) => {
+        const files = getCachedEvaluationFiles(REPO_ROOT);
         res.json({ files });
     });
     // GET /api/evaluations/summary — lightweight metadata per evaluation file
     app.get('/api/evaluations/summary', (_req, res) => {
-        const files = [];
-        for (const dir of ['examples', 'evaluations']) {
-            files.push(...findEvaluationFiles(resolve(REPO_ROOT, dir), `${dir}/`));
-        }
+        const files = getCachedEvaluationFiles(REPO_ROOT);
         const summaries = files.map((f) => {
             const absPath = resolve(REPO_ROOT, f.path);
             try {
@@ -132,28 +143,38 @@ export async function startServer(fileArg) {
             res.json(yaml.load(readFileSync(absPath, 'utf8')));
         }
         catch (e) {
-            res.status(500).json({ error: String(e) });
+            console.error('[API error]', e);
+            res.status(500).json({ error: 'Internal server error' });
         }
     });
     // POST /api/file/:path
-    app.post('/api/file/*', (req, res) => {
+    app.post('/api/file/*', express.json({ limit: '5mb' }), (req, res) => {
         const rawPath = req.params[0];
         const absPath = safeRepoPath(REPO_ROOT, rawPath);
         if (!absPath) {
             res.status(403).json({ error: 'Path outside repo root' });
             return;
         }
+        if (!absPath.endsWith('.yaml') && !absPath.endsWith('.yml')) {
+            res.status(400).json({ error: 'Only YAML files can be written' });
+            return;
+        }
         try {
             const content = yaml.dump(req.body, { lineWidth: 120, noRefs: true });
             writeFileSync(absPath, content, 'utf8');
+            // Invalidate eval cache if writing an evaluation file
+            if (absPath.endsWith('.evaluation.yaml') || absPath.includes('/evaluations/')) {
+                evalCache = null;
+            }
             res.json({ ok: true });
         }
         catch (e) {
-            res.status(500).json({ error: String(e) });
+            console.error('[API error]', e);
+            res.status(500).json({ error: 'Internal server error' });
         }
     });
     // POST /api/export/docx  — generate a Word document from artifact JSON
-    app.post('/api/export/docx', async (req, res) => {
+    app.post('/api/export/docx', express.json({ limit: '25mb' }), async (req, res) => {
         try {
             const payload = req.body;
             const artifactData = payload?.artifactData ?? payload;
@@ -176,11 +197,12 @@ export async function startServer(fileArg) {
                 res.status(400).json({ error: message });
                 return;
             }
-            res.status(500).json({ error: message });
+            console.error('[API error]', e);
+            res.status(500).json({ error: 'Internal server error' });
         }
     });
     // POST /api/export/docx/rubric  — generate a Word document from rubric JSON
-    app.post('/api/export/docx/rubric', async (req, res) => {
+    app.post('/api/export/docx/rubric', express.json({ limit: '25mb' }), async (req, res) => {
         try {
             const data = req.body;
             if (!data || typeof data !== 'object') {
@@ -194,11 +216,12 @@ export async function startServer(fileArg) {
             res.send(buf);
         }
         catch (e) {
-            res.status(500).json({ error: e instanceof Error ? e.message : String(e) });
+            console.error('[API error]', e);
+            res.status(500).json({ error: 'Internal server error' });
         }
     });
     // POST /api/export/docx/evaluation  — generate a Word document from evaluation JSON
-    app.post('/api/export/docx/evaluation', async (req, res) => {
+    app.post('/api/export/docx/evaluation', express.json({ limit: '25mb' }), async (req, res) => {
         try {
             const data = req.body;
             if (!data || typeof data !== 'object') {
@@ -212,7 +235,8 @@ export async function startServer(fileArg) {
             res.send(buf);
         }
         catch (e) {
-            res.status(500).json({ error: e instanceof Error ? e.message : String(e) });
+            console.error('[API error]', e);
+            res.status(500).json({ error: 'Internal server error' });
         }
     });
     // Unknown API routes
@@ -228,7 +252,8 @@ export async function startServer(fileArg) {
         res.sendFile(resolve(distDir, 'index.html'));
     });
     const port = await findAvailablePort(process.env.PORT ? parseInt(process.env.PORT, 10) : 3000);
-    app.listen(port, () => {
+    const host = process.env.EAROS_HOST ?? '127.0.0.1';
+    app.listen(port, host, () => {
         const url = fileArg
             ? `http://localhost:${port}?file=${encodeURIComponent(fileArg)}`
             : `http://localhost:${port}`;
