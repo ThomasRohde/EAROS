@@ -1,13 +1,21 @@
 import ReactMarkdown from 'react-markdown'
+import type { PluggableList } from 'unified'
 import remarkGfm from 'remark-gfm'
 import remarkSmartypants from 'remark-smartypants'
 import rehypeHighlight from 'rehype-highlight'
+import yaml from 'highlight.js/lib/languages/yaml'
+import bash from 'highlight.js/lib/languages/bash'
+import typescript from 'highlight.js/lib/languages/typescript'
+import json from 'highlight.js/lib/languages/json'
+import markdown from 'highlight.js/lib/languages/markdown'
 import { Box, useTheme } from '@mui/material'
 import { Link } from 'react-router-dom'
 import '../markdown.css'
 
-const remarkPlugins = [remarkGfm, remarkSmartypants]
-const rehypePlugins = [rehypeHighlight]
+const remarkPlugins: PluggableList = [remarkGfm, remarkSmartypants]
+const rehypePlugins: PluggableList = [
+  [rehypeHighlight, { languages: { yaml, bash, typescript, json, markdown } }],
+]
 
 /**
  * Map of repo-relative markdown paths to site routes.
