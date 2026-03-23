@@ -126,6 +126,10 @@
           "criterion_id": {
             "type": "string"
           },
+          "criterion_question": {
+            "type": "string",
+            "description": "Human-readable criterion question text from the rubric. Included for self-contained readability."
+          },
           "score": {
             "oneOf": [
               {
@@ -237,7 +241,25 @@
     "gate_failures": {
       "type": "array",
       "items": {
-        "type": "object"
+        "type": "object",
+        "properties": {
+          "criterion_id": {
+            "type": "string"
+          },
+          "criterion_question": {
+            "type": "string",
+            "description": "Human-readable criterion question text from the rubric."
+          },
+          "gate_severity": {
+            "type": "string"
+          },
+          "failure_effect": {
+            "type": "string"
+          },
+          "actual_score": {
+            "type": "integer"
+          }
+        }
       }
     },
     "overall_status": {

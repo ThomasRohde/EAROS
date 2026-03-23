@@ -209,7 +209,7 @@ export default function AssessmentSummary({ dimensions, results }: Props) {
 
         {/* Gate failures */}
         {gateFailures.length > 0 && (
-          <Tooltip title={gateFailures.map((g) => `${g.criterion_id} (${g.severity}): scored ${g.score}`).join(' · ')}>
+          <Tooltip title={gateFailures.map((g) => `${g.criterion_id}: ${g.question} (${g.severity}, scored ${g.score})`).join(' · ')}>
             <Chip
               label={`${gateFailures.length} gate failure${gateFailures.length > 1 ? 's' : ''}`}
               size="small"

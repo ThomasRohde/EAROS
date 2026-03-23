@@ -91,6 +91,7 @@ For each criterion:
 Minimum output per criterion:
 ```
 criterion_id: [ID]
+criterion_question: "[full question text from the rubric]"
 score: [0-4 or N/A]
 evidence_class: [observed/inferred/external/none]
 confidence: [high/medium/low]

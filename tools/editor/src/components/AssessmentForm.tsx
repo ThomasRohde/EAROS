@@ -79,6 +79,7 @@ function exportEvaluation(
       if (!r || r.score === null) continue
       criterionResults.push({
         criterion_id: c.id,
+        criterion_question: c.question,
         score: r.score,
         judgment_type: r.evidence_class || null,
         confidence: r.confidence || null,

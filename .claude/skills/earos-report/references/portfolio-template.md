@@ -72,9 +72,9 @@ Use this template when generating a report covering 2 or more EAROS evaluation r
 
 [If gate failures present:]
 
-| Criterion | Gate Severity | Artifacts Failed | Failure Rate | Status Effect |
-|-----------|--------------|-----------------|-------------|---------------|
-| [ID] | [critical/major] | [N] ([list artifact names]) | [%] | [reject/cap at conditional_pass] |
+| Criterion | Name | Gate Severity | Artifacts Failed | Failure Rate | Status Effect |
+|-----------|------|--------------|-----------------|-------------|---------------|
+| [ID] | [criterion question] | [critical/major] | [N] ([list artifact names]) | [%] | [reject/cap at conditional_pass] |
 | ... | | | | |
 
 **Systemic gate failures** (criterion failing in ≥30% of artifacts):
@@ -161,9 +161,9 @@ Use this template when generating a report covering 2 or more EAROS evaluation r
 
 *Score distribution across all artifacts by criterion.*
 
-| Criterion | Avg | [Art 1] | [Art 2] | [Art 3] | ... |
-|-----------|-----|---------|---------|---------|-----|
-| [ID] | [avg] | [score] | [score] | [score] | |
+| Criterion | Name | Avg | [Art 1] | [Art 2] | [Art 3] | ... |
+|-----------|------|-----|---------|---------|---------|-----|
+| [ID] | [criterion question] | [avg] | [score] | [score] | [score] | |
 | ... | | | | | |
 
 **Colour key:** 🟢 Score ≥3 | 🟡 Score 2 | 🟠 Score 1 | 🔴 Score 0 | — N/A

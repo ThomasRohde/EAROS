@@ -46,6 +46,7 @@ criterion_results:
   # ── CORE CRITERIA ──────────────────────────────────────────────────────────
 
   - criterion_id: STK-01
+    criterion_question: "Does the artifact explicitly identify intended stakeholders, decision purpose, and review context?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -83,6 +84,7 @@ criterion_results:
     recommended_actions: []
 
   - criterion_id: STK-02
+    criterion_question: "Are concerns mapped to the views or sections used in the artifact?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -107,6 +109,7 @@ criterion_results:
     recommended_actions: []
 
   - criterion_id: SCP-01
+    criterion_question: "Does the artifact define scope, boundaries, assumptions, and exclusions?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -143,6 +146,7 @@ criterion_results:
     recommended_actions: []
 
   - criterion_id: CVP-01
+    criterion_question: "Do the selected views and representations fit the stakeholder concerns and review purpose?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -171,6 +175,7 @@ criterion_results:
     recommended_actions: []
 
   - criterion_id: TRC-01
+    criterion_question: "Are business drivers, objectives, principles, or requirements traceably connected to the architecture content?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -203,6 +208,7 @@ criterion_results:
     recommended_actions: []
 
   - criterion_id: CON-01
+    criterion_question: "Are terms, structures, interfaces, and facts consistent across sections and views?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -237,6 +243,7 @@ criterion_results:
         node ID to full component name mapping.
 
   - criterion_id: RAT-01
+    criterion_question: "Does the artifact identify key risks, assumptions, constraints, and tradeoffs relevant to the decision?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -274,6 +281,7 @@ criterion_results:
     recommended_actions: []
 
   - criterion_id: CMP-01
+    criterion_question: "Does the artifact show alignment to applicable architecture standards, policies, and mandatory controls?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -305,6 +313,7 @@ criterion_results:
         ISO-27001 Annex A compliance appendix in v1.1 for completeness.
 
   - criterion_id: ACT-01
+    criterion_question: "Can delivery and governance teams act on the artifact without major reinterpretation?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -333,6 +342,7 @@ criterion_results:
     recommended_actions: []
 
   - criterion_id: MNT-01
+    criterion_question: "Does the artifact identify ownership, update expectations, and change history or provenance?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -370,6 +380,7 @@ criterion_results:
   # ── REFERENCE ARCHITECTURE PROFILE CRITERIA ────────────────────────────────
 
   - criterion_id: RA-VIEW-01
+    criterion_question: "Does the reference architecture include context, functional, deployment, and data flow views?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -413,6 +424,7 @@ criterion_results:
     recommended_actions: []
 
   - criterion_id: RA-VIEW-02
+    criterion_question: "Are architecture diagrams machine-readable or accompanied by structured element catalogs?"
     score: 3
     confidence: high
     evidence_sufficiency: sufficient
@@ -447,6 +459,7 @@ criterion_results:
         model where all views are generated from a single source of truth.
 
   - criterion_id: RA-DEC-01
+    criterion_question: "Are key architecture decisions documented with context, options considered, and rationale?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -474,6 +487,7 @@ criterion_results:
     recommended_actions: []
 
   - criterion_id: RA-DEC-02
+    criterion_question: "Does the reference architecture clearly define what is fixed, what is configurable, and where teams have discretion?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -506,6 +520,7 @@ criterion_results:
     recommended_actions: []
 
   - criterion_id: RA-OPS-01
+    criterion_question: "Does the reference architecture include monitoring, alerting, scaling, and disaster recovery guidance?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -542,6 +557,7 @@ criterion_results:
     recommended_actions: []
 
   - criterion_id: RA-IMP-01
+    criterion_question: "Does the reference architecture include infrastructure-as-code templates, API specifications, or starter kits?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -579,6 +595,7 @@ criterion_results:
     recommended_actions: []
 
   - criterion_id: RA-IMP-02
+    criterion_question: "Does the reference architecture include a clear getting-started guide or golden path for new adopters?"
     score: 3
     confidence: high
     evidence_sufficiency: sufficient
@@ -620,6 +637,7 @@ criterion_results:
         (planned in evolution roadmap for v1.1.0)
 
   - criterion_id: RA-QA-01
+    criterion_question: "Are quality attributes defined with measurable acceptance criteria and validation approaches?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient
@@ -657,6 +675,7 @@ criterion_results:
     recommended_actions: []
 
   - criterion_id: RA-REU-01
+    criterion_question: "Is the reference architecture version-controlled with a clear evolution roadmap?"
     score: 4
     confidence: high
     evidence_sufficiency: sufficient

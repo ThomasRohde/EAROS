@@ -3,6 +3,7 @@
  */
 
 import { useMemo, useState, useCallback } from 'react'
+import { getCriterionQuestion, DIMENSION_NAMES } from '../utils/criterion-questions'
 import {
   Box,
   Typography,
@@ -115,24 +116,7 @@ function groupByDimension(ev: LoadedEvaluation): Array<{ id: string; name: strin
   return result
 }
 
-// Well-known dimension name lookup (core + reference architecture)
-const DIMENSION_NAMES: Record<string, string> = {
-  STK: 'Stakeholder alignment',
-  SCP: 'Scope clarity',
-  TRC: 'Traceability',
-  QUA: 'Quality attributes',
-  VIW: 'Views and models',
-  DEC: 'Decision documentation',
-  RSK: 'Risk and uncertainty',
-  GOV: 'Governance readiness',
-  CLR: 'Clarity and communication',
-  'RA-VIEW': 'Architecture views',
-  'RA-PAT': 'Pattern definition',
-  'RA-CONS': 'Constraint specification',
-  'RA-IMP': 'Implementation guidance',
-  'RA-QUAL': 'Quality assurance',
-  'RA-EVOL': 'Evolution and reuse',
-}
+// DIMENSION_NAMES imported from ../utils/criterion-questions
 
 // ─── Main component ─────────────────────────────────────────────────────────
 
@@ -481,9 +465,16 @@ function GateCheckPanel({ failures, criteria }: { failures: LoadedEvaluation['ga
         <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2.5, py: 1.5, borderBottom: i < safeFailures.length - 1 ? '1px solid' : 'none', borderColor: 'divider' }}>
           {g.gate_severity && <GateBadge severity={g.gate_severity} />}
           <Chip label={g.criterion_id ?? '?'} size="small" variant="outlined" sx={{ fontSize: '0.7rem', fontFamily: 'monospace', height: 22 }} />
-          <Typography variant="body2" sx={{ flex: 1, color: 'text.primary', fontSize: '0.85rem' }}>
-            {g.failure_effect ?? 'Gate failed'}
-          </Typography>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            {getCriterionQuestion(g.criterion_id ?? '', g.criterion_question) && (
+              <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {getCriterionQuestion(g.criterion_id ?? '', g.criterion_question)}
+              </Typography>
+            )}
+            <Typography variant="body2" sx={{ color: 'text.primary', fontSize: '0.85rem' }}>
+              {g.failure_effect ?? 'Gate failed'}
+            </Typography>
+          </Box>
           <Chip
             label={`Score: ${g.actual_score ?? '?'}`}
             size="small"
@@ -517,6 +508,11 @@ function CriterionDetailCard({ criterion: cr }: { criterion: EvaluationCriterion
         {/* ID chip */}
         <Chip label={cr.criterion_id} size="small" variant="outlined" sx={{ fontSize: '0.68rem', fontFamily: 'monospace', height: 22, flexShrink: 0 }} />
 
+        {/* Criterion question */}
+        <Typography variant="body2" sx={{ flex: 1, color: 'text.secondary', fontSize: '0.82rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+          {getCriterionQuestion(cr.criterion_id, cr.criterion_question)}
+        </Typography>
+
         {/* Score chip */}
         <Chip
           label={`${scoreStr} ${label}`}
@@ -546,8 +542,6 @@ function CriterionDetailCard({ criterion: cr }: { criterion: EvaluationCriterion
         {cr.evidence_sufficiency && cr.evidence_sufficiency !== 'sufficient' && (
           <Chip label={cr.evidence_sufficiency} size="small" sx={{ fontSize: '0.62rem', height: 20, bgcolor: 'hsl(53 100% 92%)', color: 'hsl(31 94% 33%)' }} />
         )}
-
-        <Box sx={{ flex: 1 }} />
 
         {hasDetail && (
           <ExpandMoreIcon sx={{ fontSize: 20, color: 'text.disabled', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />

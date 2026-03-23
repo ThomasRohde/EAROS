@@ -96,9 +96,9 @@ Actions are ordered by priority. Gate-related actions must be addressed before r
 
 ## Detailed Criterion Results
 
-| Criterion | Dimension | Score | Conf. | Evidence Class | N/A Reason |
-|-----------|-----------|-------|-------|---------------|------------|
-| [ID] | [dim] | [0-4/N/A] | [H/M/L] | [obs/inf/ext] | [if N/A: reason] |
+| Criterion | Name | Dimension | Score | Conf. | Evidence Class | N/A Reason |
+|-----------|------|-----------|-------|-------|---------------|------------|
+| [ID] | [criterion question] | [dim] | [0-4/N/A] | [H/M/L] | [obs/inf/ext] | [if N/A: reason] |
 | ... | | | | | |
 
 ---

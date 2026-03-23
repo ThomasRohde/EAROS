@@ -31,6 +31,7 @@ dag_execution:
   calibration_applied: true
 criterion_results:
   - criterion_id: "[CRIT-ID]"
+    criterion_question: "[Full question text from the rubric]"
     score: 0
     confidence: low
     confidence_reason: "[why]"

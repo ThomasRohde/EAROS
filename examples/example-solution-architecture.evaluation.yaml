@@ -27,6 +27,7 @@ overall_score: 3.0
 gate_failures: []
 criterion_results:
 - criterion_id: STK-01
+  criterion_question: "Does the artifact explicitly identify intended stakeholders, decision purpose, and review context?"
   score: 3
   judgment_type: observed
   confidence: high
@@ -41,6 +42,7 @@ criterion_results:
   recommended_actions:
   - Add stakeholder-concern-view table
 - criterion_id: SCP-01
+  criterion_question: "Does the artifact define scope, boundaries, assumptions, and exclusions?"
   score: 3
   judgment_type: observed
   confidence: high
@@ -53,6 +55,7 @@ criterion_results:
   missing_information: []
   recommended_actions: []
 - criterion_id: TRC-01
+  criterion_question: "Are business drivers, objectives, principles, or requirements traceably connected to the architecture content?"
   score: 2
   judgment_type: mixed
   confidence: medium
@@ -67,6 +70,7 @@ criterion_results:
   recommended_actions:
   - Add a design decision traceability table
 - criterion_id: SOL-01
+  criterion_question: "Does the artifact explain the chosen option and the rejected alternatives at a decision-useful level?"
   score: 3
   judgment_type: observed
   confidence: medium
@@ -80,6 +84,7 @@ criterion_results:
   recommended_actions:
   - Document cost assumptions
 - criterion_id: SOL-02
+  criterion_question: "Are key quality attributes and non-functional requirements translated into architectural mechanisms or constraints?"
   score: 2
   judgment_type: mixed
   confidence: medium

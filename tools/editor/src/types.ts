@@ -42,6 +42,7 @@ export interface EvaluationEvidenceRef {
 
 export interface EvaluationCriterionResult {
   criterion_id: string
+  criterion_question?: string
   score: number | 'N/A'
   confidence?: string
   confidence_reason?: string
@@ -64,6 +65,7 @@ export interface EvaluationDimensionResult {
 
 export interface EvaluationGateFailure {
   criterion_id?: string
+  criterion_question?: string
   gate_severity?: string
   failure_effect?: string
   actual_score?: number

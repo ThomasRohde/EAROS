@@ -55,12 +55,14 @@ overall_score: [weighted average to 1 decimal place — e.g. 2.8]
 
 gate_failures:
   - criterion_id: [ID]
+    criterion_question: "[full question text from the rubric]"
     severity: [critical | major]
     effect: [what the gate failure causes]
 # If no gate failures: gate_failures: []
 
 criterion_results:
   - criterion_id: [ID]
+    criterion_question: "[full question text from the rubric]"
     # Use IDs from the rubric YAML, e.g. STK-01, SCP-01, TRC-01
     score: [0 | 1 | 2 | 3 | 4 | "N/A"]
     evidence_class: [observed | inferred | external]

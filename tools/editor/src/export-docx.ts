@@ -30,6 +30,7 @@ import {
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, extname, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { getCriterionQuestion } from './utils/criterion-questions.js'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1690,9 +1691,10 @@ export async function exportEvaluationToDocx(evalData: Record<string, any>): Pro
     children.push(pageBreak())
     children.push(h1('Score Dashboard'))
 
-    const dashHeaders = ['Criterion', 'Score', 'Confidence', 'Evidence Class']
+    const dashHeaders = ['Criterion', 'Name', 'Score', 'Confidence', 'Evidence Class']
     const dashRows = criterionResults.map((cr: any) => [
       str(cr.criterion_id),
+      getCriterionQuestion(str(cr.criterion_id), cr.criterion_question),
       cr.score != null ? String(cr.score) : '-',
       str(cr.confidence),
       str(cr.evidence_class ?? cr.judgment_type),
@@ -1704,7 +1706,8 @@ export async function exportEvaluationToDocx(evalData: Record<string, any>): Pro
     children.push(h1('Criterion Details'))
 
     for (const cr of criterionResults) {
-      children.push(h2(str(cr.criterion_id)))
+      const crQuestion = getCriterionQuestion(str(cr.criterion_id), cr.criterion_question)
+      children.push(h2(crQuestion ? `${str(cr.criterion_id)}: ${crQuestion}` : str(cr.criterion_id)))
       children.push(label('Score', cr.score != null ? String(cr.score) : '-'))
       if (cr.confidence) children.push(label('Confidence', str(cr.confidence)))
       const evClass = cr.evidence_class ?? cr.judgment_type
