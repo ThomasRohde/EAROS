@@ -4,12 +4,16 @@ import MenuBookIcon from '@mui/icons-material/MenuBook'
 import SchoolIcon from '@mui/icons-material/School'
 import DescriptionIcon from '@mui/icons-material/Description'
 import AbcIcon from '@mui/icons-material/Abc'
+import TrendingUpIcon from '@mui/icons-material/TrendingUp'
+import TerminalIcon from '@mui/icons-material/Terminal'
 import { sapphire } from '../theme'
 import { docs } from '../content/docs'
 
 const ICONS: Record<string, React.ReactNode> = {
   'getting-started': <SchoolIcon sx={{ fontSize: 24 }} />,
   'standard': <MenuBookIcon sx={{ fontSize: 24 }} />,
+  'adoption-maturity': <TrendingUpIcon sx={{ fontSize: 24 }} />,
+  'editor-cli': <TerminalIcon sx={{ fontSize: 24 }} />,
   'profile-authoring': <DescriptionIcon sx={{ fontSize: 24 }} />,
   'terminology': <AbcIcon sx={{ fontSize: 24 }} />,
 }
