@@ -1,0 +1,61 @@
+# EaROS - Enterprise Architecture Rubric Operational Standard
+
+> EaROS is a structured, extensible framework for evaluating enterprise architecture artifacts. It makes architecture review consistent, explainable, and automatable — for both human reviewers and AI agents.
+
+## What this site contains
+
+- **Documentation**: Full standard specification, getting-started guide, profile authoring guide, terminology glossary, adoption maturity model, and editor/CLI reference.
+- **Interactive Scoring Simulator**: A live demo where you can experiment with EaROS scoring, gates, and status determination.
+- **Onboarding Guides**: Step-by-step learning path from first assessment through governed reviews, agent-assisted evaluation, and scaling.
+
+## Key documentation pages
+
+- Home: https://thomasrohde.github.io/EAROS/
+- Getting Started: https://thomasrohde.github.io/EAROS/docs/getting-started
+- The EaROS Standard: https://thomasrohde.github.io/EAROS/docs/standard
+- Terminology: https://thomasrohde.github.io/EAROS/docs/terminology
+- Profile Authoring Guide: https://thomasrohde.github.io/EAROS/docs/profile-authoring
+- Editor & CLI: https://thomasrohde.github.io/EAROS/docs/editor-cli
+- Adoption Maturity Model: https://thomasrohde.github.io/EAROS/docs/adoption-maturity
+- Scoring Simulator Demo: https://thomasrohde.github.io/EAROS/demo
+- Onboarding: https://thomasrohde.github.io/EAROS/onboarding
+
+## Source repository
+
+GitHub: https://github.com/ThomasRoh662/EAROS
+
+The repository contains the raw YAML rubric definitions (core, profiles, overlays), JSON schemas for validation, markdown documentation, calibration gold sets, and worked evaluation examples. For machine-readable rubric data, access the repository directly rather than scraping this site.
+
+Key repository paths:
+- `core/core-meta-rubric.yaml` — Universal foundation rubric (9 dimensions, 10 criteria)
+- `profiles/` — Artifact-type extensions (solution-architecture, reference-architecture, ADR, capability-map, roadmap)
+- `overlays/` — Cross-cutting concern overlays (security, data-governance, regulatory)
+- `standard/schemas/` — JSON schemas for rubrics, evaluations, and artifacts
+- `examples/` — Worked evaluation examples and calibration benchmarks
+
+## Important note for web agents
+
+This site is a single-page application (SPA). Content is rendered client-side using React. For raw documentation content, access the markdown files in the GitHub repository directly rather than attempting to parse the rendered HTML.
+
+## Available AI agent skills
+
+EaROS ships with purpose-built AI agent skills for architecture evaluation workflows:
+
+- **earos-assess** — Run the full 8-step DAG evaluation on any architecture artifact
+- **earos-review** — Audit an existing evaluation record for over-scoring and unsupported claims
+- **earos-create** — Guided interview and YAML generation for new profiles, overlays, and core rubrics
+- **earos-template-fill** — Coach artifact authors through writing assessment-ready documents
+- **earos-artifact-gen** — Interview architects and produce schema-compliant artifact YAML
+- **earos-calibrate** — Run calibration exercises and compute inter-rater reliability
+- **earos-report** — Generate executive reports from evaluation records
+- **earos-validate** — Validate all YAML rubrics against schemas and check consistency
+- **earos-remediate** — Generate prioritized improvement plans from evaluation records
+- **earos-profile-author** — Technical reference for rubric YAML field structure and schema compliance
+
+## Core concepts
+
+- **Three-layer model**: Core (universal) + Profiles (artifact-specific) + Overlays (cross-cutting concerns)
+- **Scoring**: 0-4 ordinal scale with N/A option; gates-first-then-weighted-average
+- **Gates**: Criterion-level controls (none, advisory, major, critical) that can block passing status
+- **Evidence anchoring**: Every score requires cited evidence classified as observed, inferred, or external (RULERS protocol)
+- **Three evaluation types**: Artifact quality, architectural fitness, and governance fit — always kept separate

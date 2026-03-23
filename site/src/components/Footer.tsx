@@ -19,7 +19,7 @@ export default function Footer() {
       <Typography
         variant="body2"
         sx={{
-          color: isDark ? sapphire.gray[500] : sapphire.gray[500],
+          color: sapphire.gray[500],
           mb: 0.5,
         }}
       >

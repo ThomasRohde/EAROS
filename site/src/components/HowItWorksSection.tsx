@@ -6,7 +6,6 @@ import { sapphire } from '../theme'
 
 interface Step {
   icon: React.ReactNode
-  number: string
   title: string
   description: string
 }
@@ -14,19 +13,16 @@ interface Step {
 const STEPS: Step[] = [
   {
     icon: <DescriptionIcon sx={{ fontSize: 28 }} />,
-    number: '1',
     title: 'Select your rubric',
     description: 'Pick the core meta-rubric, add the matching artifact-type profile, and layer on any applicable overlays.',
   },
   {
     icon: <GradingIcon sx={{ fontSize: 28 }} />,
-    number: '2',
     title: 'Score against level descriptors',
     description: 'Rate each criterion 0-4 using precise scoring guides. Cite evidence for every score using the RULERS protocol.',
   },
   {
     icon: <VerifiedIcon sx={{ fontSize: 28 }} />,
-    number: '3',
     title: 'Get an actionable assessment',
     description: 'Gates checked first, then weighted average. Clear status: Pass, Conditional Pass, Rework Required, Reject, or Not Reviewable.',
   },
@@ -72,7 +68,7 @@ export default function HowItWorksSection() {
           }}
         >
           {STEPS.map((step) => (
-            <Box key={step.number} sx={{ textAlign: 'center' }}>
+            <Box key={step.title} sx={{ textAlign: 'center' }}>
               {/* Number badge */}
               <Box
                 sx={{

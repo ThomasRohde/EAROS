@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Box, Typography, Button, useTheme } from '@mui/material'
+import { Box, Typography, Button, CircularProgress, useTheme } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { onboardingGuides, getOnboardingBySlug } from '../content/onboarding'
@@ -8,6 +9,7 @@ import MaturityBadge from '../components/MaturityBadge'
 import MaturityAssessment from '../components/MaturityAssessment'
 import TerminalDemo from '../components/TerminalDemo'
 import { sapphire } from '../theme'
+import { getLevelColor } from '../utils/maturityColors'
 
 /* ── Content injection helper ─────────────────────────────────── */
 
@@ -156,23 +158,6 @@ function getDemoConfig(slug: string): ContentInjection[] {
   }
 }
 
-function getSidebarDotColor(level: number, isDark: boolean) {
-  switch (level) {
-    case 0:
-      return isDark ? sapphire.gray[400] : sapphire.gray[500]
-    case 2:
-      return isDark ? sapphire.green[400] : sapphire.green[500]
-    case 3:
-      return isDark ? sapphire.blue[400] : sapphire.blue[500]
-    case 4:
-      return isDark ? sapphire.yellow[300] : sapphire.yellow[500]
-    case 5:
-      return isDark ? sapphire.gold[3] : sapphire.gold[3]
-    default:
-      return isDark ? sapphire.gray[400] : sapphire.gray[500]
-  }
-}
-
 export default function OnboardingViewPage() {
   const { slug } = useParams<{ slug: string }>()
   const theme = useTheme()
@@ -182,6 +167,22 @@ export default function OnboardingViewPage() {
   const currentIndex = onboardingGuides.findIndex((g) => g.slug === slug)
   const prevGuide = currentIndex > 0 ? onboardingGuides[currentIndex - 1] : undefined
   const nextGuide = currentIndex < onboardingGuides.length - 1 ? onboardingGuides[currentIndex + 1] : undefined
+
+  const [content, setContent] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!guide) {
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    setContent('')
+    guide.loadContent().then((md) => {
+      setContent(md)
+      setLoading(false)
+    })
+  }, [guide])
 
   if (!guide) {
     return (
@@ -275,7 +276,7 @@ export default function OnboardingViewPage() {
                   width: 8,
                   height: 8,
                   borderRadius: '50%',
-                  bgcolor: getSidebarDotColor(g.maturityLevel, isDark),
+                  bgcolor: getLevelColor(g.maturityLevel, isDark),
                   flexShrink: 0,
                 }}
               />
@@ -309,9 +310,15 @@ export default function OnboardingViewPage() {
           </Box>
 
           {/* Markdown content with injected interactive demos */}
-          {renderContentWithInjections(
-            guide.content,
-            getDemoConfig(slug || ''),
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+              <CircularProgress size={32} />
+            </Box>
+          ) : (
+            renderContentWithInjections(
+              content,
+              getDemoConfig(slug || ''),
+            )
           )}
 
           {/* Prev / Next navigation */}

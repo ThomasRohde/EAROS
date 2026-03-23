@@ -15,6 +15,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
 import { sapphire } from '../theme'
+import { getLevelColor, getLevelBg, getLevelBorder } from '../utils/maturityColors'
 
 /* ------------------------------------------------------------------ */
 /*  Data types                                                        */
@@ -295,44 +296,6 @@ function scoreToLevel(score: number): number {
   return 5
 }
 
-/* ------------------------------------------------------------------ */
-/*  Theme helpers                                                     */
-/* ------------------------------------------------------------------ */
-
-function getLevelColor(level: number, isDark: boolean): string {
-  switch (level) {
-    case 1: return isDark ? sapphire.gray[400] : sapphire.gray[500]
-    case 2: return isDark ? sapphire.green[400] : sapphire.green[500]
-    case 3: return isDark ? sapphire.blue[400] : sapphire.blue[500]
-    case 4: return isDark ? sapphire.yellow[300] : sapphire.yellow[500]
-    case 5: return isDark ? sapphire.gold[3] : sapphire.gold[2]
-    default: return isDark ? sapphire.gray[400] : sapphire.gray[500]
-  }
-}
-
-/** Semi-transparent background tinted to the maturity level colour. */
-function getLevelBg(level: number, isDark: boolean): string {
-  switch (level) {
-    case 1: return isDark ? 'hsl(211 19% 49% / 0.08)' : sapphire.gray[50]
-    case 2: return isDark ? 'hsl(122 39% 49% / 0.08)' : sapphire.green[50]
-    case 3: return isDark ? 'hsl(216 100% 63% / 0.08)' : sapphire.blue[50]
-    case 4: return isDark ? 'hsl(46 97% 65% / 0.08)' : sapphire.yellow[50]
-    case 5: return isDark ? 'hsl(40 57% 62% / 0.08)' : 'hsl(40 57% 62% / 0.08)'
-    default: return isDark ? 'hsl(211 19% 49% / 0.08)' : sapphire.gray[50]
-  }
-}
-
-/** Subtle border tinted to the maturity level colour. */
-function getLevelBorder(level: number, isDark: boolean): string {
-  switch (level) {
-    case 1: return isDark ? 'hsl(211 19% 49% / 0.20)' : 'hsl(211 19% 49% / 0.13)'
-    case 2: return isDark ? 'hsl(122 39% 49% / 0.20)' : 'hsl(122 39% 49% / 0.13)'
-    case 3: return isDark ? 'hsl(216 100% 63% / 0.20)' : 'hsl(216 100% 63% / 0.13)'
-    case 4: return isDark ? 'hsl(46 97% 65% / 0.20)' : 'hsl(46 97% 65% / 0.13)'
-    case 5: return isDark ? 'hsl(40 57% 62% / 0.20)' : 'hsl(40 57% 62% / 0.13)'
-    default: return isDark ? 'hsl(211 19% 49% / 0.20)' : 'hsl(211 19% 49% / 0.13)'
-  }
-}
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                         */
@@ -355,7 +318,9 @@ export default function MaturityAssessment() {
   const [answers, setAnswers] = useState<Record<string, number>>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      return raw ? JSON.parse(raw) : {}
+      if (!raw) return {}
+      const parsed = JSON.parse(raw)
+      return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) ? parsed : {}
     } catch { return {} }
   })
 

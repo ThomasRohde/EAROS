@@ -10,7 +10,8 @@ import { ThemeModeContext, ThemeMode } from './ThemeContext'
 
 function Root() {
   const [mode, setMode] = useState<ThemeMode>(() => {
-    return (localStorage.getItem('earos-theme-mode') as ThemeMode) || 'system'
+    const stored = localStorage.getItem('earos-theme-mode')
+    return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system'
   })
 
   useEffect(() => {

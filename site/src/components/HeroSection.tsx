@@ -106,7 +106,7 @@ export default function HeroSection() {
         <Typography
           sx={{
             fontStyle: 'italic',
-            color: isDark ? sapphire.gray[500] : sapphire.gray[500],
+            color: sapphire.gray[500],
             mb: 5,
             fontSize: '1rem',
           }}

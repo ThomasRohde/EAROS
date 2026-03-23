@@ -1,7 +1,7 @@
-import { useRef, useEffect, useId } from 'react'
-// @ts-expect-error — termynal has no type declarations
+import { useRef, useEffect } from 'react'
 import Termynal from 'termynal'
 import '../../node_modules/termynal/dist/style.css'
+import './terminalDemo.css'
 
 export interface TerminalLine {
   type?: 'input' | 'progress'
@@ -29,8 +29,6 @@ export default function TerminalDemo({
 }: TerminalDemoProps) {
   const innerRef = useRef<HTMLDivElement>(null)
   const initializedRef = useRef(false)
-  const styleRef = useRef<HTMLStyleElement | null>(null)
-  const cssId = useId().replace(/:/g, '')
 
   // Auto-scroll the container as new lines appear
   useEffect(() => {
@@ -79,95 +77,14 @@ export default function TerminalDemo({
     return () => {
       observer.disconnect()
       initializedRef.current = false
-      if (styleRef.current) {
-        styleRef.current.remove()
-        styleRef.current = null
-      }
     }
-  }, [lines, title, startDelay, typeDelay, lineDelay, cssId])
+  }, [lines, title, startDelay, typeDelay, lineDelay])
 
   const titleText = title || 'bash'
   const heightPx = typeof height === 'number' ? `${height}px` : height
 
   return (
     <>
-      <style>{`
-        .termynal-shell {
-          background: #252a33;
-          border-radius: 8px;
-          font-family: 'Fira Mono', Consolas, Menlo, Monaco, 'Courier New', monospace;
-          font-size: 15px;
-          color: #eee;
-          position: relative;
-          width: 100%;
-          max-width: 100%;
-          margin: 1.5rem 0;
-        }
-        .termynal-shell__titlebar {
-          height: 36px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          padding: 0 15px;
-          flex-shrink: 0;
-        }
-        .termynal-shell__dots {
-          position: absolute;
-          left: 15px;
-          top: 50%;
-          transform: translateY(-50%);
-          display: flex;
-          gap: 8px;
-        }
-        .termynal-shell__dot {
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-        }
-        .termynal-shell__title {
-          color: #a2a2a2;
-          font-size: 13px;
-        }
-        .termynal-shell__body {
-          overflow-y: auto;
-          padding: 12px 24px 16px;
-        }
-        /* Override termynal defaults — we handle chrome ourselves */
-        .termynal-shell__body[data-termynal] {
-          background: transparent;
-          border-radius: 0;
-          padding: 0;
-          width: auto;
-          max-width: none;
-          position: static;
-          font-size: inherit;
-          color: inherit;
-          font-family: inherit;
-        }
-        .termynal-shell__body[data-termynal]::before,
-        .termynal-shell__body[data-termynal]::after {
-          display: none;
-        }
-        .termynal-shell__body[data-termynal] pre {
-          line-height: 1.4;
-          margin: 0;
-          padding-left: 8px;
-          white-space: pre-wrap;
-          word-break: break-all;
-        }
-        /* Scrollbar styling */
-        .termynal-shell__body::-webkit-scrollbar {
-          width: 6px;
-        }
-        .termynal-shell__body::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .termynal-shell__body::-webkit-scrollbar-thumb {
-          background: rgba(255,255,255,0.15);
-          border-radius: 3px;
-        }
-      `}</style>
       <div className="termynal-shell" style={{ height: heightPx }}>
         <div className="termynal-shell__titlebar">
           <div className="termynal-shell__dots">

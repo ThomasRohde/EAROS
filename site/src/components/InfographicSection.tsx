@@ -66,8 +66,9 @@ export default function InfographicSection() {
         >
           <Box
             component="img"
-            src={`${import.meta.env.BASE_URL}screenshots/EaROS.jpg`}
+            src={`${import.meta.env.BASE_URL}screenshots/EaROS.webp`}
             alt="EaROS infographic — the three-layer rubric model, eight-step evaluation pipeline, 0–4 scoring scale, and ecosystem icons for YAML, Markdown, GitHub, AI Agents, and CLI tooling"
+            loading="lazy"
             sx={{
               width: '100%',
               height: 'auto',

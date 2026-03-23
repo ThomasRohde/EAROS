@@ -17,6 +17,7 @@ import SmartToyIcon from '@mui/icons-material/SmartToy'
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch'
 import { sapphire } from '../theme'
 import { onboardingGuides } from '../content/onboarding'
+import { getLevelColor, getLevelBg } from '../utils/maturityColors'
 
 const ICONS: Record<string, React.ReactNode> = {
   'overview': <MapIcon sx={{ fontSize: 24 }} />,
@@ -35,40 +36,6 @@ const STEP_COLORS = [
   { dot: sapphire.yellow[500], dotDark: sapphire.yellow[300] },
   { dot: sapphire.gold[3], dotDark: sapphire.gold[3] },
 ]
-
-function getLevelColor(level: number, isDark: boolean) {
-  switch (level) {
-    case 0:
-      return isDark ? sapphire.gray[400] : sapphire.gray[500]
-    case 2:
-      return isDark ? sapphire.green[400] : sapphire.green[500]
-    case 3:
-      return isDark ? sapphire.blue[400] : sapphire.blue[500]
-    case 4:
-      return isDark ? sapphire.yellow[300] : sapphire.yellow[500]
-    case 5:
-      return isDark ? sapphire.gold[3] : sapphire.gold[3]
-    default:
-      return isDark ? sapphire.gray[400] : sapphire.gray[500]
-  }
-}
-
-function getLevelBg(level: number, isDark: boolean) {
-  switch (level) {
-    case 0:
-      return isDark ? 'hsl(211 19% 49% / 0.12)' : sapphire.gray[50]
-    case 2:
-      return isDark ? 'hsl(122 39% 49% / 0.12)' : sapphire.green[50]
-    case 3:
-      return isDark ? 'hsl(216 100% 63% / 0.12)' : sapphire.blue[50]
-    case 4:
-      return isDark ? 'hsl(46 97% 65% / 0.12)' : sapphire.yellow[50]
-    case 5:
-      return isDark ? 'hsl(40 57% 62% / 0.12)' : 'hsl(40 57% 62% / 0.1)'
-    default:
-      return isDark ? 'hsl(211 19% 49% / 0.12)' : sapphire.gray[50]
-  }
-}
 
 export default function OnboardingPage() {
   const theme = useTheme()
