@@ -15,6 +15,8 @@ EAROS applies these lessons to a specific domain: architecture artifact evaluati
 
 ## The Five Levels
 
+![EaROS maturity levels](https://thomasrohde.github.io/EAROS/diagrams/maturity-levels.svg)
+
 ### Level 1 — Ad Hoc
 
 No formal review process. Evaluation quality depends entirely on who happens to review the artifact. Different reviewers apply different mental models, and feedback is inconsistent and unreproducible.

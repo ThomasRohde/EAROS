@@ -12,6 +12,8 @@ At Level 3, human reviewers follow the RULERS protocol with calibrated judgment.
 
 Agent evaluations follow an 8-step directed acyclic graph (DAG). Each step must complete before the next begins. No steps may be skipped.
 
+![8-step DAG evaluation flow](https://thomasrohde.github.io/EAROS/diagrams/dag-evaluation-flow.svg)
+
 ### The 8-Step DAG Evaluation Flow
 
 **Step 1 — Structural Validation.** The agent confirms the artifact conforms to its declared type. Does it have the expected sections? Is it machine-readable or does it require OCR? Can the agent identify the artifact's scope and purpose?

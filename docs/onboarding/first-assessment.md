@@ -110,6 +110,8 @@ In the core rubric, two criteria have **critical** gates: **SCP-01** (Scope and 
 
 ## Interpreting Your Results
 
+![Status determination decision tree](https://thomasrohde.github.io/EAROS/diagrams/status-determination.svg)
+
 After scoring all criteria and checking gates, compute the weighted average across dimensions and apply the status thresholds:
 
 | Status | Threshold |

@@ -77,6 +77,8 @@ Observed evidence is always preferred. If you find yourself relying heavily on i
 
 ## The Three Evaluation Types
 
+![Three evaluation lenses](https://thomasrohde.github.io/EAROS/diagrams/evaluation-lenses.svg)
+
 EAROS distinguishes three distinct judgment types that should not be collapsed into a single opaque score:
 
 | Type | Question It Answers | Example |

@@ -32,6 +32,8 @@ If your artifact does not match any profile, apply only the core rubric. The cor
 
 ## Step 2: Select Your Rubric Set
 
+![Rubric composition model](https://thomasrohde.github.io/EAROS/diagrams/rubric-composition.svg)
+
 Every assessment starts with the core and adds a profile, plus any applicable overlays.
 
 **Minimum (core only):**
@@ -109,6 +111,8 @@ Before calculating the aggregate, check every criterion with a `gate` object (no
 Gate criteria represent non-negotiable minimums on their respective concern. A critical gate failure means the artifact has a fundamental deficiency that makes it unsuitable for its purpose.
 
 ## Step 7: Determine the Status
+
+![Status determination decision tree](https://thomasrohde.github.io/EAROS/diagrams/status-determination.svg)
 
 The scoring sheet calculates the weighted dimension average automatically. Read the status from the aggregation tab:
 

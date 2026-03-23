@@ -237,6 +237,8 @@ Use explicit gate categories:
 
 ### 7.4 Status model
 
+![Status determination decision tree](https://thomasrohde.github.io/EAROS/diagrams/status-determination.svg)
+
 A recommended default decision model:
 
 * **Pass**
