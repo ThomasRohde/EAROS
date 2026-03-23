@@ -1,4 +1,4 @@
-# EaROS v2.0 Profile Authoring Guide
+# EaROS Profile Authoring Guide
 
 ## Overview
 
@@ -8,7 +8,7 @@ Profiles extend the Core Meta-Rubric for specific artifact types. This guide exp
 
 1. Confirm the artifact type recurs enough to justify standardisation
 2. Verify the Core Meta-Rubric alone is insufficient
-3. Choose a design method (A-E) from EaROS v2.0 Section 15
+3. Choose a design method (A-E) from the EaROS standard (Section 15)
 4. Gather 3-5 representative artifacts for calibration
 
 ## Profile Design Methods
@@ -27,20 +27,16 @@ Profiles extend the Core Meta-Rubric for specific artifact types. This guide exp
 - Add no more than 12 specific criteria (most built-in profiles use 3–9)
 - Map every criterion to a dimension
 - Define evidence anchors, gate types, and applicability rules
-- Include examples, anti-patterns, and remediation hints
-- Include at least one calibration artifact before approval
-
-## v2.0 Additions
-
-- Include `examples.good` and `examples.bad` for AI disambiguation
+- Include `examples.good`, `examples.bad`, anti-patterns, and remediation hints
 - Add `decision_tree` for ambiguous criteria
 - Specify `design_method` in metadata
 - Set `reliability_targets` for agent evaluation
 - Document `agent_scale` if collapsing to 0-3 for agent mode
+- Include at least one calibration artifact before approval
 
 ## Workflow
 
-1. Create proposal (see EaROS Section 16)
+1. Create proposal (see EaROS standard, Section 16)
 2. Classify as profile or overlay
 3. Choose design method (A-E)
 4. Draft using `templates/new-profile.template.yaml`
