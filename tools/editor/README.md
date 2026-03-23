@@ -113,11 +113,7 @@ See the [EaROS repository](https://github.com/ThomasRohde/EAROS) for full skill 
 
 EaROS uses a **three-layer model**:
 
-| Layer | Purpose | Examples |
-|-------|---------|---------|
-| **Overlays** | Cross-cutting concerns | security, data-governance, regulatory |
-| **Profiles** | Artifact-specific extensions | solution-architecture, reference-architecture, adr, capability-map, roadmap |
-| **Core** | Universal foundation — always applied | 9 dimensions, 10 criteria |
+![EaROS three-layer model](https://thomasrohde.github.io/EAROS/diagrams/earos-layers.svg)
 
 **Scoring** uses a 0–4 ordinal scale (0 = Absent → 4 = Strong) with explicit gate types that prevent weak scores from being hidden by weighted averages:
 
