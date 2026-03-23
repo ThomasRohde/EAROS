@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Box, Typography, Button, useTheme } from '@mui/material'
+import { Box, Typography, Button, CircularProgress, useTheme } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { docs, getDocBySlug } from '../content/docs'
 import MarkdownRenderer from '../components/MarkdownRenderer'
@@ -10,6 +11,22 @@ export default function DocViewPage() {
   const theme = useTheme()
   const isDark = theme.palette.mode === 'dark'
   const doc = slug ? getDocBySlug(slug) : undefined
+
+  const [content, setContent] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!doc) {
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    setContent('')
+    doc.loadContent().then((md) => {
+      setContent(md)
+      setLoading(false)
+    })
+  }, [doc])
 
   if (!doc) {
     return (
@@ -114,7 +131,13 @@ export default function DocViewPage() {
               All docs
             </Button>
           </Box>
-          <MarkdownRenderer content={doc.content} />
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+              <CircularProgress size={32} />
+            </Box>
+          ) : (
+            <MarkdownRenderer content={content} />
+          )}
         </Box>
       </Box>
     </Box>

@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Box, Typography, Button, useTheme } from '@mui/material'
+import { Box, Typography, Button, CircularProgress, useTheme } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { onboardingGuides, getOnboardingBySlug } from '../content/onboarding'
@@ -167,6 +168,22 @@ export default function OnboardingViewPage() {
   const prevGuide = currentIndex > 0 ? onboardingGuides[currentIndex - 1] : undefined
   const nextGuide = currentIndex < onboardingGuides.length - 1 ? onboardingGuides[currentIndex + 1] : undefined
 
+  const [content, setContent] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!guide) {
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    setContent('')
+    guide.loadContent().then((md) => {
+      setContent(md)
+      setLoading(false)
+    })
+  }, [guide])
+
   if (!guide) {
     return (
       <Box sx={{ py: { xs: 8, md: 12 }, px: 3, textAlign: 'center' }}>
@@ -293,9 +310,15 @@ export default function OnboardingViewPage() {
           </Box>
 
           {/* Markdown content with injected interactive demos */}
-          {renderContentWithInjections(
-            guide.content,
-            getDemoConfig(slug || ''),
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+              <CircularProgress size={32} />
+            </Box>
+          ) : (
+            renderContentWithInjections(
+              content,
+              getDemoConfig(slug || ''),
+            )
           )}
 
           {/* Prev / Next navigation */}

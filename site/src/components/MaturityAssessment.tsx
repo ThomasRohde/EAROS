@@ -318,7 +318,9 @@ export default function MaturityAssessment() {
   const [answers, setAnswers] = useState<Record<string, number>>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      return raw ? JSON.parse(raw) : {}
+      if (!raw) return {}
+      const parsed = JSON.parse(raw)
+      return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) ? parsed : {}
     } catch { return {} }
   })
 

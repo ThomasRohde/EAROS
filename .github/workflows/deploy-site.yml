@@ -32,6 +32,12 @@ jobs:
           cache-dependency-path: site/package-lock.json
       - run: npm ci
         working-directory: site
+      - name: Check theme drift
+        run: |
+          if ! diff -q site/src/theme.ts tools/editor/src/theme.ts > /dev/null 2>&1; then
+            echo "::warning::site/src/theme.ts has drifted from the canonical source at tools/editor/src/theme.ts"
+            diff site/src/theme.ts tools/editor/src/theme.ts || true
+          fi
       - run: npm run build
         working-directory: site
       - name: Archive pages artifact
