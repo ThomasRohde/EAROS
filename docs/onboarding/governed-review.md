@@ -2,7 +2,7 @@
 
 > **Level 2 to 3: Rubric-Based to Governed**
 
-You can score an artifact against the core rubric. Now it is time to make architecture review a team-wide, governed practice --- with artifact-specific profiles, context-driven overlays, calibrated teams, and evidence-anchored scoring that is reproducible across your organization.
+You can score an artifact against the core rubric. Now it is time to make architecture review a team-wide, governed practice — with artifact-specific profiles, context-driven overlays, calibrated teams, and evidence-anchored scoring that is reproducible across your organization.
 
 ## What Changes at This Level
 
@@ -16,7 +16,7 @@ At Level 2, you used the core rubric and produced evidence-backed scores. At Lev
 
 ## Choosing a Profile
 
-The core meta-rubric's 10 criteria are universal --- they apply to every architecture artifact. But a reference architecture has different quality expectations than an ADR, and a capability map is evaluated differently than a roadmap. Profiles add artifact-specific criteria on top of the core --- typically 3 to 9, depending on the artifact type.
+The core meta-rubric's 10 criteria are universal — they apply to every architecture artifact. But a reference architecture has different quality expectations than an ADR, and a capability map is evaluated differently than a roadmap. Profiles add artifact-specific criteria on top of the core — typically 3 to 9, depending on the artifact type.
 
 | Profile | Artifact Type | Status | What It Adds |
 |---------|--------------|--------|-------------|
@@ -28,7 +28,7 @@ The core meta-rubric's 10 criteria are universal --- they apply to every archite
 
 > **Status key:** *Approved* profiles have been calibrated and are ready for governed use. *Draft* profiles are usable but have not completed the full calibration process (see [Calibrating with Your Team](#calibrating-with-your-team)).
 
-Every profile declares `inherits: [EAROS-CORE-002]`. This means when you evaluate a reference architecture, you score it against all 10 core criteria **plus** the profile's additional criteria --- 13--19 criteria total depending on the profile.
+Every profile declares `inherits: [EAROS-CORE-002]`. This means when you evaluate a reference architecture, you score it against all 10 core criteria **plus** the profile's additional criteria — 13–19 criteria total depending on the profile.
 
 > **How to choose:** Match the profile to the artifact's declared type. If the artifact does not fit any built-in profile, use the core rubric alone. Creating custom profiles is covered in [Scaling and Optimization](scaling-optimization.md).
 
@@ -44,7 +44,7 @@ Overlays inject cross-cutting concerns that apply across artifact types. Unlike 
 | **Data Governance** (`data-governance.yaml`) | Approved | The artifact describes data flows, data retention, data classification, or data lineage |
 | **Regulatory** (`regulatory.yaml`) | Draft | The artifact operates in a regulated domain: payments, healthcare, financial reporting, privacy |
 
-Overlays are additive --- they append criteria to the base rubric (core + profile). They cannot remove or weaken gates from the base. An overlay's critical gate adds to the gate model; it does not replace it.
+Overlays are additive — they append criteria to the base rubric (core + profile). They cannot remove or weaken gates from the base. An overlay's critical gate adds to the gate model; it does not replace it.
 
 You can apply multiple overlays simultaneously. A payments solution architecture might use the solution-architecture profile with both the security and regulatory overlays.
 
@@ -58,7 +58,7 @@ For each criterion:
 
 1. Search the artifact for content that addresses the criterion
 2. If you find it, record the evidence anchor: a direct quote, section reference, or diagram ID
-3. Then --- and only then --- match the evidence against the `scoring_guide` level descriptors
+3. Then — and only then — match the evidence against the `scoring_guide` level descriptors
 4. If you cannot find evidence, record N/A and explain why the criterion does not apply, or score 0 and note the absence
 
 Never score from impression. "The artifact seems to address security" is not evidence. "Section 7.2 states: 'All inter-service communication uses mTLS with certificates rotated every 90 days'" is evidence.
@@ -73,7 +73,7 @@ Every piece of evidence you cite must be classified:
 | **Inferred** | A reasonable interpretation of content that is not directly stated | Medium |
 | **External** | Judgment based on a standard, policy, or source outside the artifact | Lowest |
 
-Observed evidence is always preferred. If you find yourself relying heavily on inferred or external evidence, the artifact may have significant gaps --- which is itself a finding worth recording.
+Observed evidence is always preferred. If you find yourself relying heavily on inferred or external evidence, the artifact may have significant gaps — which is itself a finding worth recording.
 
 ## The Three Evaluation Types
 
@@ -87,7 +87,7 @@ EAROS distinguishes three distinct judgment types that should not be collapsed i
 
 These are related but distinct. A beautifully written, complete document can describe an architecturally unsound system. A technically excellent architecture can be documented in an unmaintainable artifact. Collapsing these into one score hides critical information.
 
-In practice, EAROS criteria map to these three types through the dimension structure --- the narrative summary in the evaluation record should address all three perspectives. The rubric's criterion scores provide the evidence base; the narrative synthesizes them into these three distinct judgments.
+In practice, EAROS criteria map to these three types through the dimension structure — the narrative summary in the evaluation record should address all three perspectives. The rubric's criterion scores provide the evidence base; the narrative synthesizes them into these three distinct judgments.
 
 ![The rubric editor with file sidebar showing core, profiles, and overlays — the building blocks of governed review](/screenshots/editor-rubric-criteria.png)
 
@@ -97,7 +97,7 @@ Calibration is what transforms individual scoring into a team capability. Withou
 
 ### Step-by-step calibration exercise
 
-1. **Select 3--5 representative artifacts.** Aim for diversity: one strong artifact, one weak, one ambiguous, and one incomplete. The gold-standard example at `examples/aws-event-driven-order-processing/` is an excellent starting point.
+1. **Select 3–5 representative artifacts.** Aim for diversity: one strong artifact, one weak, one ambiguous, and one incomplete. The gold-standard example at `examples/aws-event-driven-order-processing/` is an excellent starting point.
 
 2. **Have 2+ reviewers score independently.** Each reviewer scores the same artifact against the same rubric without discussing their scores.
 
@@ -125,7 +125,7 @@ For more on evaluation record structure, see the [Getting Started guide](../gett
 ## Checkpoint: You Are at Level 3 When...
 
 - [ ] Your team uses a matching profile (not just the core rubric) for every assessment
-- [ ] Every score uses the RULERS protocol --- evidence anchor first, then score
+- [ ] Every score uses the RULERS protocol — evidence anchor first, then score
 - [ ] You have completed a calibration exercise with kappa > 0.70
 - [ ] Overlays are applied based on context (not arbitrarily or never)
 - [ ] Evaluation records are structured and conform to `evaluation.schema.json`
@@ -133,6 +133,6 @@ For more on evaluation record structure, see the [Getting Started guide](../gett
 
 ## Next Steps
 
-Your team now produces governed, calibrated, evidence-anchored architecture evaluations. The next step is to bring AI agents into the process --- not to replace human judgment, but to augment it with a second independent perspective.
+Your team now produces governed, calibrated, evidence-anchored architecture evaluations. The next step is to bring AI agents into the process — not to replace human judgment, but to augment it with a second independent perspective.
 
 Continue to [Agent-Assisted Evaluation](agent-assisted.md).

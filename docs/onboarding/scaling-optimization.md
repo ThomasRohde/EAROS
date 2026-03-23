@@ -2,11 +2,11 @@
 
 > **Level 4 to 5: Hybrid to Optimized**
 
-Your team runs hybrid human-agent evaluations with tracked metrics. Now you make architecture review a continuous, automated, organization-wide capability --- integrated into delivery workflows, continuously calibrated, and visible to leadership.
+Your team runs hybrid human-agent evaluations with tracked metrics. Now you make architecture review a continuous, automated, organization-wide capability — integrated into delivery workflows, continuously calibrated, and visible to leadership.
 
 ## What Changes at This Level
 
-At Level 4, evaluation is a deliberate activity: someone decides to review an artifact, assigns reviewers, and orchestrates the process. At Level 5, evaluation becomes embedded in how your organization delivers --- triggered automatically, calibrated continuously, and reported to stakeholders who never touch a rubric YAML.
+At Level 4, evaluation is a deliberate activity: someone decides to review an artifact, assigns reviewers, and orchestrates the process. At Level 5, evaluation becomes embedded in how your organization delivers — triggered automatically, calibrated continuously, and reported to stakeholders who never touch a rubric YAML.
 
 ## CI/CD Integration
 
@@ -28,11 +28,11 @@ After merge, record evaluation results in a time-series store. This enables tren
 
 ### Architecture as code
 
-Fitness functions work best when architecture artifacts are machine-readable. EAROS is designed for this --- artifacts conforming to `artifact.schema.json` can be validated, scored, and tracked automatically. Encourage teams to adopt structured artifact formats (YAML with frontmatter, ArchiMate exchange, diagram-as-code) rather than unstructured documents.
+Fitness functions work best when architecture artifacts are machine-readable. EAROS is designed for this — artifacts conforming to `artifact.schema.json` can be validated, scored, and tracked automatically. Encourage teams to adopt structured artifact formats (YAML with frontmatter, ArchiMate exchange, diagram-as-code) rather than unstructured documents.
 
 ## Continuous Calibration
 
-At earlier levels, calibration is an event --- a scheduled exercise where reviewers score reference artifacts and compare results. At Level 5, calibration becomes continuous.
+At earlier levels, calibration is an event — a scheduled exercise where reviewers score reference artifacts and compare results. At Level 5, calibration becomes continuous.
 
 ### Wasserstein-based alignment
 
@@ -62,7 +62,7 @@ The five built-in profiles (solution-architecture, reference-architecture, adr, 
 
 4. **Write up to 12 criteria.** Each criterion needs all required fields: `question`, `description`, `scoring_guide` (all 5 levels), `required_evidence`, `anti_patterns`, `examples.good`, `examples.bad`, `decision_tree`, and `remediation_hints`.
 
-5. **Calibrate before production.** Score 3--5 representative artifacts with 2+ reviewers. Target kappa > 0.70.
+5. **Calibrate before production.** Score 3–5 representative artifacts with 2+ reviewers. Target kappa > 0.70.
 
 6. **Publish.** Validate against `rubric.schema.json`, add to the manifest, and document in the changelog.
 
@@ -74,9 +74,9 @@ For detailed authoring guidance, see the [Profile Authoring Guide](../profile-au
 
 Use the maturity model itself as a training roadmap. New team members start at Level 1 and progress through the guides:
 
-- **Week 1:** Complete [Your First Assessment](first-assessment.md) --- score a real artifact against the core rubric
-- **Week 2:** Complete [Governed Review](governed-review.md) --- join a calibration exercise, learn profiles and overlays
-- **Week 3:** Complete [Agent-Assisted Evaluation](agent-assisted.md) --- run a hybrid evaluation and reconcile disagreements
+- **Week 1:** Complete [Your First Assessment](first-assessment.md) — score a real artifact against the core rubric
+- **Week 2:** Complete [Governed Review](governed-review.md) — join a calibration exercise, learn profiles and overlays
+- **Week 3:** Complete [Agent-Assisted Evaluation](agent-assisted.md) — run a hybrid evaluation and reconcile disagreements
 - **Ongoing:** Participate in review rotations and calibration exercises
 
 ### Governance
@@ -90,7 +90,7 @@ Rubrics are governed assets at Level 5. This means:
 
 ### Culture
 
-The most common failure mode for architecture review frameworks is perception. If teams see EAROS as a bureaucratic gate --- a hoop to jump through before deployment --- adoption will be grudging and superficial.
+The most common failure mode for architecture review frameworks is perception. If teams see EAROS as a bureaucratic gate — a hoop to jump through before deployment — adoption will be grudging and superficial.
 
 Position EAROS as a quality tool, not a gatekeeping tool:
 
@@ -110,8 +110,8 @@ The `earos-report` skill generates portfolio-level views from evaluation records
 
 - **Traffic-light dashboards:** Red/amber/green status for each evaluated artifact, grouped by team, domain, or portfolio
 - **Dimension trends:** Which quality dimensions are improving or declining across the portfolio over time
-- **Gate failure hotspots:** Which criteria most frequently trigger gate failures --- these are systemic weaknesses worth investing in
-- **Remediation tracking:** Status of actions from Conditional Pass evaluations --- are they being completed?
+- **Gate failure hotspots:** Which criteria most frequently trigger gate failures — these are systemic weaknesses worth investing in
+- **Remediation tracking:** Status of actions from Conditional Pass evaluations — are they being completed?
 
 ### Aggregating across the portfolio
 
@@ -139,7 +139,7 @@ A rising first-pass Pass rate is the strongest signal that EAROS is working: art
 ## Checkpoint: You Are at Level 5 When...
 
 - [ ] Architecture evaluation is integrated into your CI/CD or delivery pipeline
-- [ ] Calibration happens continuously, not just at setup time --- drift is detected and triggers re-calibration
+- [ ] Calibration happens continuously, not just at setup time — drift is detected and triggers re-calibration
 - [ ] You create and maintain custom profiles for your organization's artifact types
 - [ ] Executive reporting provides portfolio-level quality visibility on a regular cadence
 - [ ] Rubric updates follow a governed change process (version bumps, owner approval, re-calibration)
@@ -147,7 +147,7 @@ A rising first-pass Pass rate is the strongest signal that EAROS is working: art
 
 ## What Comes Next
 
-Level 5 is not a destination --- it is a steady state of continuous improvement. From here:
+Level 5 is not a destination — it is a steady state of continuous improvement. From here:
 
 - **Contribute back.** EAROS is open source. If you create profiles for artifact types that others would benefit from, consider contributing them to the project.
 - **Share calibration data.** Cross-organizational calibration data strengthens the framework for everyone. Anonymized score distributions help improve the Wasserstein calibration baselines.
