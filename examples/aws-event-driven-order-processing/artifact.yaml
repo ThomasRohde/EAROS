@@ -296,16 +296,16 @@ sections:
 
           Customer@{ shape: stadium, label: "Customer" }
           Operator@{ shape: rounded, label: "Internal Operator" }
-          PayGW@{ shape: cloud, label: "Payment Gateway\n(Stripe)" }
-          WMS@{ shape: cloud, label: "Warehouse Management\nSystem" }
+          PayGW@{ img: "./icons/cloud_generic/cloud_generic.svg", label: "Payment Gateway\n(Stripe)", pos: "b", w: 52, h: 52, constraint: "on" }
+          WMS@{ img: "./icons/cloud_generic/cloud_generic.svg", label: "Warehouse Management\nSystem", pos: "b", w: 52, h: 52, constraint: "on" }
           Analytics@{ shape: doc, label: "Analytics Platform" }
 
-          APIGW@{ img: "/icons/aws/api-gateway.svg", label: "API Gateway", pos: "b", w: 56, h: 56, constraint: "on" }
-          Cognito@{ img: "/icons/aws/cognito.svg", label: "Corporate IAM\nvia Cognito", pos: "b", w: 56, h: 56, constraint: "on" }
-          Platform@{ img: "/icons/aws/aws-cloud.svg", label: "Event-Driven Order\nProcessing Platform", pos: "b", w: 72, h: 72, constraint: "on" }
-          EventBus@{ img: "/icons/aws/eventbridge.svg", label: "EventBridge", pos: "b", w: 56, h: 56, constraint: "on" }
-          SES@{ img: "/icons/aws/ses.svg", label: "Amazon SES", pos: "b", w: 56, h: 56, constraint: "on" }
-          SNS@{ img: "/icons/aws/sns.svg", label: "Amazon SNS", pos: "b", w: 56, h: 56, constraint: "on" }
+          APIGW@{ img: "./icons/aws/api-gateway.svg", label: "API Gateway", pos: "b", w: 56, h: 56, constraint: "on" }
+          Cognito@{ img: "./icons/aws/cognito.svg", label: "Corporate IAM\nvia Cognito", pos: "b", w: 56, h: 56, constraint: "on" }
+          Platform@{ img: "./icons/aws/aws-cloud.svg", label: "Event-Driven Order\nProcessing Platform", pos: "b", w: 72, h: 72, constraint: "on" }
+          EventBus@{ img: "./icons/aws/eventbridge.svg", label: "EventBridge", pos: "b", w: 56, h: 56, constraint: "on" }
+          SES@{ img: "./icons/aws/ses.svg", label: "Amazon SES", pos: "b", w: 56, h: 56, constraint: "on" }
+          SNS@{ img: "./icons/aws/sns.svg", label: "Amazon SNS", pos: "b", w: 56, h: 56, constraint: "on" }
 
           Customer -->|Submit orders| APIGW
           Operator -->|Query status| APIGW
@@ -355,23 +355,23 @@ sections:
         flowchart LR
           classDef external fill:#fff7ed,stroke:#c2410c,stroke-width:1.4px,color:#7c2d12;
 
-          WAF@{ img: "/icons/aws/waf.svg", label: "AWS WAF", pos: "b", w: 52, h: 52, constraint: "on" }
-          APIGW@{ img: "/icons/aws/api-gateway.svg", label: "API Gateway", pos: "b", w: 52, h: 52, constraint: "on" }
-          Cognito@{ img: "/icons/aws/cognito.svg", label: "Cognito\nAuthorizer", pos: "b", w: 52, h: 52, constraint: "on" }
-          OrderSvc@{ img: "/icons/aws/lambda.svg", label: "Order Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
-          PaySvc@{ img: "/icons/aws/lambda.svg", label: "Payment Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
-          FulfilSvc@{ img: "/icons/aws/lambda.svg", label: "Fulfilment Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
-          NotifySvc@{ img: "/icons/aws/lambda.svg", label: "Notification Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
-          WMSAdapter@{ img: "/icons/aws/lambda.svg", label: "WMS Adapter\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
-          DDB@{ img: "/icons/aws/dynamodb.svg", label: "Orders Table\nDynamoDB", pos: "b", w: 52, h: 52, constraint: "on" }
-          EB@{ img: "/icons/aws/eventbridge.svg", label: "Order Event Bus", pos: "b", w: 52, h: 52, constraint: "on" }
-          SQS@{ img: "/icons/aws/sqs.svg", label: "Fulfilment Queue\n+ DLQ", pos: "b", w: 52, h: 52, constraint: "on" }
-          SES@{ img: "/icons/aws/ses.svg", label: "Amazon SES", pos: "b", w: 52, h: 52, constraint: "on" }
-          SNS@{ img: "/icons/aws/sns.svg", label: "Amazon SNS", pos: "b", w: 52, h: 52, constraint: "on" }
-          Firehose@{ img: "/icons/aws/data-firehose.svg", label: "Kinesis Data Firehose", pos: "b", w: 52, h: 52, constraint: "on" }
-          S3@{ img: "/icons/aws/s3.svg", label: "S3 Event Archive\n(7-year retention)", pos: "b", w: 52, h: 52, constraint: "on" }
-          Stripe@{ shape: cloud, label: "Stripe API" }
-          WMS@{ shape: cloud, label: "Warehouse Management\nSystem" }
+          WAF@{ img: "./icons/aws/waf.svg", label: "AWS WAF", pos: "b", w: 52, h: 52, constraint: "on" }
+          APIGW@{ img: "./icons/aws/api-gateway.svg", label: "API Gateway", pos: "b", w: 52, h: 52, constraint: "on" }
+          Cognito@{ img: "./icons/aws/cognito.svg", label: "Cognito\nAuthorizer", pos: "b", w: 52, h: 52, constraint: "on" }
+          OrderSvc@{ img: "./icons/aws/lambda.svg", label: "Order Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+          PaySvc@{ img: "./icons/aws/lambda.svg", label: "Payment Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+          FulfilSvc@{ img: "./icons/aws/lambda.svg", label: "Fulfilment Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+          NotifySvc@{ img: "./icons/aws/lambda.svg", label: "Notification Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+          WMSAdapter@{ img: "./icons/aws/lambda.svg", label: "WMS Adapter\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+          DDB@{ img: "./icons/aws/dynamodb.svg", label: "Orders Table\nDynamoDB", pos: "b", w: 52, h: 52, constraint: "on" }
+          EB@{ img: "./icons/aws/eventbridge.svg", label: "Order Event Bus", pos: "b", w: 52, h: 52, constraint: "on" }
+          SQS@{ img: "./icons/aws/sqs.svg", label: "Fulfilment Queue\n+ DLQ", pos: "b", w: 52, h: 52, constraint: "on" }
+          SES@{ img: "./icons/aws/ses.svg", label: "Amazon SES", pos: "b", w: 52, h: 52, constraint: "on" }
+          SNS@{ img: "./icons/aws/sns.svg", label: "Amazon SNS", pos: "b", w: 52, h: 52, constraint: "on" }
+          Firehose@{ img: "./icons/aws/data-firehose.svg", label: "Kinesis Data Firehose", pos: "b", w: 52, h: 52, constraint: "on" }
+          S3@{ img: "./icons/aws/s3.svg", label: "S3 Event Archive\n(7-year retention)", pos: "b", w: 52, h: 52, constraint: "on" }
+          Stripe@{ img: "./icons/cloud_generic/cloud_generic.svg", label: "Stripe API", pos: "b", w: 52, h: 52, constraint: "on" }
+          WMS@{ img: "./icons/cloud_generic/cloud_generic.svg", label: "Warehouse Management\nSystem", pos: "b", w: 52, h: 52, constraint: "on" }
 
           WAF --> APIGW
           Cognito --> APIGW
@@ -432,55 +432,55 @@ sections:
           within RTO target (4 hours).
       diagram_source: |
         flowchart TB
-          Route53@{ img: "/icons/aws/route53.svg", label: "Route 53\nHealth checks + failover", pos: "b", w: 56, h: 56, constraint: "on" }
+          Route53@{ img: "./icons/aws/route53.svg", label: "Route 53\nHealth checks + failover", pos: "b", w: 56, h: 56, constraint: "on" }
 
           subgraph Primary["eu-west-1 (Primary)"]
             direction TB
-            CF_Primary@{ img: "/icons/aws/cloudfront.svg", label: "CloudFront", pos: "b", w: 52, h: 52, constraint: "on" }
-            WAF_Primary@{ img: "/icons/aws/waf.svg", label: "AWS WAF", pos: "b", w: 52, h: 52, constraint: "on" }
-            APIGW_Primary@{ img: "/icons/aws/api-gateway.svg", label: "Regional API Gateway", pos: "b", w: 52, h: 52, constraint: "on" }
+            CF_Primary@{ img: "./icons/aws/cloudfront.svg", label: "CloudFront", pos: "b", w: 52, h: 52, constraint: "on" }
+            WAF_Primary@{ img: "./icons/aws/waf.svg", label: "AWS WAF", pos: "b", w: 52, h: 52, constraint: "on" }
+            APIGW_Primary@{ img: "./icons/aws/api-gateway.svg", label: "Regional API Gateway", pos: "b", w: 52, h: 52, constraint: "on" }
 
             subgraph VPC_Primary["VPC"]
               direction LR
 
               subgraph AZ_A["eu-west-1a"]
                 direction TB
-                SubnetA@{ img: "/icons/aws/private-subnet.svg", label: "Private Subnet A\n10.0.1.0/24", pos: "b", w: 48, h: 48, constraint: "on" }
-                LambdaA@{ img: "/icons/aws/lambda.svg", label: "Lambda workload", pos: "b", w: 48, h: 48, constraint: "on" }
-                NATA@{ img: "/icons/aws/nat-gateway.svg", label: "NAT Gateway A", pos: "b", w: 48, h: 48, constraint: "on" }
+                SubnetA@{ img: "./icons/aws/private-subnet.svg", label: "Private Subnet A\n10.0.1.0/24", pos: "b", w: 48, h: 48, constraint: "on" }
+                LambdaA@{ img: "./icons/aws/lambda.svg", label: "Lambda workload", pos: "b", w: 48, h: 48, constraint: "on" }
+                NATA@{ img: "./icons/aws/nat-gateway.svg", label: "NAT Gateway A", pos: "b", w: 48, h: 48, constraint: "on" }
                 SubnetA --- LambdaA
                 LambdaA -. egress .-> NATA
               end
 
               subgraph AZ_B["eu-west-1b"]
                 direction TB
-                SubnetB@{ img: "/icons/aws/private-subnet.svg", label: "Private Subnet B\n10.0.2.0/24", pos: "b", w: 48, h: 48, constraint: "on" }
-                LambdaB@{ img: "/icons/aws/lambda.svg", label: "Lambda workload", pos: "b", w: 48, h: 48, constraint: "on" }
-                NATB@{ img: "/icons/aws/nat-gateway.svg", label: "NAT Gateway B", pos: "b", w: 48, h: 48, constraint: "on" }
+                SubnetB@{ img: "./icons/aws/private-subnet.svg", label: "Private Subnet B\n10.0.2.0/24", pos: "b", w: 48, h: 48, constraint: "on" }
+                LambdaB@{ img: "./icons/aws/lambda.svg", label: "Lambda workload", pos: "b", w: 48, h: 48, constraint: "on" }
+                NATB@{ img: "./icons/aws/nat-gateway.svg", label: "NAT Gateway B", pos: "b", w: 48, h: 48, constraint: "on" }
                 SubnetB --- LambdaB
                 LambdaB -. egress .-> NATB
               end
 
               subgraph AZ_C["eu-west-1c"]
                 direction TB
-                SubnetC@{ img: "/icons/aws/private-subnet.svg", label: "Private Subnet C\n10.0.3.0/24", pos: "b", w: 48, h: 48, constraint: "on" }
-                LambdaC@{ img: "/icons/aws/lambda.svg", label: "Lambda workload", pos: "b", w: 48, h: 48, constraint: "on" }
-                NATC@{ img: "/icons/aws/nat-gateway.svg", label: "NAT Gateway C", pos: "b", w: 48, h: 48, constraint: "on" }
+                SubnetC@{ img: "./icons/aws/private-subnet.svg", label: "Private Subnet C\n10.0.3.0/24", pos: "b", w: 48, h: 48, constraint: "on" }
+                LambdaC@{ img: "./icons/aws/lambda.svg", label: "Lambda workload", pos: "b", w: 48, h: 48, constraint: "on" }
+                NATC@{ img: "./icons/aws/nat-gateway.svg", label: "NAT Gateway C", pos: "b", w: 48, h: 48, constraint: "on" }
                 SubnetC --- LambdaC
                 LambdaC -. egress .-> NATC
               end
             end
 
-            DDB_Primary@{ img: "/icons/aws/dynamodb.svg", label: "DynamoDB Global Table\nPrimary", pos: "b", w: 52, h: 52, constraint: "on" }
+            DDB_Primary@{ img: "./icons/aws/dynamodb.svg", label: "DynamoDB Global Table\nPrimary", pos: "b", w: 52, h: 52, constraint: "on" }
           end
 
           subgraph DR["eu-central-1 (Warm standby)"]
             direction TB
-            CF_DR@{ img: "/icons/aws/cloudfront.svg", label: "CloudFront", pos: "b", w: 52, h: 52, constraint: "on" }
-            WAF_DR@{ img: "/icons/aws/waf.svg", label: "AWS WAF", pos: "b", w: 52, h: 52, constraint: "on" }
-            APIGW_DR@{ img: "/icons/aws/api-gateway.svg", label: "Regional API Gateway", pos: "b", w: 52, h: 52, constraint: "on" }
-            Lambda_DR@{ img: "/icons/aws/lambda.svg", label: "Lambda warm standby", pos: "b", w: 52, h: 52, constraint: "on" }
-            DDB_DR@{ img: "/icons/aws/dynamodb.svg", label: "DynamoDB Global Table\nReplica", pos: "b", w: 52, h: 52, constraint: "on" }
+            CF_DR@{ img: "./icons/aws/cloudfront.svg", label: "CloudFront", pos: "b", w: 52, h: 52, constraint: "on" }
+            WAF_DR@{ img: "./icons/aws/waf.svg", label: "AWS WAF", pos: "b", w: 52, h: 52, constraint: "on" }
+            APIGW_DR@{ img: "./icons/aws/api-gateway.svg", label: "Regional API Gateway", pos: "b", w: 52, h: 52, constraint: "on" }
+            Lambda_DR@{ img: "./icons/aws/lambda.svg", label: "Lambda warm standby", pos: "b", w: 52, h: 52, constraint: "on" }
+            DDB_DR@{ img: "./icons/aws/dynamodb.svg", label: "DynamoDB Global Table\nReplica", pos: "b", w: 52, h: 52, constraint: "on" }
           end
 
           Route53 --> CF_Primary
@@ -626,43 +626,43 @@ sections:
         flowchart LR
           classDef external fill:#fff7ed,stroke:#c2410c,stroke-width:1.4px,color:#7c2d12;
 
-          Internet@{ shape: cloud, label: "Internet" }
-          Stripe@{ shape: cloud, label: "Stripe\nTLS 1.2+" }
+          Internet@{ img: "./icons/cloud_generic/cloud_generic.svg", label: "Internet", pos: "b", w: 52, h: 52, constraint: "on" }
+          Stripe@{ img: "./icons/cloud_generic/cloud_generic.svg", label: "Stripe\nTLS 1.2+", pos: "b", w: 52, h: 52, constraint: "on" }
 
           subgraph Zone1["Zone 1: Public"]
             direction TB
-            CF@{ img: "/icons/aws/cloudfront.svg", label: "CloudFront", pos: "b", w: 52, h: 52, constraint: "on" }
-            WAF@{ img: "/icons/aws/waf.svg", label: "AWS WAF\nOWASP CRS", pos: "b", w: 52, h: 52, constraint: "on" }
+            CF@{ img: "./icons/aws/cloudfront.svg", label: "CloudFront", pos: "b", w: 52, h: 52, constraint: "on" }
+            WAF@{ img: "./icons/aws/waf.svg", label: "AWS WAF\nOWASP CRS", pos: "b", w: 52, h: 52, constraint: "on" }
             CF --> WAF
           end
 
           subgraph Zone2["Zone 2: API Perimeter"]
             direction TB
-            APIGW@{ img: "/icons/aws/api-gateway.svg", label: "API Gateway", pos: "b", w: 52, h: 52, constraint: "on" }
-            Cognito@{ img: "/icons/aws/cognito.svg", label: "Cognito JWT\nAuthorizer", pos: "b", w: 52, h: 52, constraint: "on" }
+            APIGW@{ img: "./icons/aws/api-gateway.svg", label: "API Gateway", pos: "b", w: 52, h: 52, constraint: "on" }
+            Cognito@{ img: "./icons/aws/cognito.svg", label: "Cognito JWT\nAuthorizer", pos: "b", w: 52, h: 52, constraint: "on" }
             Cognito --> APIGW
           end
 
           subgraph Zone3["Zone 3: Service Mesh (VPC)"]
             direction TB
-            OrderLambda@{ img: "/icons/aws/lambda.svg", label: "Order Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
-            PayLambda@{ img: "/icons/aws/lambda.svg", label: "Payment Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
-            FulfilLambda@{ img: "/icons/aws/lambda.svg", label: "Fulfilment Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
-            NotifyLambda@{ img: "/icons/aws/lambda.svg", label: "Notification Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+            OrderLambda@{ img: "./icons/aws/lambda.svg", label: "Order Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+            PayLambda@{ img: "./icons/aws/lambda.svg", label: "Payment Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+            FulfilLambda@{ img: "./icons/aws/lambda.svg", label: "Fulfilment Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
+            NotifyLambda@{ img: "./icons/aws/lambda.svg", label: "Notification Service\nLambda", pos: "b", w: 52, h: 52, constraint: "on" }
           end
 
           subgraph Zone4["Zone 4: Data Layer (KMS encrypted)"]
             direction TB
-            EB@{ img: "/icons/aws/eventbridge.svg", label: "EventBridge\nSchema validated", pos: "b", w: 52, h: 52, constraint: "on" }
-            DDB@{ img: "/icons/aws/dynamodb.svg", label: "DynamoDB", pos: "b", w: 52, h: 52, constraint: "on" }
-            SQSq@{ img: "/icons/aws/sqs.svg", label: "SQS", pos: "b", w: 52, h: 52, constraint: "on" }
-            S3arch@{ img: "/icons/aws/s3.svg", label: "S3 Archive", pos: "b", w: 52, h: 52, constraint: "on" }
+            EB@{ img: "./icons/aws/eventbridge.svg", label: "EventBridge\nSchema validated", pos: "b", w: 52, h: 52, constraint: "on" }
+            DDB@{ img: "./icons/aws/dynamodb.svg", label: "DynamoDB", pos: "b", w: 52, h: 52, constraint: "on" }
+            SQSq@{ img: "./icons/aws/sqs.svg", label: "SQS", pos: "b", w: 52, h: 52, constraint: "on" }
+            S3arch@{ img: "./icons/aws/s3.svg", label: "S3 Archive", pos: "b", w: 52, h: 52, constraint: "on" }
           end
 
           subgraph Zone5["Zone 5: Audit"]
             direction TB
-            CloudTrail@{ img: "/icons/aws/cloudtrail.svg", label: "CloudTrail\nwrite-once S3", pos: "b", w: 52, h: 52, constraint: "on" }
-            XRAY@{ img: "/icons/aws/xray.svg", label: "AWS X-Ray", pos: "b", w: 52, h: 52, constraint: "on" }
+            CloudTrail@{ img: "./icons/aws/cloudtrail.svg", label: "CloudTrail\nwrite-once S3", pos: "b", w: 52, h: 52, constraint: "on" }
+            XRAY@{ img: "./icons/aws/xray.svg", label: "AWS X-Ray", pos: "b", w: 52, h: 52, constraint: "on" }
           end
 
           Internet --> CF
