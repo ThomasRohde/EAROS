@@ -67,3 +67,4 @@ icons/
 
 # Site (GitHub Pages landing page)
 site/dist/
+.playwright-cli/
