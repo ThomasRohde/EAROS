@@ -6,6 +6,9 @@ import { Box, useTheme } from '@mui/material'
 import { Link } from 'react-router-dom'
 import '../markdown.css'
 
+const remarkPlugins = [remarkGfm, remarkSmartypants]
+const rehypePlugins = [rehypeHighlight]
+
 /**
  * Map of repo-relative markdown paths to site routes.
  * Handles both relative references (from different source directories)
@@ -46,8 +49,8 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
     <Box className="markdown-body" data-theme={theme.palette.mode}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkSmartypants]}
-        rehypePlugins={[rehypeHighlight]}
+        remarkPlugins={remarkPlugins}
+        rehypePlugins={rehypePlugins}
         components={{
           a({ href, children, ...props }) {
             if (!href) return <a {...props}>{children}</a>
@@ -66,9 +69,9 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
               // Resolve paths relative to the base URL for GitHub Pages
               const base = import.meta.env.BASE_URL
               const resolved = src.startsWith('/') ? base + src.slice(1) : base + 'screenshots/' + src
-              return <img src={resolved} alt={alt || ''} style={{ maxWidth: '100%', borderRadius: 8 }} {...props} />
+              return <img src={resolved} alt={alt || ''} loading="lazy" style={{ maxWidth: '100%', borderRadius: 8 }} {...props} />
             }
-            return <img src={src} alt={alt || ''} style={{ maxWidth: '100%', borderRadius: 8 }} {...props} />
+            return <img src={src} alt={alt || ''} loading="lazy" style={{ maxWidth: '100%', borderRadius: 8 }} {...props} />
           },
         }}
       >

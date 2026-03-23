@@ -1,4 +1,4 @@
-import { useRef, useEffect, useId } from 'react'
+import { useRef, useEffect } from 'react'
 // @ts-expect-error — termynal has no type declarations
 import Termynal from 'termynal'
 import '../../node_modules/termynal/dist/style.css'
@@ -29,8 +29,6 @@ export default function TerminalDemo({
 }: TerminalDemoProps) {
   const innerRef = useRef<HTMLDivElement>(null)
   const initializedRef = useRef(false)
-  const styleRef = useRef<HTMLStyleElement | null>(null)
-  const cssId = useId().replace(/:/g, '')
 
   // Auto-scroll the container as new lines appear
   useEffect(() => {
@@ -79,12 +77,8 @@ export default function TerminalDemo({
     return () => {
       observer.disconnect()
       initializedRef.current = false
-      if (styleRef.current) {
-        styleRef.current.remove()
-        styleRef.current = null
-      }
     }
-  }, [lines, title, startDelay, typeDelay, lineDelay, cssId])
+  }, [lines, title, startDelay, typeDelay, lineDelay])
 
   const titleText = title || 'bash'
   const heightPx = typeof height === 'number' ? `${height}px` : height

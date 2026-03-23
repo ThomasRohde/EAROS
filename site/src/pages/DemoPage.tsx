@@ -248,10 +248,8 @@ function computeResults(
         status = 'pass'
       } else if (weightedAverage >= 2.4 && !hasMajorFailure) {
         status = 'conditional_pass'
-      } else if (weightedAverage < 2.4 || hasMajorFailure) {
-        status = 'rework_required'
       } else {
-        status = 'conditional_pass'
+        status = 'rework_required'
       }
     }
   }
