@@ -8,6 +8,7 @@ import MaturityBadge from '../components/MaturityBadge'
 import MaturityAssessment from '../components/MaturityAssessment'
 import TerminalDemo from '../components/TerminalDemo'
 import { sapphire } from '../theme'
+import { getLevelColor } from '../utils/maturityColors'
 
 /* ── Content injection helper ─────────────────────────────────── */
 
@@ -156,23 +157,6 @@ function getDemoConfig(slug: string): ContentInjection[] {
   }
 }
 
-function getSidebarDotColor(level: number, isDark: boolean) {
-  switch (level) {
-    case 0:
-      return isDark ? sapphire.gray[400] : sapphire.gray[500]
-    case 2:
-      return isDark ? sapphire.green[400] : sapphire.green[500]
-    case 3:
-      return isDark ? sapphire.blue[400] : sapphire.blue[500]
-    case 4:
-      return isDark ? sapphire.yellow[300] : sapphire.yellow[500]
-    case 5:
-      return isDark ? sapphire.gold[3] : sapphire.gold[3]
-    default:
-      return isDark ? sapphire.gray[400] : sapphire.gray[500]
-  }
-}
-
 export default function OnboardingViewPage() {
   const { slug } = useParams<{ slug: string }>()
   const theme = useTheme()
@@ -275,7 +259,7 @@ export default function OnboardingViewPage() {
                   width: 8,
                   height: 8,
                   borderRadius: '50%',
-                  bgcolor: getSidebarDotColor(g.maturityLevel, isDark),
+                  bgcolor: getLevelColor(g.maturityLevel, isDark),
                   flexShrink: 0,
                 }}
               />

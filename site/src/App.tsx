@@ -9,6 +9,7 @@ const DocsPage = lazy(() => import('./pages/DocsPage'))
 const DocViewPage = lazy(() => import('./pages/DocViewPage'))
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'))
 const OnboardingViewPage = lazy(() => import('./pages/OnboardingViewPage'))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 function Loading() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="docs/:slug" element={<DocViewPage />} />
             <Route path="onboarding" element={<OnboardingPage />} />
             <Route path="onboarding/:slug" element={<OnboardingViewPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
       </Suspense>

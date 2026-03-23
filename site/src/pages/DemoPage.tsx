@@ -932,6 +932,7 @@ export default function DemoPage() {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
                 {results.gateResults.map((g) => {
                   const scored = scores[g.criterionId] !== null
+                  const chipProps = getGateChipProps(g.severity, isDark)
                   return (
                     <Box
                       key={g.criterionId}
@@ -986,13 +987,8 @@ export default function DemoPage() {
                           height: 16,
                           fontSize: '0.62rem',
                           fontWeight: 500,
-                          ...(() => {
-                            const p = getGateChipProps(
-                              g.severity as GateSeverity,
-                              isDark,
-                            )
-                            return { bgcolor: p.bg, color: p.color }
-                          })(),
+                          bgcolor: chipProps.bg,
+                          color: chipProps.color,
                         }}
                       />
                       {scored && !g.passed && (

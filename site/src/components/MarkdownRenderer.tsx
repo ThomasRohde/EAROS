@@ -72,7 +72,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
             }
             return <a href={href} {...props}>{children}</a>
           },
-          img({ src, alt, ...props }: any) {
+          img({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) {
             if (src && !src.startsWith('http')) {
               // Resolve paths relative to the base URL for GitHub Pages
               const base = import.meta.env.BASE_URL

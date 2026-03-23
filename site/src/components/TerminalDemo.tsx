@@ -1,5 +1,4 @@
 import { useRef, useEffect } from 'react'
-// @ts-expect-error — termynal has no type declarations
 import Termynal from 'termynal'
 import '../../node_modules/termynal/dist/style.css'
 import './terminalDemo.css'
