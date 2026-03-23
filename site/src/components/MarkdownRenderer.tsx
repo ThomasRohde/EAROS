@@ -1,5 +1,6 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import remarkSmartypants from 'remark-smartypants'
 import rehypeHighlight from 'rehype-highlight'
 import { Box, useTheme } from '@mui/material'
 import { Link } from 'react-router-dom'
@@ -45,7 +46,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
     <Box className="markdown-body" data-theme={theme.palette.mode}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkSmartypants]}
         rehypePlugins={[rehypeHighlight]}
         components={{
           a({ href, children, ...props }) {
