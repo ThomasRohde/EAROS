@@ -29,21 +29,18 @@ Override download URLs with environment variables if needed:
 
 ## What `earos init` Creates
 
-```
-my-architecture/
-├── core/                    Core meta-rubric (universal foundation, 9 dimensions)
-├── profiles/                Artifact-specific profiles (5 bundled: solution-architecture,
-│                            reference-architecture, adr, capability-map, roadmap)
-├── overlays/                Cross-cutting overlays (3 bundled: security, data-governance,
-│                            regulatory)
-├── standard/schemas/        JSON schemas for rubrics, evaluations, and artifacts
-├── templates/               Blank scaffolds for new profiles and evaluations
-├── evaluations/             Your evaluation records go here
-├── calibration/             Calibration artifacts and results
-├── .agents/skills/          10 EaROS skills for any AI coding agent
-├── earos.manifest.yaml      Single source of truth — inventory of all rubric files
-└── AGENTS.md                Project guide for AI agents (agent-agnostic)
-```
+| Path | Purpose |
+|------|---------|
+| `core/` | Core meta-rubric — universal foundation, 9 dimensions |
+| `profiles/` | Artifact-specific profiles (5 bundled: solution-architecture, reference-architecture, adr, capability-map, roadmap) |
+| `overlays/` | Cross-cutting overlays (3 bundled: security, data-governance, regulatory) |
+| `standard/schemas/` | JSON schemas for rubrics, evaluations, and artifacts |
+| `templates/` | Blank scaffolds for new profiles and evaluations |
+| `evaluations/` | Your evaluation records go here |
+| `calibration/` | Calibration artifacts and results |
+| `.agents/skills/` | 10 EaROS skills for any AI coding agent |
+| `earos.manifest.yaml` | Single source of truth — inventory of all rubric files |
+| `AGENTS.md` | Project guide for AI agents (agent-agnostic) |
 
 The workspace is **agent-agnostic** — the `.agents/skills/` directory works with any AI coding agent that reads skill files (Claude Code, Cursor, Copilot Workspace, and others).
 
@@ -116,19 +113,11 @@ See the [EaROS repository](https://github.com/ThomasRohde/EAROS) for full skill 
 
 EaROS uses a **three-layer model**:
 
-```
-┌─────────────────────────────────────────────────────┐
-│  OVERLAYS  — cross-cutting concerns                 │
-│  security · data-governance · regulatory            │
-├─────────────────────────────────────────────────────┤
-│  PROFILES  — artifact-specific extensions           │
-│  solution-architecture · reference-architecture     │
-│  adr · capability-map · roadmap                     │
-├─────────────────────────────────────────────────────┤
-│  CORE  — universal foundation (always applied)      │
-│  9 dimensions · 10 criteria                         │
-└─────────────────────────────────────────────────────┘
-```
+| Layer | Purpose | Examples |
+|-------|---------|---------|
+| **Overlays** | Cross-cutting concerns | security, data-governance, regulatory |
+| **Profiles** | Artifact-specific extensions | solution-architecture, reference-architecture, adr, capability-map, roadmap |
+| **Core** | Universal foundation — always applied | 9 dimensions, 10 criteria |
 
 **Scoring** uses a 0–4 ordinal scale (0 = Absent → 4 = Strong) with explicit gate types that prevent weak scores from being hidden by weighted averages:
 
