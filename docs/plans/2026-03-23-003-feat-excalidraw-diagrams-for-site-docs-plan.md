@@ -1,7 +1,7 @@
 ---
 title: "Add Excalidraw diagrams to site documentation"
 type: feat
-status: active
+status: tier1-complete
 date: 2026-03-23
 ---
 
