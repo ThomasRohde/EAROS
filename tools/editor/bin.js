@@ -119,7 +119,11 @@ function findEvaluationFiles(baseDir, prefix) {
 
 // ─── CLI dispatch ──────────────────────────────────────────────────────────────
 
-if (args[0] === '--help' || args[0] === '-h') {
+if (args[0] === '--version' || args[0] === '-v' || args[0] === '-V') {
+  const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8'))
+  console.log(pkg.version)
+  process.exit(0)
+} else if (args[0] === '--help' || args[0] === '-h') {
   console.log(`earos — EaROS editor and CLI
 
 Usage:
@@ -134,6 +138,8 @@ Usage:
   earos manifest check [--json]     Verify manifest matches filesystem
   earos manifest list [--json]      List manifest contents
   earos dev                         Start Vite dev server (development only)
+
+  earos --version                  Show version number
 
   Environment: EAROS_HOST=0.0.0.0 earos   Bind to all interfaces (default: 127.0.0.1)`)
   process.exit(0)
