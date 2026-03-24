@@ -8,8 +8,10 @@ import {
   DeferredCategorizationRenderer,
   deferredCategorizationTester,
 } from './DeferredCategorizationRenderer'
+import { LabeledArrayRenderer, labeledArrayTester } from './LabeledArrayRenderer'
 
 export const customRenderers = [
+  { tester: labeledArrayTester, renderer: LabeledArrayRenderer },
   { tester: deferredCategorizationTester, renderer: DeferredCategorizationRenderer },
   { tester: mermaidTester, renderer: MermaidRenderer },
   { tester: proseTester, renderer: ProseRenderer },
