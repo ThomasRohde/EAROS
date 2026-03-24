@@ -9,8 +9,10 @@ import {
   deferredCategorizationTester,
 } from './DeferredCategorizationRenderer'
 import { LabeledArrayRenderer, labeledArrayTester } from './LabeledArrayRenderer'
+import { InheritsRenderer, inheritsTester } from './InheritsRenderer'
 
 export const customRenderers = [
+  { tester: inheritsTester, renderer: InheritsRenderer },
   { tester: labeledArrayTester, renderer: LabeledArrayRenderer },
   { tester: deferredCategorizationTester, renderer: DeferredCategorizationRenderer },
   { tester: mermaidTester, renderer: MermaidRenderer },

@@ -619,6 +619,7 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
             data={data}
             renderers={allRenderers}
             cells={materialCells}
+            config={{ manifest }}
             onChange={({ data: d }) => { if (d !== undefined) setData(d) }}
           />
         </Paper>
