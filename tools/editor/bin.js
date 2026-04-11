@@ -1,4 +1,13 @@
 #!/usr/bin/env node
+
+// Suppress harmless Node.js v25+ localStorage warning triggered by the docx package
+// (it accesses localStorage at import time but doesn't actually need it)
+const _origEmitWarning = process.emitWarning
+process.emitWarning = (warning, ...args) => {
+  if (typeof warning === 'string' && warning.includes('--localstorage-file')) return
+  _origEmitWarning.call(process, warning, ...args)
+}
+
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
