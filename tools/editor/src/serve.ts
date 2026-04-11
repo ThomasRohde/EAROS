@@ -32,22 +32,35 @@ function safeRepoPath(repoRoot: string, rawPath: string): string | null {
   return abs
 }
 
-function findAvailablePort(preferred: number): Promise<number> {
+function tryBind(port: number, host: string): Promise<number | null> {
   return new Promise((resolvePort) => {
     const probe = createServer()
-    probe.listen(preferred, () => {
-      const port = (probe.address() as AddressInfo).port
-      probe.close(() => resolvePort(port))
-    })
-    probe.on('error', () => {
-      // Port in use — let OS assign a random one
-      const fallback = createServer()
-      fallback.listen(0, () => {
-        const port = (fallback.address() as AddressInfo).port
-        fallback.close(() => resolvePort(port))
-      })
+    const onError = () => {
+      probe.removeAllListeners()
+      resolvePort(null)
+    }
+    probe.once('error', onError)
+    probe.listen(port, host, () => {
+      const actual = (probe.address() as AddressInfo).port
+      probe.removeListener('error', onError)
+      probe.close(() => resolvePort(actual))
     })
   })
+}
+
+async function findAvailablePort(preferred: number, host: string): Promise<number> {
+  // Try the preferred port, then sequentially scan the next 9 ports.
+  // Probe against the same host we will actually bind to, otherwise
+  // a 0.0.0.0 probe can report "free" while 127.0.0.1 is taken (and vice versa).
+  for (let offset = 0; offset < 10; offset++) {
+    const port = preferred + offset
+    const bound = await tryBind(port, host)
+    if (bound !== null) return bound
+  }
+  // All nearby ports busy — let the OS assign one.
+  const random = await tryBind(0, host)
+  if (random !== null) return random
+  throw new Error(`Could not bind to any port near ${preferred} on ${host}`)
 }
 
 let evalCache: { files: Array<{ path: string; name: string }>; ts: number } | null = null
@@ -259,9 +272,12 @@ export async function startServer(fileArg?: string): Promise<void> {
     res.sendFile(resolve(distDir, 'index.html'))
   })
 
-  const port = await findAvailablePort(process.env.PORT ? parseInt(process.env.PORT, 10) : 3000)
-
+  const preferredPort = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000
   const host = process.env.EAROS_HOST ?? '127.0.0.1'
+  const port = await findAvailablePort(preferredPort, host)
+  if (port !== preferredPort) {
+    console.log(`Port ${preferredPort} in use — using ${port} instead`)
+  }
   app.listen(port, host, () => {
     const url = fileArg
       ? `http://localhost:${port}?file=${encodeURIComponent(fileArg)}`
