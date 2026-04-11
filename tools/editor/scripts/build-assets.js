@@ -236,7 +236,9 @@ structural_validation
 │   └── schemas/                 JSON Schemas for validation
 │       ├── rubric.schema.json
 │       ├── evaluation.schema.json
-│       └── artifact.schema.json
+│       ├── reference-architecture.artifact.schema.json  (+ .uischema.json)
+│       ├── solution-architecture.artifact.schema.json   (+ .uischema.json)
+│       └── adr.artifact.schema.json                     (+ .uischema.json)
 ├── templates/                   Blank templates
 ├── examples/                    Worked evaluation examples
 ├── docs/                        Documentation (getting-started, profile guide)

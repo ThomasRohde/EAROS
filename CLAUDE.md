@@ -1,673 +1,162 @@
-# CLAUDE.md — EAROS Project Guide
+# CLAUDE.md
 
-**Enterprise Architecture Rubric Operational Standard**
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-This file tells Claude how to work effectively in this project.
+## Project
 
-> **Greenfield project.** There are no published prior versions. Do not worry about backward compatibility — optimize for clarity and consistency over preserving legacy conventions.
+**EaROS** — Enterprise Architecture Rubric Operational Standard. A greenfield framework for evaluating architecture artifacts (solution designs, ADRs, reference architectures, capability maps, roadmaps) through governed, machine-readable rubrics.
 
----
+- **Greenfield.** No published prior versions — optimize for clarity over backward compatibility.
+- **Spelling.** Write **EaROS** in all user-facing content (docs, READMEs, site, editor). Lowercase `earos` is fine for code, package names, filenames, and CLI identifiers.
+- **External framing.** Present as "the standard" — no version numbers in public-facing content.
+- **Full standard.** See `standard/EAROS.md` for the canonical specification and `README.md` for the public overview.
 
-## 1. Project Overview
-
-EAROS is a structured, extensible framework for evaluating enterprise architecture artifacts. It makes architecture review consistent, explainable, and automatable — for both human reviewers and AI agents.
-
-**The core problem it solves:** Architecture artifacts (solution designs, ADRs, capability maps, reference architectures, roadmaps) are evaluated constantly but rarely consistently. Different reviewers apply different mental models; AI assessments hallucinate quality. EAROS codifies evaluation criteria into governed, machine-readable rubrics with precise level descriptors, mandatory evidence requirements, and unambiguous pass/fail gates.
-
-**Analogy:** EAROS is to architecture review what a marking rubric is to an exam — criteria explicit, scoring reproducible, feedback actionable.
-
-### The Three-Layer Model
+## Three-Layer Model
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│  OVERLAYS  (cross-cutting concerns)                      │
-│  security · data-governance · regulatory                 │
-├──────────────────────────────────────────────────────────┤
-│  PROFILES  (artifact-specific extensions)                │
-│  solution-architecture · reference-architecture · adr    │
-│  capability-map · roadmap                                │
-├──────────────────────────────────────────────────────────┤
-│  CORE  (universal foundation — all artifacts)            │
-│  core-meta-rubric.yaml  (EAROS-CORE-002)             │
-│  9 dimensions · 0–4 ordinal scale · gate model          │
-└──────────────────────────────────────────────────────────┘
+OVERLAYS  (cross-cutting: security, data-governance, regulatory)  ← append_to_base_rubric
+PROFILES  (per artifact_type — inherit: [EAROS-CORE-002])
+CORE      (core/core-meta-rubric.yaml — EAROS-CORE-002, always applied)
 ```
 
-- **Core** (`core/core-meta-rubric.yaml`, `rubric_id: EAROS-CORE-002`) defines 9 universal dimensions with 10 criteria that apply to every architecture artifact. Always evaluated.
-- **Profiles** (`profiles/`) extend the core for specific artifact types (e.g., reference-architecture adds 11 criteria across 6 dimensions). Each profile `inherits: [EAROS-CORE-002]`.
-- **Overlays** (`overlays/`) inject cross-cutting concerns (security, data governance, regulatory) on top of any core+profile combination. Applied by context, not by artifact type.
-
-One global rubric is too generic; fully bespoke rubrics are ungovernable. This layered model is the balance.
-
----
-
-## 2. Key Concepts
-
-For definitions of all technical terms used in EAROS, see `docs/terminology.md`.
-
-### 2.1 Scoring Model — 0–4 Ordinal + N/A
-
-| Score | Label | Meaning |
-|-------|-------|---------|
-| 4 | Strong | Fully addressed, well evidenced, internally consistent, decision-ready |
-| 3 | Good | Clearly addressed with adequate evidence and only minor gaps |
-| 2 | Partial | Explicitly addressed but coverage incomplete, inconsistent, or weakly evidenced |
-| 1 | Weak | Acknowledged or implied, but inadequate for decision support |
-| 0 | Absent | No meaningful evidence, or evidence directly contradicts the criterion |
-| N/A | Not applicable | Criterion genuinely does not apply in this scope/context |
-
-The 0–4 scale is intentional. A 1–10 scale creates false precision and lowers calibration quality. For pure agent evaluation, an optional 0–3 collapse is permitted but must be declared in the metadata.
-
-**N/A policy:** Exclude N/A criteria from the denominator. Every N/A must be justified in the narrative.
-
-**Confidence policy:** Confidence (`high` / `medium` / `low`) is reported separately from the score. It must NOT mathematically modify the score. These are two different things.
-
-### 2.2 Gate Types
-
-Gates prevent bad scores being hidden by weighted averages.
-
-| Gate Type | Effect |
-|-----------|--------|
-| `none` | Contributes to score only; no gate logic |
-| `advisory` | Weak performance triggers a recommendation |
-| `major` | Significant weakness may cap the status (e.g., cannot pass above `conditional_pass`) |
-| `critical` | Failure blocks pass status entirely; triggers `reject` regardless of average |
-
-Gate fields in YAML:
-```yaml
-gate:
-  enabled: true
-  severity: critical          # none | advisory | major | critical
-  failure_effect: reject when mandatory control compliance cannot be determined
-```
-
-Or simply `gate: false` for no gate.
-
-### 2.3 Status Model
-
-Evaluate gates first, then compute the weighted average.
-
-| Status | Threshold |
-|--------|-----------|
-| **Pass** | No critical gate failure + overall ≥ 3.2 + no dimension < 2.0 |
-| **Conditional Pass** | No critical gate failure + overall 2.4–3.19 (weaknesses containable with named actions) |
-| **Rework Required** | Overall < 2.4, or repeated weak dimensions, or insufficient evidence |
-| **Reject** | Any critical gate failure, or mandatory control breach |
-| **Not Reviewable** | Evidence too incomplete to score responsibly; core gate criteria unresolvable |
-
-### 2.4 Evidence Classes
-
-Every score must cite evidence. Reviewers (human or agent) must classify the evidence type:
-
-| Class | Meaning |
-|-------|---------|
-| `observed` | Directly supported by a quote or excerpt from the artifact |
-| `inferred` | Reasonable interpretation not directly stated |
-| `external` | Judgment based on a standard, policy, or source outside the artifact |
-
-This separation is a design principle, not optional annotation. Observed > inferred > external in credibility.
-
-### 2.5 The Three Evaluation Types (Never Collapse)
-
-The standard distinguishes three distinct judgment types that must not be merged into a single score:
-
-1. **Artifact quality** — Is the artifact complete, coherent, clear, traceable, and fit for its stated purpose?
-2. **Architectural fitness** — Does the described architecture appear sound relative to business drivers, quality attributes, risks, and tradeoffs?
-3. **Governance fit** — Does the artifact/design comply with mandatory principles, standards, controls, and review expectations?
-
-These are related but distinct. A beautiful, complete artifact can describe an architecturally unsound system.
-
-### 2.6 DAG Evaluation Flow (Agent Mode)
-
-Agents must follow this 8-step directed acyclic graph:
+## Repository Layout
 
 ```
-structural_validation
-    → content_extraction
-        → criterion_scoring
-            → cross_reference_validation
-                → dimension_aggregation
-                    → challenge_pass
-                        → calibration
-                            → status_determination
+standard/EAROS.md            Canonical standard (read first for deep understanding)
+standard/schemas/            JSON Schemas: rubric, evaluation, and per-type artifact schemas
+core/core-meta-rubric.yaml   EAROS-CORE-002 — 9 dimensions, 10 criteria
+profiles/                    Per artifact_type (inherit core)
+overlays/                    Cross-cutting (append)
+templates/                   Authoring scaffolds (new-profile, evaluation-record, adr, solution-architecture)
+examples/                    Worked artifacts + evaluations (see below for gold-standard)
+calibration/gold-set/        Reference artifacts for inter-rater calibration
+docs/terminology.md          Authoritative glossary (scoring model, gates, RULERS, DAG, kappa, etc.)
+docs/profile-authoring-guide.md  Step-by-step profile creation
+tools/editor/                @trohde/earos CLI + React editor (JSON Forms based)
+earos.manifest.yaml          Auto-generated inventory of all rubric files
 ```
 
-The rubric is locked during evaluation (`rubric_locked: true`). Calibration uses the RULERS Wasserstein-based method (`calibration_method: rulers_wasserstein`).
-
-**RULERS protocol** (evidence-anchored scoring): For each criterion, extract a direct quote or reference from the artifact before assigning a score. If no evidence can be found, record N/A and explain — never score from impression alone.
-
----
-
-## 3. Project Structure
-
-```
-EAROS/
-├── earos.manifest.yaml          Inventory of all EAROS rubric files (auto-generated; keep up to date)
-│
-├── standard/
-│   ├── EAROS.md                  Canonical standard (read this first for deep understanding)
-│   ├── EAROS_Standard_v2.docx       Word version
-│   └── schemas/
-│       ├── rubric.schema.json      JSON Schema for all rubric/profile/overlay YAML files
-│       ├── evaluation.schema.json  JSON Schema for evaluation record output files
-│       ├── artifact.schema.json    JSON Schema for architecture artifact documents
-│       └── artifact.uischema.json  UI Schema for artifact editor form layout (7 tabs)
-│
-├── core/
-│   └── core-meta-rubric.yaml    The universal foundation (EAROS-CORE-002)
-│                                   9 dimensions, 10 criteria, always applied
-│
-├── profiles/                        Artifact-type extensions (inherit core)
-│   ├── solution-architecture.yaml
-│   ├── reference-architecture.yaml   ← First full profile; model for others
-│   ├── adr.yaml
-│   ├── capability-map.yaml
-│   └── roadmap.yaml
-│
-├── overlays/                        Cross-cutting injectors (applied by context)
-│   ├── security.yaml            (EAROS-OVR-SEC-001)
-│   ├── data-governance.yaml
-│   └── regulatory.yaml
-│
-├── templates/
-│   ├── new-profile.template.yaml   Scaffold for new profiles
-│   └── evaluation-record.template.yaml  Blank evaluation record
-│
-├── tools/scoring-sheets/
-│   └── EAROS_Scoring_Sheet_v2.xlsx         General-purpose manual scoring
-│
-├── examples/
-│   └── example-solution-architecture.evaluation.yaml   Worked evaluation record
-│
-├── calibration/
-│   ├── gold-set/       Reference artifacts with known scores (calibrate against these)
-│   └── results/        Calibration run outputs
-│
-├── docs/
-│   ├── getting-started.md
-│   └── profile-authoring-guide.md   How to create profiles
-│
-└── research/           Research underpinning the standard (63 sources)
-```
-
----
-
-## 4. Working with Rubric YAML Files
-
-### Structure: Core Meta-Rubric and Profiles
-
-```yaml
-rubric_id: EAROS-PROF-XXX         # Unique ID
-version: 1.0.0                    # Semver
-kind: profile                     # core_rubric | profile | overlay
-title: "..."
-status: draft                     # draft | candidate | approved | deprecated
-effective_date: "YYYY-MM-DD"
-owner: enterprise-architecture
-artifact_type: reference_architecture
-inherits:
-  - EAROS-CORE-002                # Profiles always inherit the core
-design_method: pattern_library    # See Section 5 below
-
-dimensions:
-  - id: RA-D1
-    name: Architecture views and completeness
-    description: "..."
-    weight: 1.2                   # Relative weight for aggregation (default 1.0)
-    criteria:
-      - id: RA-VIEW-01
-        question: "Does the reference architecture include context, functional, deployment, and data flow views?"
-        description: "..."
-        metric_type: ordinal
-        scale: [0, 1, 2, 3, 4, "N/A"]
-        gate:
-          enabled: true
-          severity: major
-          failure_effect: Cannot pass if score < 2
-        required_evidence:
-          - context diagram (C4 Level 1 or equivalent)
-          - deployment diagram showing infrastructure topology
-        scoring_guide:
-          "0": Single diagram only, or no architectural views
-          "1": Two views present but incomplete
-          "2": Three views present, data flow narrative partial
-          "3": All four views present with adequate detail
-          "4": All four views, consistent, with security view and cross-references
-        anti_patterns:
-          - Single box-and-arrow diagram presented as complete architecture
-        examples:
-          good:
-            - "Section 3 provides C4 context diagram. Section 5 shows container decomposition..."
-          bad:
-            - "See architecture diagram on page 3."
-        decision_tree: >
-          Count distinct views: IF < 2 THEN score 0-1. IF 2-3 views THEN score 2.
-          IF 4+ views AND data flow narrative exists THEN score 3.
-          IF all views cross-referenced AND security view included THEN score 4.
-        remediation_hints:
-          - Add missing views using C4 model levels
-          - Add numbered data flow walkthrough
-
-scoring:
-  scale: 0-4 ordinal plus N/A
-  method: gates_first_then_weighted_average
-  thresholds:
-    pass: No critical gate failure, overall >= 3.2, and no dimension < 2.0
-    conditional_pass: No critical gate failure and overall 2.4-3.19
-    rework_required: Overall < 2.4
-    reject: Critical gate failure
-
-outputs:
-  require_evidence_refs: true
-  require_confidence: true
-  require_actions: true
-  require_evidence_class: true
-  require_evidence_anchors: true
-
-calibration:
-  required_before_production: true
-  minimum_examples: 3
-```
-
-### Overlay Structure
-
-Overlays use `kind: overlay` and `artifact_type: any`. Their `scoring.method` is `append_to_base_rubric` — they do not replace the base scoring; they add criteria on top. Overlays typically have at least one `critical` gate.
-
-### Schema Validation
-
-Four schemas live in `standard/schemas/`:
-
-| Schema | Purpose | Kind discriminator |
-|--------|---------|--------------------|
-| `rubric.schema.json` | **Data schema** — validates rubric definitions (core, profiles, overlays) | `kind: core_rubric`, `profile`, `overlay` |
-| `evaluation.schema.json` | **Data schema** — validates evaluation records | `kind: evaluation` |
-| `artifact.schema.json` | **Data schema** — validates architecture artifact documents | `kind: artifact` |
-| `artifact.uischema.json` | **UI schema** — controls how the artifact editor renders the form (7 tabs) | N/A (presentation only) |
-
-**Derivation chain:** Rubric → Artifact Schema → Artifact UI Schema → Template. The `artifact.schema.json` is derived directly from the `required_evidence` fields of the core meta-rubric and profiles. Each section in the artifact schema maps to the evidence a rubric criterion requires. When a profile adds criteria with new `required_evidence`, the corresponding artifact schema should be updated to add those sections. This chain means a well-completed artifact document will satisfy the evidence requirements for its rubric criteria.
-
-**Data Schema vs UI Schema:** JSON Forms (used by the EAROS editor) separates concerns into two schemas:
-- **Data Schema** (`artifact.schema.json`) — defines what data exists and its structure. Used for validation. Changing it changes the data model.
-- **UI Schema** (`artifact.uischema.json`) — defines how the data is presented in the editor form. Controls tab grouping, field ordering, and layout. Changing it only affects the editor experience, not the data.
-
-The artifact UI Schema splits the editor into 7 tabs: Overview & Metadata, Business Context, Architecture Views, Decisions & Crosscutting, Quality & Operations, Implementation, and Governance & Glossary. Without the UI Schema, JSON Forms would create only 2 tabs (one per top-level property: `metadata` and `sections`).
-
-This pattern should be replicated when rubric or evaluation editors need better tab layouts: create a `rubric.uischema.json` or `evaluation.uischema.json` to control the form layout.
-
-Rubric YAML files must validate against `rubric.schema.json`. Required top-level fields: `rubric_id`, `version`, `kind`, `title`, `artifact_type`, `dimensions`, `scoring`, `outputs`.
-
-Evaluation records must validate against `evaluation.schema.json`.
-
-Artifact documents must validate against `artifact.schema.json`.
-
----
-
-## 5. How to Create a New Profile
-
-### Step 1 — Qualify the need
-- The artifact type must recur enough to justify standardization.
-- The core meta-rubric alone must be insufficient for this artifact type.
-- Gather 3–5 representative real artifacts for calibration.
-
-### Step 2 — Choose a design method
-
-| Method | Best For |
-|--------|----------|
-| A: Decision-Centred | ADRs, investment reviews, exception requests |
-| B: Viewpoint-Centred | Capability maps, reference architectures |
-| C: Lifecycle-Centred | Transition designs, roadmaps, handover docs |
-| D: Risk-Centred | Security, regulatory, resilience architecture |
-| E: Pattern-Library | Recurring reference patterns, platform services |
-
-### Step 3 — Copy the template
-
-Start from `templates/new-profile.template.yaml`. Set:
-- `kind: profile`
-- `inherits: [EAROS-CORE-002]`
-- `design_method` from step 2
-- `rubric_id` using pattern `EAROS-<ARTIFACT>-<NNN>`
+## Per-Type Artifact Schemas (important convention)
 
-### Step 4 — Write up to 12 criteria
+Each profile has a **pair** of schemas under `standard/schemas/`:
 
-Rules:
-- Add **no more than 12 criteria** (the core already has 10; built-in profiles use 3–9)
-- Every criterion needs: `question`, `description`, `scoring_guide` (all 5 levels 0–4), `required_evidence`, `anti_patterns`, `examples.good`, `examples.bad`, `decision_tree`, `remediation_hints`
-- Assign each criterion to a dimension with an appropriate `weight`
-- Designate gate types deliberately — not every criterion needs a gate; over-gating creates false rejects
-- Include at least one `major` gate for the most critical dimension
+- `<artifact-type-kebab>.artifact.schema.json` — data schema (validation)
+- `<artifact-type-kebab>.artifact.uischema.json` — JSON Forms UI layout (tabs)
 
-### Step 5 — Calibrate before production
-1. Build a calibration pack: 1 strong, 1 weak, 1 ambiguous, 1 incomplete artifact
-2. Have 2+ reviewers score independently against the profile
-3. Compute Cohen's κ — target > 0.70 for well-defined criteria, > 0.50 for subjective ones
-4. Identify disagreements; resolve against the level descriptors
-5. Update `decision_tree` and `scoring_guide` where disagreements clustered
+Naming: filename prefix = profile's `artifact_type` value (e.g. `solution-architecture` ↔ `solution_architecture`).
 
-### Step 6 — Publish
-- Validate YAML against `standard/schemas/rubric.schema.json`
-- Add worked examples to `examples/`
-- Document in `CHANGELOG.md`
-- File naming: `<artifact-type>.v<major>.yaml`
+**Current pairs:** `reference-architecture` (7 tabs), `solution-architecture` (5 tabs), `adr` (2 tabs).
 
----
+**When adding a new profile, you must author a new pair AND update the resolver in all three places:**
+1. `tools/editor/src/utils/schemaLoader.ts` — `ARTIFACT_TYPE_TO_SCHEMA`
+2. `tools/editor/bin.js` — mirror of the same map (used by `earos validate`)
+3. `tools/editor/src/export-docx.ts` — mirror of the same map (+ `SECTION_ORDER_BY_TYPE`)
 
-## 6. How to Create a New Overlay
+After editing TS, recompile the Node-side bundle: `npx tsc -p tools/editor/tsconfig.server.json`.
 
-### Profile vs. Overlay — the distinction
+**Derivation chain:** rubric's `required_evidence` → artifact data schema → UI schema → template. A well-filled artifact satisfies the rubric's evidence requirements.
 
-| Use a **profile** when... | Use an **overlay** when... |
-|---------------------------|---------------------------|
-| The artifact type is distinct and recurring | The concern cuts across multiple artifact types |
-| Criteria only make sense for this artifact type | Criteria apply regardless of artifact type |
-| You extend the dimensional structure | You inject additional criteria into any rubric |
+## Canonical `artifact_type` Values
 
-### Overlay structure
+Use these **exact** strings in artifact YAML — the validator and editor reject aliases:
 
-```yaml
-kind: overlay
-artifact_type: any              # Not tied to a specific artifact type
-# No 'inherits' field — overlays don't inherit, they append
-scoring:
-  method: append_to_base_rubric  # Key difference from profiles
-```
+`reference_architecture` · `solution_architecture` · `architecture_decision_record` · `capability_map` · `roadmap`
 
-### When to apply an overlay
+Do **not** write `adr` as an `artifact_type` value — the canonical form is `architecture_decision_record`.
 
-Apply overlays based on context, not artifact type. Examples:
-- **Security overlay** whenever the design touches authentication, authorization, or personal data
-- **Data governance overlay** whenever the artifact describes data flows, retention, or classification
-- **Regulatory overlay** for artifacts in regulated domains (payments, healthcare, financial reporting)
+## Hard Rules (do not violate)
 
-Overlays are additive — they cannot remove or weaken gates from the base rubric. An overlay's `critical` gate adds to, not replaces, the base gate model.
+1. **Never collapse the three evaluation types.** Artifact quality, architectural fitness, and governance fit are distinct — never merged into one score.
+2. **Gates before averages.** Check gates first; a critical gate failure blocks a pass regardless of weighted average.
+3. **Evidence first (RULERS).** Every score cites a quote or reference. Classify as `observed` / `inferred` / `external`.
+4. **Confidence is separate from score.** Low confidence does not lower a score — it flags human review priority.
+5. **N/A requires justification.** Never used to dodge a hard criterion.
+6. **Rubrics are governed.** Scoring model and gate structure changes require a version bump. `rubric_locked: true` during evaluation.
+7. **Calibrate before production.** New profiles/overlays need ≥3 artifacts × 2+ reviewers, target Cohen's κ > 0.70.
+8. **No dimension-average premature collapse.** Pass requires overall ≥ 3.2 **and** no dimension < 2.0.
+9. **Agent evaluations must be auditable.** Records capture evidence anchors, evidence class, and confidence.
+10. **Machine-readable preferred.** YAML/JSON artifacts score more reliably than prose.
 
----
+For full definitions of scoring levels, gate types, status thresholds, and the 8-step DAG, read `docs/terminology.md` and `standard/EAROS.md` §7.
 
-## 7. How to Perform an Assessment
+## File Naming & YAML Style
 
-### Human Mode
+- **Kind is the discriminator**, not the filename. Version lives in the file (`version: 2.0.0`), never in the filename.
+- Rubrics: `<name>.yaml` · Evaluations: `<name>.evaluation.yaml` · Schemas: `<name>.schema.json`
+- Kebab-case, no spaces, two-space YAML indent, `>` for multi-line descriptions.
+- Numeric scoring keys quoted: `"0": "Absent"`.
+- Use `gate: false` (not `gate: {enabled: false}`) when there's no gate.
 
-1. Identify artifact type → select core + matching profile + applicable overlays
-2. Open `tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx`
-3. Score each criterion 0–4 using the `scoring_guide` level descriptors
-4. Record the evidence: quote or reference for each score (observed / inferred / external)
-5. Check gates — any critical gate failure → Reject immediately; do not compute average
-6. Compute weighted dimension average → apply status thresholds
-7. Record the evaluation in an output file conforming to `evaluation.schema.json`
+Every new criterion requires: `id`, `question`, `description`, `metric_type: ordinal`, `scale: [0,1,2,3,4,"N/A"]`, `gate`, `required_evidence`, `scoring_guide` (keys `"0"`–`"4"`), `anti_patterns`, `examples.good`, `examples.bad`, `decision_tree`, `remediation_hints`.
 
-### Agent Mode
+## Skills
 
-Minimal prompt pattern:
-```
-You are an architecture quality assessor. Apply the EAROS rubric defined in
-[rubric YAML] to the artifact below. For each criterion:
-  1. Extract the relevant evidence (direct quote or reference) — RULERS protocol
-  2. Score 0–4 against the level descriptors in scoring_guide
-  3. If you cannot find evidence, score N/A and explain why
-  4. Flag any gate criteria that fail
-  5. Classify evidence as observed / inferred / external
-  6. Report confidence (high/medium/low) separately from the score
-Produce output conforming to evaluation.schema.json.
-
-<artifact>
-[artifact content]
-</artifact>
-```
-
-Follow the DAG exactly:
-`structural_validation → content_extraction → criterion_scoring → cross_reference_validation → dimension_aggregation → challenge_pass → calibration → status_determination`
-
-Do not skip `challenge_pass` — this step has a second agent challenge the primary evaluator's scores.
-
-Calibrate against `calibration/gold-set/` before production use. Target κ > 0.70.
-
-### Hybrid Mode
-
-Human and agent evaluate independently, then reconcile. Disagreements of ≥ 2 points on any criterion must be resolved against the level descriptors before finalizing the record. The evaluation record captures both evaluators (`mode: human` and `mode: agent`).
-
----
-
-## 8. Conventions
-
-### File Naming
-
-The `kind` field is the universal type discriminator. Version is tracked inside the file (`version: 2.0.0`), not in the filename.
-
-| File type | Pattern | Example |
-|-----------|---------|---------|
-| Rubric definitions (core, profiles, overlays) | `<name>.yaml` | `reference-architecture.yaml` |
-| Evaluation records | `<name>.evaluation.yaml` | `payments-api.evaluation.yaml` |
-| Templates | `<name>.template.yaml` | `evaluation-record.template.yaml` |
-| JSON schemas | `<name>.schema.json` | `rubric.schema.json` |
-
-- Kebab-case throughout; no spaces in filenames
-- Version is tracked inside the file only (`version: 2.0.0`), never in the filename
-- The `kind` field distinguishes file purpose: `core_rubric`, `profile`, `overlay`, `evaluation`
-
-### Versioning (Semver)
-- `MAJOR` — breaking change to scoring model, gate structure, or status thresholds
-- `MINOR` — new criteria added, existing criteria improved
-- `PATCH` — documentation, examples, typo fixes
-
-The `rubric_locked: true` flag in `agent_evaluation` means an agent must not modify rubric criteria during evaluation. Changes require a version bump and governance.
-
-### YAML Style
-- Two-space indentation
-- String keys quoted when they are numeric: `"0": "Absent"`, `"4": "Strong"`
-- Multi-line descriptions use `>` block scalar
-- Lists of evidence items use `- item` format (one item per line)
-- `gate: false` (not `gate: {enabled: false}`) when no gate needed
-
-### Required Fields for Every New Criterion
-
-`id`, `question`, `description`, `metric_type: ordinal`, `scale: [0, 1, 2, 3, 4, "N/A"]`, `gate`, `required_evidence`, `scoring_guide` (keys `"0"` through `"4"`), `anti_patterns`, `examples.good`, `examples.bad`, `decision_tree`, `remediation_hints`
-
----
-
-## 9. Important Rules
-
-1. **Never collapse the three evaluation types.** Artifact quality, architectural fitness, and governance fit are distinct judgments. Never merge them into a single opaque score.
-
-2. **Gates before averages.** Always check gates before computing a weighted average. A single critical gate failure blocks a passing status — the outcome (`Reject` or `Not Reviewable`) depends on the criterion's `failure_effect`.
-
-3. **Evidence first.** Every score requires a cited excerpt or reference. "Evidence: section 3 states X" is valid. "The artifact seems to address this" is not. Use RULERS anchoring.
-
-4. **Confidence separate from score.** Reporting low confidence does not lower the score. Confidence informs how much weight a human reviewer places on the agent's output; it does not modify the numerical score.
-
-5. **N/A requires justification.** You cannot use N/A to avoid a hard criterion. The narrative must explain why the criterion genuinely does not apply.
-
-6. **Machine-readable formats preferred.** Artifacts in structured formats (YAML frontmatter, ArchiMate exchange, diagram-as-code) are assessed more reliably. Prefer structured output formats (YAML/JSON) for evaluation records.
-
-7. **Rubrics are governed assets.** Do not modify a rubric YAML's scoring model or gate structure without a version bump and owner approval. The rubric is locked during evaluation.
-
-8. **Calibrate before production.** Any new profile or overlay must be calibrated against at least 3 representative artifacts with 2+ reviewers before being used in a live governance process.
-
-9. **Do not average across dimensions prematurely.** A dimension score of 0 is not neutralized by a dimension score of 4. The status thresholds include a floor check: no dimension < 2.0 for a Pass status.
-
-10. **Agentic evaluations must be auditable.** The evaluation record must capture evidence anchors, evidence classes, and confidence so a human can inspect and override any agent judgment.
-
----
-
-## 10. The Reference Architecture Profile — Model for Other Profiles
-
-`profiles/reference-architecture.yaml` (`EAROS-REFARCH-001`) is the first full profile and serves as the reference implementation for how profiles should be built.
-
-**Why it is a good model:**
-- Uses `design_method: pattern_library` (Method E) — appropriate for recurring platform blueprints
-- Has 9 criteria across 6 profile-specific dimensions, combined with the 10 core criteria = 19 criteria total
-- Every criterion has all required fields including `examples.good`, `examples.bad`, and `decision_tree`
-- Gate types are carefully graduated: 4 `major` gates, no `critical` gates (critical gates reserved for compliance-level concerns)
-- Dimension weights are tuned: implementation actionability (RA-D4) and views (RA-D1) weighted at 1.2 to reflect their importance; reusability/evolution (RA-D6) at 0.8 as secondary
-- Calibration pack is specified explicitly: 1 strong, 1 weak, 1 ambiguous, 1 golden-path artifact
-
-**Gold-standard calibration example:** `examples/aws-event-driven-order-processing/` contains the EAROS calibration benchmark for reference architecture assessments:
-- `artifact.yaml` — A complete, approved reference architecture (Event-Driven Order Processing on AWS). Scores 3.73/4.0. Use as the "strong" artifact in calibration packs.
-- `evaluation.yaml` — Full 19-criterion EAROS evaluation with RULERS evidence anchors, evidence class, confidence, and challenger notes. All 8 DAG steps completed.
-- `report.md` — Human-readable assessment report with traffic-light dashboard, dimension table, and recommended actions.
-
-Before using EAROS-REFARCH-001 in a production governance process, evaluators must independently score `examples/aws-event-driven-order-processing/artifact.yaml` and achieve κ > 0.70 against the reference scores in `evaluation.yaml`. The two intentionally score-3 criteria (RA-VIEW-02 and RA-IMP-02) are calibration checkpoints — inflating these to 4 is a calibration failure.
-
-**Paired with artifact schemas:** `standard/schemas/artifact.schema.json` is derived from the rubric's `required_evidence` fields and defines the structure of a compliant reference architecture document. `standard/schemas/artifact.uischema.json` controls how JSON Forms renders that schema in the editor — splitting it into 7 tabs rather than a flat 2-tab layout. This pattern — rubric + data schema + UI schema — should be replicated for each new profile. When creating a new profile, update `artifact.schema.json` with any new required sections, then update `artifact.uischema.json` to add those sections to the appropriate tab.
-
-**Illustrative decision tree pattern** (from RA-VIEW-01):
-```
-Count distinct views:
-  IF < 2 THEN score 0-1
-  IF 2-3 views THEN score 2
-  IF 4+ views AND data flow narrative exists THEN score 3
-  IF all views cross-referenced AND security view included THEN score 4
-```
-This pattern — count observable features, branch on presence — is the right template for `decision_tree` fields throughout the framework.
-
----
-
-## 11. Agent Skills
-
-The `.claude/skills/` directory contains Claude Code skills for working with EAROS in this development repo. In scaffolded workspaces (`earos init`), skills live in `.agents/skills/` — an agent-agnostic convention readable by Cursor, Copilot, Windsurf, and other AI coding tools. Each skill lives in its own subdirectory with a `SKILL.md` file. Skills are auto-triggered when their description matches the user's request — no slash command needed.
-
-```
-.claude/skills/
-├── earos-assess/SKILL.md        Core assessment — runs the full 8-step DAG evaluation on any artifact
-├── earos-review/SKILL.md        Challenger — audits an existing evaluation record for over-scoring and unsupported claims
-├── earos-template-fill/SKILL.md Author guide — coaches artifact authors through writing assessment-ready documents
-├── earos-create/SKILL.md        Rubric creation — guided interview + YAML generation for profiles, overlays, and core rubrics
-├── earos-profile-author/SKILL.md Profile YAML authoring — technical reference for field structure and schema compliance
-├── earos-calibrate/SKILL.md     Calibration — runs calibration exercises and computes inter-rater reliability
-├── earos-report/SKILL.md        Reporting — generates executive reports from evaluation records
-├── earos-validate/SKILL.md      Health check — validates all YAML rubrics against schemas and checks consistency
-├── earos-remediate/SKILL.md     Remediation planner — generates prioritized improvement plans from evaluation records
-└── earos-artifact-gen/SKILL.md  Artifact generator — interviews architects and produces schema-compliant artifact YAML
-```
-
-### When to use which skill
+Triggered by description, no slash command needed. All skills read rubric YAML at runtime — do not embed rubric content in skill files.
 
 | Task | Skill |
 |------|-------|
-| Assess an architecture artifact | `earos-assess` |
-| Challenge or audit an existing evaluation | `earos-review` |
-| Help write an artifact that will pass EAROS | `earos-template-fill` |
-| Create a new architecture artifact through guided interview | `earos-artifact-gen` |
-| Create a new rubric from scratch (profile, overlay, or core) | `earos-create` |
-| Get YAML structure help after criteria are defined | `earos-profile-author` |
-| Calibrate a rubric against gold-standard examples | `earos-calibrate` |
-| Generate an executive report from evaluation(s) | `earos-report` |
-| Check the repo for schema errors and inconsistencies | `earos-validate` |
-| Get a prioritized fix list from an evaluation record | `earos-remediate` |
+| Assess an artifact | `earos-assess` |
+| Challenge an evaluation | `earos-review` |
+| Write a new artifact interactively | `earos-artifact-gen` |
+| Coach an author toward a passing artifact | `earos-template-fill` |
+| Create a new rubric from scratch | `earos-create` |
+| YAML-level profile authoring help | `earos-profile-author` |
+| Calibrate a rubric | `earos-calibrate` |
+| Generate executive report | `earos-report` |
+| Repo health check | `earos-validate` |
+| Remediation plan from an evaluation | `earos-remediate` |
 
-**Key design principle for all skills:** Every skill instructs Claude to read the actual YAML rubric files at runtime. The skills do not embed rubric content — they load it dynamically. This means skills automatically use the latest rubric version without needing updates.
+## Manifest
 
----
+`earos.manifest.yaml` is the authoritative rubric inventory. Keep it in sync after creating or deleting rubric files:
 
-## 12. Manifest (earos.manifest.yaml)
-
-`earos.manifest.yaml` (at the repo root) is the authoritative inventory of all EAROS rubric files. It lists every core rubric, profile, and overlay with their paths, rubric IDs, titles, artifact types, and statuses.
-
-**Purpose:**
-- Gives skills a single source of truth for discovering available profiles and overlays — no hardcoded paths
-- Powers the editor's file sidebar (browse and load rubrics directly)
-- Enables `earos-validate` to detect drift between the manifest and the filesystem
-
-**CLI commands** (from `tools/editor/`):
-```
-node bin.js manifest             # Regenerate manifest by scanning core/, profiles/, overlays/
-node bin.js manifest add <file>  # Add a single file to the manifest
-node bin.js manifest check       # Verify manifest matches filesystem; exits non-zero on drift
+```bash
+node tools/editor/bin.js manifest              # regenerate by scanning core/, profiles/, overlays/
+node tools/editor/bin.js manifest add <file>   # add a single new file
+node tools/editor/bin.js manifest check        # verify manifest matches filesystem (exit non-zero on drift)
 ```
 
-**Keeping it current:**
-- After creating a new rubric with `earos-create`: run `node bin.js manifest add <path>` (or manually add the entry)
-- After deleting a rubric: re-run `node bin.js manifest` to regenerate
-- `earos-validate` Check 8 reports any manifest-filesystem inconsistency as an ERROR
+`earos-validate` Check 8 also flags drift.
 
-**Skills that use the manifest:**
-- `earos-assess` — reads manifest first to discover available profiles and overlays
-- `earos-create` — updates manifest as the final step of rubric creation
-- `earos-validate` — Check 8 validates manifest-filesystem consistency
+## Reference Artifacts
 
----
+- **Reference architecture (gold-standard):** `examples/aws-event-driven-order-processing/` — artifact.yaml (3.73/4.0), evaluation.yaml (full 19-criterion DAG), report.md. Calibration target κ > 0.70; RA-VIEW-02 and RA-IMP-02 are intentionally scored 3 — inflating them is a calibration failure.
+- **Solution architecture:** `examples/example-solution-architecture/artifact.yaml`
+- **ADR:** `examples/example-adr/artifact.yaml`
+- **Reference profile (first full profile, model for others):** `profiles/reference-architecture.yaml` — uses `design_method: pattern_library`, 9 criteria across 6 profile dimensions.
 
-## 13. Key Terms (Glossary)
+## CLI Validation
 
-The full glossary is in [`docs/terminology.md`](docs/terminology.md). It covers statistical & calibration terms (Cohen's kappa, Wasserstein distance, IRR), EAROS-specific terms (gate, overlay, RULERS protocol, DAG evaluation flow), and architecture terms as used in EAROS (viewpoint, concern, quality attribute, ADR, golden path). Below are the most important terms for day-to-day work in this repository.
+```bash
+node tools/editor/bin.js validate <file>   # resolves schema by kind + artifact_type automatically
+```
 
-| Term | Definition |
-|------|------------|
-| **Core meta-rubric** | Universal foundation rubric (`EAROS-CORE-002`): 9 dimensions, 10 criteria, applied to every artifact |
-| **Profile** | Artifact-type extension of the core (additional criteria, typically 3–9). Declares `inherits: [EAROS-CORE-002]` |
-| **Overlay** | Cross-cutting concern extension (e.g. security). Applied by context, not artifact type. Uses `append_to_base_rubric` scoring |
-| **Gate** | Criterion-level control that blocks a passing status regardless of average. Types: `none`, `advisory`, `major`, `critical` |
-| **Evidence anchor** | Specific reference (section, page, diagram ID) in the artifact supporting a score. Required by RULERS protocol |
-| **Evidence class** | `observed` (directly stated), `inferred` (interpreted), or `external` (from outside the artifact) |
-| **RULERS protocol** | Rubric Unification, Locking, and Evidence-anchored Robust Scoring — prevents LLM scoring drift via locked rubrics + mandatory evidence citation |
-| **DAG evaluation flow** | 8-step evaluation sequence: structural validation → content extraction → criterion scoring → cross-reference validation → dimension aggregation → challenge pass → calibration → status determination |
-| **Challenge pass** | Step 6 of the DAG: evaluator challenges their own highest and lowest scores for weak evidence or over-scoring |
-| **Rubric locking** | Compiling rubrics into immutable specs before evaluation (`rubric_locked: true`). Changes require a version bump |
-| **Decision tree** | IF/THEN scoring logic per criterion. Helps evaluators and agents resolve ambiguous cases consistently |
-| **Cohen's kappa (κ)** | Inter-rater reliability measure. 0 = chance, 1 = perfect. EAROS target: κ > 0.70 (well-defined), > 0.50 (subjective) |
-| **Weighted kappa** | Kappa variant for ordinal scales — treats adjacent disagreements (2 vs 3) as less severe than distant ones (1 vs 4) |
-| **Wasserstein distance** | Metric used in RULERS calibration to align AI agent score distributions with human reviewer distributions |
-| **Quality attribute** | Measurable system characteristic (e.g. "99.95% availability", "P99 < 200ms"). Must be quantified, not adjectival |
-| **Fitness function** | Automated test/check that validates an architecture meets a quality attribute target. Used in CI/CD |
-| **ADR** | Architecture Decision Record — captures a decision with context, options, rationale, consequences, and revisit triggers |
-| **Golden path** | Opinionated, fully supported implementation path for a reference architecture pattern |
+## Publishing the CLI (`@trohde/earos`)
 
----
+When the user says "publish to npm":
 
-## 14. Publishing the CLI to npm
-
-The `@trohde/earos` CLI is published from `tools/editor/`. A GitHub Actions workflow (`.github/workflows/publish-npm.yml`) auto-publishes when the version in `tools/editor/package.json` changes on `master`.
-
-### When the user says "publish to npm"
-
-1. **Review all changes since the last publish** — run `git log` to see commits since the last `release:` commit
-2. **Choose the version bump** based on what changed:
-   - **patch** — bug fixes, documentation, typo fixes, dependency updates, minor UI tweaks
-   - **minor** — new features, new commands, new editor capabilities, new schema fields, new skills bundled in `assets/init/`
-   - **major** — breaking CLI changes (renamed commands, removed flags), breaking changes to `earos init` scaffold structure, incompatible schema changes
-3. **Bump, commit, and push:**
+1. `git log` — review commits since the last `release:` commit.
+2. Choose the bump:
+   - **patch** — bug fixes, docs, typo, dep updates, minor UI tweaks
+   - **minor** — new commands, new features, new schema fields, new bundled skills
+   - **major** — renamed/removed commands, breaking `earos init` scaffold changes, incompatible schema changes
+3. Bump + commit + push:
    ```bash
-   cd tools/editor && npm run version:patch  # or version:minor / version:major
+   cd tools/editor && npm run version:patch   # or :minor / :major
    cd ../..
    git add tools/editor/package.json
    git commit -m "release: v<NEW_VERSION>"
    git push origin master
    ```
-4. **Watch the workflow** — `gh run watch` on the triggered run to confirm publish succeeds
-5. **Report the result** — tell the user the new version and confirm it's live
+4. `gh run watch` to confirm CI publish.
+5. Report the new version.
 
-### Version scripts (in `tools/editor/`)
+GitHub Actions (`.github/workflows/publish-npm.yml`) auto-publishes when `tools/editor/package.json` version changes on `master`. `NPM_TOKEN` is a granular `@trohde` token with Bypass-2FA — rotate on expiry.
 
-| Script | Effect |
-|--------|--------|
-| `npm run version:patch` | Bump patch (1.0.1 → 1.0.2) |
-| `npm run version:minor` | Bump minor (1.0.2 → 1.1.0) |
-| `npm run version:major` | Bump major (1.1.0 → 2.0.0) |
-| `npm run release:patch` | Bump + publish locally (bypasses CI) |
-| `npm run release:minor` | Bump + publish locally (bypasses CI) |
-| `npm run release:major` | Bump + publish locally (bypasses CI) |
+`npm run release:*` (without `version:`) bumps + publishes locally, bypassing CI. Prefer the CI path unless asked otherwise.
 
-**CI token note:** The `NPM_TOKEN` GitHub secret holds a granular access token with "Bypass 2FA" enabled, scoped to `@trohde`. It expires periodically and must be rotated on npmjs.com → Access Tokens.
+## Tooling Notes
 
----
-
-## Quick Reference
-
-| Task | Where to start |
-|------|---------------|
-| Understand the full standard | `standard/EAROS.md` |
-| Score a reference architecture | `earos-assess` skill or `tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx` |
-| Score any other artifact | `earos-assess` skill or `tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx` |
-| Create a new rubric (profile, overlay, or core) | `earos-create` skill |
-| Get YAML authoring help for an existing rubric design | `earos-profile-author` skill or `templates/new-profile.template.yaml` + `docs/profile-authoring-guide.md` |
-| See a worked evaluation (solution architecture) | `examples/example-solution-architecture.evaluation.yaml` |
-| See a gold-standard reference architecture artifact | `examples/aws-event-driven-order-processing/artifact.yaml` |
-| See a gold-standard evaluation (calibration benchmark) | `examples/aws-event-driven-order-processing/evaluation.yaml` |
-| See a gold-standard assessment report | `examples/aws-event-driven-order-processing/report.md` |
-| Validate a rubric YAML | `earos-validate` skill or `standard/schemas/rubric.schema.json` |
-| Validate an evaluation record | `standard/schemas/evaluation.schema.json` |
-| Validate an artifact document | `standard/schemas/artifact.schema.json` |
-| Calibrate | `earos-calibrate` skill or `calibration/gold-set/` |
-| Generate an executive report | `earos-report` skill |
-| Regenerate the manifest | `node tools/editor/bin.js manifest` |
-| Add a new rubric to the manifest | `node tools/editor/bin.js manifest add <path>` |
-| Check manifest-filesystem consistency | `node tools/editor/bin.js manifest check` |
-| Publish CLI to npm | Say "publish to npm" — Claude chooses version bump, commits, pushes, CI publishes |
+- **Platform:** Windows 11, bash shell — use Unix paths (`/dev/null`, forward slashes). Editor server runs via `node tools/editor/bin.js` (not bare `node serve.js`).
+- **Rebuild editor assets** after changing `tools/editor/assets/init/` or schemas: `cd tools/editor && npm run build:assets`.
+- **Browser automation:** use `agent-browser` skill, not `playwright-cli`.

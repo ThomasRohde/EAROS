@@ -1,0 +1,380 @@
+kind: artifact
+artifact_type: solution_architecture
+
+metadata:
+  title: "Customer Onboarding Platform — Target Solution Architecture"
+  version: 1.0.0
+  status: candidate
+  owner: "Solution Architecture, Customer Domain"
+  author: "Alex Nguyen"
+  effective_date: "2026-04-01"
+  next_review_date: "2026-10-01"
+  last_updated: "2026-03-15"
+  purpose: >
+    Replace the legacy onboarding workflow with a cloud-native solution that
+    supports same-day account opening for retail customers while meeting EU
+    data residency and KYC obligations. This document supports the April 2026
+    Architecture Board review.
+  decision_context: >
+    Programme: Retail Customer Experience Uplift (2026). Delivery milestone:
+    pilot launch in Q3 2026 for the Nordics market, full rollout by Q1 2027.
+  stakeholders:
+    - role: Product Owner
+      name: "Sara Lindqvist"
+      concerns: "Time-to-onboard and drop-off rate on mobile"
+    - role: Engineering Lead
+      name: "Tomás Rivera"
+      concerns: "Delivery feasibility and operational ownership"
+    - role: Security
+      name: "Security Architecture"
+      concerns: "KYC data handling, PII protection, regulatory posture"
+    - role: Data Protection Officer
+      name: "Nadia Bouchard"
+      concerns: "EU data residency and retention"
+  change_log:
+    - version: 1.0.0
+      date: "2026-03-15"
+      author: "Alex Nguyen"
+      changes:
+        - Initial draft prepared for Architecture Board candidate review
+
+sections:
+  scope:
+    statement: >
+      Target solution architecture for retail customer onboarding across
+      web and mobile channels, covering identity verification, KYC checks,
+      account creation, and initial product enrolment.
+    in_scope:
+      - Web onboarding journey (desktop and mobile-web)
+      - Native mobile onboarding (iOS, Android)
+      - KYC integration with the Group Identity Service
+      - Account creation in the Retail Core Banking platform
+      - Customer communications during onboarding (email, SMS, push)
+    out_of_scope:
+      - Corporate customer onboarding — covered by separate SME Onboarding Programme
+      - In-branch assisted onboarding — handled by the existing branch workflow
+      - Ongoing customer due diligence — owned by the Financial Crime platform
+    boundary_definition: >
+      The solution owns everything between the customer's first interaction
+      with an onboarding journey and the successful creation of an active
+      retail account. Upstream: marketing campaigns and product catalogues.
+      Downstream: Retail Core Banking, Communications Hub, Financial Crime monitoring.
+    assumptions:
+      - assumption: "Group Identity Service provides a stable KYC API for 24 months"
+        consequence_if_violated: "Rebuild KYC integration; adds ~6 weeks to delivery"
+      - assumption: "Nordics-only pilot scope — no cross-region data flows required"
+        consequence_if_violated: "Data residency design must be revisited to add EU-wide replication"
+
+  drivers_and_principles:
+    drivers:
+      - id: DR-01
+        description: "Reduce time-to-onboard from 3 business days to under 15 minutes"
+        architecture_response: >
+          Synchronous KYC with automatic fallback to manual review only for
+          edge cases. Implemented via the chosen option's 'fast path' KYC flow.
+      - id: DR-02
+        description: "Reduce mobile drop-off rate from 47% to below 20%"
+        architecture_response: >
+          Native mobile onboarding with resumable state (see operational_model
+          → Observability for measurement approach).
+      - id: DR-03
+        description: "Meet EU data residency — all PII must remain in eu-west-1"
+        architecture_response: >
+          All storage and processing deployed in eu-west-1 only; cross-region
+          replication explicitly disabled and policy-enforced.
+    principles:
+      - id: PR-01
+        name: "API-first"
+        how_applied: "All onboarding capabilities exposed as OpenAPI-documented services"
+      - id: PR-02
+        name: "Platform over bespoke"
+        how_applied: "Reuses Group Identity Service and Retail Core Banking APIs; no net-new identity stack"
+
+  solution_options:
+    decision_criteria:
+      - name: "Delivery speed"
+        weight: "30%"
+        description: "Time to pilot launch"
+      - name: "Total cost of ownership (3-year)"
+        weight: "25%"
+        description: "Build + run + licensing over a 3-year horizon"
+      - name: "Strategic fit"
+        weight: "25%"
+        description: "Alignment with platform strategy and API-first principle"
+      - name: "Vendor lock-in risk"
+        weight: "20%"
+        description: "Ease of migration away from the chosen provider"
+    options:
+      - id: A
+        name: "Buy — Vendor Onboarding SaaS (Fenergo)"
+        description: "Managed onboarding platform with pre-built KYC and UI flows"
+        pros:
+          - "Fastest time to pilot (~3 months)"
+          - "Vendor handles KYC integration and compliance updates"
+        cons:
+          - "Limited UI customisation blocks the mobile drop-off target"
+          - "EU data residency requires a specific vendor tier (+£240K/year)"
+        cost: "£1.2M over 3 years (licensing-heavy)"
+        criterion_scores:
+          - criterion: "Delivery speed"
+            score: "5"
+            notes: "Fastest to launch"
+          - criterion: "Total cost of ownership (3-year)"
+            score: "2"
+            notes: "Licensing dominates cost"
+        selected: false
+        rejection_reason: >
+          UI customisation limits block DR-02 (mobile drop-off target). Vendor
+          residency tier also exceeds the programme's 3-year TCO ceiling.
+      - id: B
+        name: "Build — Custom onboarding microservices on existing platform"
+        description: >
+          Net-new onboarding services built on the Retail Domain platform,
+          integrating with Group Identity Service for KYC and Retail Core
+          Banking for account creation.
+        pros:
+          - "Full control of the mobile UX — can hit DR-02 drop-off target"
+          - "EU residency controlled directly via platform policy"
+          - "Reuses Group Identity Service — no net-new KYC integration"
+          - "Aligns with platform strategy (PR-02)"
+        cons:
+          - "Longer time to pilot (~5 months)"
+          - "Team must build onboarding state machine in-house"
+        cost: "£780K over 3 years (build-heavy, low run cost)"
+        criterion_scores:
+          - criterion: "Delivery speed"
+            score: "3"
+            notes: "Acceptable — pilot still in Q3 2026"
+          - criterion: "Total cost of ownership (3-year)"
+            score: "4"
+            notes: "Lowest 3-year cost"
+          - criterion: "Strategic fit"
+            score: "5"
+            notes: "Platform-first, API-first"
+          - criterion: "Vendor lock-in risk"
+            score: "5"
+            notes: "No vendor dependency"
+        selected: true
+      - id: C
+        name: "Extend — Wrap legacy onboarding with a new mobile front-end"
+        description: >
+          Retain the legacy onboarding engine; build a modern mobile front-end
+          that calls its APIs.
+        pros:
+          - "Shortest time to pilot (~2 months)"
+          - "Lowest upfront cost"
+        cons:
+          - "Legacy engine cannot meet DR-01 (same-day onboarding) — still requires manual review for most cases"
+          - "Legacy engine's data model stores PII outside eu-west-1 — fails DR-03"
+        cost: "£420K upfront + high technical debt"
+        selected: false
+        rejection_reason: >
+          Legacy data model violates DR-03 (EU data residency). Eliminated
+          before scoring against other criteria.
+    chosen_option: B
+    rationale: >
+      Option B (Build) was selected because it is the only option that can
+      satisfy DR-01 (15-minute onboarding), DR-02 (mobile drop-off target),
+      and DR-03 (EU data residency) simultaneously. It also has the lowest
+      3-year TCO and the strongest strategic fit. Option A could meet DR-01
+      and DR-03 but not DR-02 within budget; Option C fails DR-03 outright.
+      The trade-off is a 5-month delivery timeline instead of 3 months — the
+      programme accepted this to stay within budget and hit the mobile
+      experience target.
+    tradeoffs_accepted:
+      - "Longer time to pilot (5 months) in exchange for hitting DR-02 and the 3-year TCO ceiling"
+      - "Team must own and evolve the onboarding state machine — offset by reuse of Group Identity Service"
+
+  quality_attributes:
+    - attribute: "Availability"
+      target: "99.9% monthly availability during business hours (06:00–22:00 CET)"
+      quality_scenario: >
+        Stimulus: any onboarding service instance fails. Source: instance crash
+        or AZ failure. Environment: production, business hours. Response:
+        traffic routed to healthy instances within 30s with no in-flight
+        session loss. Response measure: no user-visible downtime > 30 seconds.
+      architectural_mechanism: >
+        Kubernetes deployment across 3 AZs with HPA (target 70% CPU, min 3 /
+        max 20 pods). Onboarding state persisted to Postgres after every
+        step, enabling resume on session handover.
+      mechanism_location: "operational_model.deployment and operational_model.observability"
+      validation_strategy: "Weekly chaos-engineering run terminating random pods in staging; SLO burn-rate alert in production"
+      fitness_function: "Gremlin chaos test fails build if availability < 99.9% over 7 days"
+    - attribute: "Latency P99 (KYC call)"
+      target: "< 3 seconds end-to-end for the fast-path KYC flow"
+      architectural_mechanism: >
+        Synchronous call to Group Identity Service with 2.5s timeout and
+        automatic fallback to async manual review queue.
+      validation_strategy: "Gatling load test in staging at 500 concurrent onboardings per minute"
+      fitness_function: "Gatling stage in CI/CD fails if P99 > 3s"
+    - attribute: "Data residency"
+      target: "100% of PII stored in eu-west-1; zero cross-region replication"
+      architectural_mechanism: >
+        All RDS, S3, and DynamoDB resources provisioned via a Terraform
+        module that hard-codes region = eu-west-1; cross-region replication
+        is disabled at the resource level and enforced by AWS Config rule
+        PII-RESIDENCY-EU.
+      mechanism_location: "operational_model.deployment + governance.compliance_mapping"
+      validation_strategy: "Daily AWS Config scan; alerts on any non-compliant resource"
+      fitness_function: "Terraform plan fails if any resource type without region=eu-west-1"
+    - attribute: "Throughput"
+      target: "500 concurrent onboardings per minute sustained (Nordics peak)"
+      architectural_mechanism: "HPA-backed pods on Kubernetes; Postgres connection pool sized to 200"
+      validation_strategy: "Load test in staging prior to every major release"
+
+  operational_model:
+    operating_model: >
+      Jointly operated by the Customer Onboarding Squad (application layer,
+      business logic, state machine) and Platform Engineering (Kubernetes,
+      Postgres, networking). Squad is primary on-call for onboarding
+      business logic; Platform is primary on-call for infrastructure.
+    operational_owner: "Customer Onboarding Squad — Tomás Rivera, delivery lead"
+    deployment:
+      strategy: "Blue-green via GitHub Actions with manual approval gate on production"
+      environments:
+        - dev
+        - staging
+        - production
+      release_cadence: "Weekly release train on Wednesdays; emergency hotfix path within 2 hours"
+    observability:
+      metrics:
+        - "Onboarding funnel — completion rate per step"
+        - "Mobile drop-off rate per step"
+        - "KYC fast-path vs. manual-review ratio"
+        - "P99 end-to-end onboarding duration"
+        - "Postgres connection pool utilisation"
+      alerts: >
+        PagerDuty alerts for P99 > 4s (warning) and > 5s (critical). Funnel
+        drop-off alert if completion rate < 75% over 30 minutes.
+      dashboards: "Grafana dashboard at /ops/dashboards/customer-onboarding.json"
+      slos:
+        - name: "Onboarding completion rate"
+          target: "> 80% of started journeys complete"
+          measurement_window: "rolling 30 days"
+        - name: "Onboarding P99 duration"
+          target: "< 15 minutes end-to-end"
+          measurement_window: "rolling 30 days"
+    migration:
+      approach: >
+        Parallel-run: new platform launched in Nordics pilot in Q3 2026 while
+        legacy onboarding continues to serve all other markets. Pilot markets
+        graduate to new platform on a schedule driven by completion-rate and
+        error-rate gates.
+      phases:
+        - phase: "Phase 1 — Nordics pilot"
+          description: "New platform live for Sweden, Denmark, Norway, Finland. Legacy remains primary for all other markets."
+          target_date: "2026-09-01"
+        - phase: "Phase 2 — UK rollout"
+          description: "Gate: Nordics completion rate > 80% for 30 days. Legacy UK flow decommissioned."
+          target_date: "2026-12-01"
+        - phase: "Phase 3 — EU-wide rollout and legacy decommission"
+          description: "Gate: zero P1 incidents for 30 days in UK+Nordics. Full legacy decommission."
+          target_date: "2027-03-01"
+      rollback_plan: >
+        Feature flag disables new platform within 30 seconds and routes all
+        traffic back to the legacy flow. Legacy platform kept warm for 60
+        days post-cutover.
+      cutover_criteria: >
+        Completion rate > 80% AND P99 onboarding duration < 15 minutes AND
+        zero P1 incidents for 30 consecutive days.
+    dependencies:
+      - type: team
+        description: "Group Identity Service team — KYC API SLA commitment"
+        owner: "Group Identity Service"
+        status: available
+      - type: platform
+        description: "Kubernetes namespace and Postgres instance provisioning"
+        owner: "Platform Engineering"
+        status: in_progress
+      - type: regulatory
+        description: "DPO sign-off on EU data residency design"
+        owner: "Nadia Bouchard"
+        status: in_progress
+
+  raid:
+    risks:
+      - id: RISK-01
+        description: "Group Identity Service KYC API P99 exceeds 3s under load, breaking DR-01"
+        likelihood: medium
+        impact: high
+        mitigation: "Agreed joint load test with Group Identity team in May 2026; fallback to async queue if target missed"
+        owner: "Tomás Rivera"
+        residual_risk: "Low — fallback path maintains correctness if KYC is slow"
+      - id: RISK-02
+        description: "Mobile UX redesign does not hit 20% drop-off target"
+        likelihood: medium
+        impact: medium
+        mitigation: "UX research and usability tests in June 2026 before pilot launch"
+        owner: "Sara Lindqvist"
+        residual_risk: "Medium — accepted for pilot, will reassess"
+    assumptions:
+      - assumption: "Postgres connection pool of 200 is sufficient for Nordics peak load"
+        consequence_if_violated: "Horizontal read replica required; adds ~2 weeks to delivery"
+    constraints:
+      - type: regulatory
+        description: "GDPR and Nordics local data protection regulations"
+        implication: "EU-only data residency, strict retention limits"
+      - type: technical
+        description: "Must integrate with Retail Core Banking via existing REST API"
+        implication: "Account creation latency bounded by Core Banking API (~1.2s P99)"
+    tradeoffs:
+      - description: "Build time-to-market vs. control over mobile UX"
+        what_was_sacrificed: "2 extra months of delivery time compared to buying Fenergo"
+        what_was_gained: "Full control of mobile experience and 3-year TCO ceiling compliance"
+
+  governance:
+    applicable_standards:
+      - id: "GDPR"
+        name: "General Data Protection Regulation"
+        relevance: "All PII in onboarding flows"
+      - id: "ESS-01"
+        name: "Enterprise Security Standard — Data Residency"
+        relevance: "EU PII must remain in eu-west-1"
+      - id: "KYC-GRP-01"
+        name: "Group KYC Standard"
+        relevance: "Onboarding must use Group Identity Service for all KYC checks"
+    compliance_mapping:
+      - control: "ESS-01: PII must not leave eu-west-1"
+        design_element: "Terraform module hard-codes region; AWS Config rule PII-RESIDENCY-EU enforces at runtime"
+        evidence: "quality_attributes[Data residency].architectural_mechanism"
+        owner: "Platform Engineering"
+      - control: "KYC-GRP-01: All retail KYC via Group Identity Service"
+        design_element: "Onboarding fast-path calls Group Identity Service /kyc/verify; no alternative KYC provider"
+        evidence: "solution_options.options[B].description"
+        owner: "Customer Onboarding Squad"
+      - control: "GDPR Art. 5: Data minimisation"
+        design_element: "Onboarding state machine persists only fields required for the current step"
+        evidence: "operational_model.observability and internal state machine spec"
+        owner: "Customer Onboarding Squad"
+
+  decisions_and_actions:
+    governance_outcome: pending_review
+    decision_statement: >
+      Approve this target solution architecture for Customer Onboarding
+      Platform delivery, starting Q2 2026 with Nordics pilot in Q3 2026.
+    conditions:
+      - "DPO sign-off on EU data residency design by 2026-04-30"
+      - "Joint KYC load test with Group Identity team by 2026-05-31"
+    next_actions:
+      - id: ACT-01
+        description: "Obtain DPO sign-off on data residency design"
+        owner: "Nadia Bouchard"
+        target_date: "2026-04-30"
+      - id: ACT-02
+        description: "Run joint KYC load test with Group Identity team"
+        owner: "Tomás Rivera"
+        target_date: "2026-05-31"
+      - id: ACT-03
+        description: "Complete mobile UX research and usability testing"
+        owner: "Sara Lindqvist"
+        target_date: "2026-06-30"
+    review_triggers: >
+      Re-review if Group Identity Service KYC API changes materially, if
+      Nordics pilot completion rate < 70% after 30 days, or at the Q1 2027
+      Architecture Board checkpoint.
+
+  glossary:
+    - term: "Fast-path KYC"
+      definition: "Synchronous Group Identity Service verification that returns in < 3 seconds for the ~85% of customers whose profile matches automated checks."
+    - term: "Onboarding state machine"
+      definition: "The in-house service that tracks a customer's position in the onboarding journey and persists resumable state between steps."

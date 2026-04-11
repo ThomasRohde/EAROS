@@ -1,0 +1,308 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://earos.io/schemas/adr.artifact.schema.json",
+  "title": "EaROS Architecture Decision Record Artifact",
+  "description": "Schema for EaROS-governed Architecture Decision Records (ADRs). Derived from the required_evidence fields of the core meta-rubric (EAROS-CORE-002) and the ADR profile (EAROS-ADR-001). ADRs are intentionally narrow — a single, bounded, testable decision captured with enough context and consequences for future maintainers to interpret years later. The 'decision' section carries the substance; metadata stays deliberately slim. Section mapping: decision.statement → ADR-01 (decision clarity, major gate), decision.alternatives + decision.consequences + decision.reversibility → ADR-02 (option space and consequences), decision.context + decision.drivers + decision.review_triggers + decision.related_decisions → ADR-03 (durability and traceability).",
+  "type": "object",
+  "required": ["kind", "artifact_type", "metadata", "sections"],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "const": "artifact",
+      "title": "Document kind",
+      "description": "Fixed discriminator. Always 'artifact' for ADR documents."
+    },
+    "artifact_type": {
+      "type": "string",
+      "const": "architecture_decision_record",
+      "title": "Artifact type",
+      "description": "Locked to 'architecture_decision_record'. Binds this document to profile EAROS-ADR-001 alongside the core meta-rubric."
+    },
+    "metadata": {
+      "type": "object",
+      "title": "ADR metadata",
+      "description": "Slim administrative block. ADRs do not need extensive stakeholder lists or change logs — the decision content is the substance.",
+      "required": ["title", "id", "status", "date", "owner"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "ADR identifier",
+          "description": "Stable identifier for cross-referencing and supersession chains. Convention: 'ADR-NNN' zero-padded within a repository or domain. Example: 'ADR-042'.",
+          "pattern": "^[A-Za-z][A-Za-z0-9-]*$",
+          "examples": ["ADR-001", "ADR-042", "PAY-ADR-007"]
+        },
+        "title": {
+          "type": "string",
+          "title": "Title",
+          "description": "One-line title naming the decision. Convention: start with a verb. Example: 'Use PostgreSQL as the Order Service primary datastore'."
+        },
+        "status": {
+          "type": "string",
+          "title": "Status",
+          "description": "ADR lifecycle status. Required evidence for ADR-01. 'proposed' → decision under review. 'accepted' → in force. 'superseded' → replaced by a newer ADR (populate supersedes/superseded_by in related_decisions). 'deprecated' → no longer applicable but not superseded.",
+          "enum": ["proposed", "accepted", "superseded", "deprecated", "rejected"]
+        },
+        "date": {
+          "type": "string",
+          "format": "date",
+          "title": "Decision date",
+          "description": "Date the decision was reached (or proposed). Required evidence for ADR-01 score 4 (date + trigger context). Format: YYYY-MM-DD."
+        },
+        "author": {
+          "type": "string",
+          "title": "Author",
+          "description": "Individual who drafted this ADR."
+        },
+        "owner": {
+          "type": "string",
+          "title": "Owner",
+          "description": "Team or individual accountable for reviewing this decision when review_triggers fire. Required for core MNT-01."
+        },
+        "version": {
+          "type": "string",
+          "title": "Version",
+          "description": "Semantic version. Typically stays at 1.0.0 — material changes produce a new superseding ADR rather than a version bump.",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "tags": {
+          "type": "array",
+          "title": "Tags",
+          "description": "Optional classification tags. Example: ['database', 'persistence', 'order-service'].",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "sections": {
+      "type": "object",
+      "title": "ADR sections",
+      "description": "Substantive content of the ADR. The 'decision' section is required and carries the majority of the evidence.",
+      "required": ["decision"],
+      "properties": {
+        "decision": {
+          "type": "object",
+          "title": "The decision",
+          "description": "The core of the ADR. Must be a single, bounded, testable decision. Compound ADRs mixing multiple unrelated decisions are an anti-pattern — split them into separate records. Evidence for ADR-01 (major gate), ADR-02, and ADR-03.",
+          "required": ["statement", "scope", "context", "consequences"],
+          "properties": {
+            "statement": {
+              "type": "string",
+              "title": "Decision statement",
+              "description": "A single declarative sentence stating what was decided. Must be singular, bounded, and testable. Required evidence for ADR-01 (major gate) AND carries the core rubric STK-01 purpose-statement evidence — ADRs intentionally reuse the decision statement as the document's purpose rather than carrying a separate purpose field. Example: 'We will use PostgreSQL as the primary datastore for the Order Service, effective Q2 2026. This decision applies only to the Order Service domain.' ANTI-PATTERN: 'We will investigate microservices' (study plan, not a decision)."
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1,
+              "title": "Decision scope",
+              "description": "The specific service, domain, or timeframe to which this decision applies. Required for ADR-01 score ≥ 3 (major gate) to distinguish singular decisions from enterprise-wide mandates — an ADR without explicit scope cannot pass above conditional_pass, so the schema enforces it structurally."
+            },
+            "context": {
+              "type": "string",
+              "title": "Context",
+              "description": "The business or technical situation that made this decision necessary. Future readers must be able to understand what problem was being solved. Generic context ('things were not working well') scores 1. Required evidence for ADR-03 AND carries the core rubric STK-01 decision/usage-context evidence for ADR artifacts — stakeholder context lives inside the decision context rather than a separate stakeholders block, by design (see profile description at the top of this schema). Example: 'Q1 2026 cost optimisation initiative required switching from managed cloud database to self-managed.'"
+            },
+            "drivers": {
+              "type": "array",
+              "title": "Drivers",
+              "description": "Specific business or technical drivers that made this the right choice at the time. Required evidence for ADR-03. Example: 'Reduce infrastructure spend by 20% (OKR)'.",
+              "items": {
+                "type": "object",
+                "required": ["description"],
+                "properties": {
+                  "id": { "type": "string", "title": "Driver ID" },
+                  "description": {
+                    "type": "string",
+                    "title": "Description",
+                    "description": "Specific driver — not a generic 'improve quality'."
+                  }
+                }
+              }
+            },
+            "alternatives": {
+              "type": "array",
+              "title": "Alternatives considered",
+              "description": "Meaningful alternatives that were evaluated and rejected. Documenting only the chosen option is half an ADR — future maintainers must understand why other options were rejected. Required evidence for ADR-02. One-sentence mentions score 1 at most.",
+              "items": {
+                "type": "object",
+                "required": ["name", "rejection_reason"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "title": "Option ID",
+                    "description": "Short identifier. Example: 'A', 'B'."
+                  },
+                  "name": {
+                    "type": "string",
+                    "title": "Alternative name",
+                    "description": "Specific named alternative. Example: 'MongoDB', 'MySQL 8.0', 'DynamoDB'."
+                  },
+                  "description": {
+                    "type": "string",
+                    "title": "Description",
+                    "description": "What this alternative proposed in concrete terms."
+                  },
+                  "pros": {
+                    "type": "array",
+                    "title": "Pros",
+                    "items": { "type": "string" }
+                  },
+                  "cons": {
+                    "type": "array",
+                    "title": "Cons",
+                    "items": { "type": "string" }
+                  },
+                  "rejection_reason": {
+                    "type": "string",
+                    "title": "Rejection reason",
+                    "description": "Specific reason this alternative was rejected. Example: 'No ACID guarantees for financial data'. Required for ADR-02 score ≥ 3."
+                  }
+                }
+              }
+            },
+            "consequences": {
+              "type": "object",
+              "title": "Consequences",
+              "description": "Positive and negative consequences of the chosen option. Documenting only positive consequences is an anti-pattern — explicit trade-offs are required. Required evidence for ADR-02.",
+              "properties": {
+                "positive": {
+                  "type": "array",
+                  "title": "Positive consequences",
+                  "description": "Benefits gained by this decision.",
+                  "items": { "type": "string" }
+                },
+                "negative": {
+                  "type": "array",
+                  "title": "Negative consequences",
+                  "description": "Costs, complications, or limitations accepted. Required for ADR-02 score ≥ 3. Example: 'Requires managed RDS service (+£1,200/month opex)'.",
+                  "items": { "type": "string" }
+                },
+                "downstream_effects": {
+                  "type": "array",
+                  "title": "Downstream effects on other decisions",
+                  "description": "Effects this decision has on other ADRs, teams, or systems. Required for ADR-02 score 4.",
+                  "items": { "type": "string" }
+                }
+              }
+            },
+            "reversibility": {
+              "type": "object",
+              "title": "Reversibility assessment",
+              "description": "How hard it would be to undo this decision, and under what conditions reversal would be considered. Required evidence for ADR-02 score ≥ 3.",
+              "required": ["level"],
+              "properties": {
+                "level": {
+                  "type": "string",
+                  "title": "Reversibility level",
+                  "description": "How hard is this decision to reverse? 'easy' = localised change; 'moderate' = requires planned migration; 'hard' = requires replatforming; 'irreversible' = cannot practically be undone.",
+                  "enum": ["easy", "moderate", "hard", "irreversible"]
+                },
+                "cost_to_reverse": {
+                  "type": "string",
+                  "title": "Cost to reverse",
+                  "description": "Estimated effort/cost to reverse. Example: 'Data migration effort ~4 person-weeks; rewrite of persistence layer'."
+                },
+                "reversal_trigger": {
+                  "type": "string",
+                  "title": "Reversal trigger",
+                  "description": "Specific condition under which reversal should be triggered. Example: 'Managed PostgreSQL cost exceeds £5,000/month for 2 consecutive quarters'. Required for ADR-02 score 4."
+                }
+              }
+            },
+            "review_triggers": {
+              "type": "array",
+              "title": "Review triggers",
+              "description": "Specific conditions that should trigger a re-review of this decision. Turns the ADR from a historical record into an active governance tool. At least two specific triggers are required for ADR-03 score ≥ 3. Generic triggers like 'annually' score 1.",
+              "items": { "type": "string" }
+            },
+            "related_decisions": {
+              "type": "array",
+              "title": "Related decisions and artifacts",
+              "description": "Links to related ADRs, RFCs, policies, or other artifacts. Supersession chains must be populated using relationship='supersedes' / 'superseded_by'. Required evidence for ADR-03 score 4.",
+              "items": {
+                "type": "object",
+                "required": ["id", "relationship"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "title": "Related artifact ID",
+                    "description": "Identifier of the related ADR or artifact. Example: 'ADR-007', 'RFC-022'."
+                  },
+                  "relationship": {
+                    "type": "string",
+                    "title": "Relationship",
+                    "enum": ["supersedes", "superseded_by", "refines", "related", "depends_on", "enables", "conflicts_with"]
+                  },
+                  "title": {
+                    "type": "string",
+                    "title": "Title",
+                    "description": "Short title of the related artifact for readability."
+                  },
+                  "link": {
+                    "type": "string",
+                    "title": "Link",
+                    "description": "Optional URL or repo path."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "stakeholders": {
+          "type": "array",
+          "title": "Stakeholders consulted",
+          "description": "Optional — named stakeholders consulted before the decision was made. Evidence for core criterion STK-01.",
+          "items": {
+            "type": "object",
+            "required": ["role"],
+            "properties": {
+              "name": { "type": "string", "title": "Name" },
+              "role": { "type": "string", "title": "Role" },
+              "concurrence": {
+                "type": "string",
+                "title": "Concurrence",
+                "enum": ["agreed", "dissented", "abstained", "consulted"]
+              }
+            }
+          }
+        },
+        "governance": {
+          "type": "object",
+          "title": "Governance and compliance",
+          "description": "Optional — compliance implications of this decision. Only populate when the decision touches a mandatory control. Evidence for core criterion CMP-01.",
+          "properties": {
+            "applicable_standards": {
+              "type": "array",
+              "title": "Applicable standards",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "id": { "type": "string", "title": "ID" },
+                  "name": { "type": "string", "title": "Name" },
+                  "relevance": { "type": "string", "title": "Relevance" }
+                }
+              }
+            },
+            "compliance_notes": {
+              "type": "string",
+              "title": "Compliance notes",
+              "description": "How this decision affects compliance posture."
+            }
+          }
+        },
+        "glossary": {
+          "type": "array",
+          "title": "Glossary",
+          "description": "Optional — definitions for key terms specific to this decision. Evidence for core criterion CON-01.",
+          "items": {
+            "type": "object",
+            "required": ["term", "definition"],
+            "properties": {
+              "term": { "type": "string", "title": "Term" },
+              "definition": { "type": "string", "title": "Definition" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

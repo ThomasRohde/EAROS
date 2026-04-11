@@ -1,0 +1,227 @@
+# EaROS Solution Architecture — Artifact Template
+#
+# Schema: standard/schemas/solution-architecture.artifact.schema.json
+# Rubric: profiles/solution-architecture.yaml (EAROS-SOL-001)
+#
+# Fill in every section; empty sections lower the score on the corresponding
+# criterion. Required sections: scope, drivers_and_principles, solution_options,
+# quality_attributes, operational_model.
+
+kind: artifact
+artifact_type: solution_architecture
+
+metadata:
+  title: "<Solution name — e.g. Customer Onboarding Platform — Target Solution Architecture>"
+  version: 1.0.0
+  status: draft
+  owner: "<Team or individual accountable — e.g. Solution Architecture, Customer Domain>"
+  author: "<Drafting author>"
+  effective_date: "2026-01-01"
+  next_review_date: "2026-07-01"
+  last_updated: "2026-01-01"
+  purpose: >
+    <One or two sentences stating what this solution is for and what decision
+    it supports. Required for STK-01.>
+  decision_context: >
+    <Governance or programme context — the Architecture Board review this
+    supports, or the delivery milestone it targets.>
+  stakeholders:
+    - role: Product Owner
+      name: "<Name>"
+      concerns: "<What this stakeholder needs from the document>"
+    - role: Engineering Lead
+      name: "<Name>"
+      concerns: "<Concerns addressed>"
+    - role: Security
+      name: "<Name>"
+      concerns: "<Concerns addressed>"
+  change_log:
+    - version: 1.0.0
+      date: "2026-01-01"
+      author: "<Author>"
+      changes:
+        - Initial draft
+
+sections:
+  scope:
+    statement: >
+      <Concise, unambiguous statement of what this solution covers.>
+    in_scope:
+      - "<System or capability 1>"
+      - "<System or capability 2>"
+    out_of_scope:
+      - "<Excluded item and where it is addressed>"
+    boundary_definition: >
+      <System context boundary — what is inside vs. external.>
+    assumptions:
+      - assumption: "<Environmental assumption>"
+        consequence_if_violated: "<What happens if it is not true>"
+
+  drivers_and_principles:
+    drivers:
+      - id: DR-01
+        description: "<Specific business driver — not 'improve quality'>"
+        architecture_response: >
+          <How this solution responds. Reference the chosen option or a named
+          design mechanism. Linkage is required for TRC-01 score ≥ 2.>
+    principles:
+      - id: PR-01
+        name: "<Principle name — e.g. API-first>"
+        how_applied: >
+          <How this principle manifests in the design.>
+
+  solution_options:
+    decision_criteria:
+      - name: "Cost"
+        weight: "30%"
+        description: "<How cost is measured>"
+      - name: "Delivery speed"
+        weight: "25%"
+        description: "<How speed is assessed>"
+      - name: "Strategic fit"
+        weight: "25%"
+      - name: "Vendor risk"
+        weight: "20%"
+    options:
+      - id: A
+        name: "<Option A — e.g. Buy — vendor SaaS>"
+        description: "<What this option proposes>"
+        pros:
+          - "<Benefit>"
+        cons:
+          - "<Drawback>"
+        cost: "<Indicative capex/opex>"
+        criterion_scores:
+          - criterion: Cost
+            score: "<score>"
+            notes: "<notes>"
+        selected: false
+        rejection_reason: "<Why this option was rejected, against the criteria>"
+      - id: B
+        name: "<Option B — e.g. Build — custom API>"
+        description: "<What this option proposes>"
+        pros:
+          - "<Benefit>"
+        cons:
+          - "<Drawback>"
+        cost: "<Indicative capex/opex>"
+        selected: true
+    chosen_option: B
+    rationale: >
+      <Why the chosen option won against the criteria. Reference business
+      drivers, quality attributes, and principles. Required for SOL-01.>
+    tradeoffs_accepted:
+      - "<What was explicitly sacrificed by choosing this option>"
+
+  quality_attributes:
+    - attribute: Availability
+      target: "99.9% monthly availability"
+      quality_scenario: >
+        <Stimulus, source, environment, response, response measure.>
+      architectural_mechanism: >
+        <Specific design response — e.g. active-passive failover with 30s
+        health check + automated switchover. Must be identifiable in the design.>
+      mechanism_location: "<Section or diagram reference>"
+      validation_strategy: "<How compliance is validated before and after release>"
+      fitness_function: "<Automated check in CI/CD>"
+    - attribute: "Latency P99"
+      target: "< 200ms at 5K concurrent users"
+      architectural_mechanism: "<Named mechanism>"
+      validation_strategy: "<Validation approach>"
+
+  operational_model:
+    operating_model: >
+      <Who runs this solution in production and how.>
+    operational_owner: "<Named team and lead — e.g. Customer Platform Squad — Jane Smith>"
+    deployment:
+      strategy: "<e.g. Blue-green via GitHub Actions with manual prod approval>"
+      environments:
+        - dev
+        - staging
+        - production
+      release_cadence: "<e.g. Weekly release train; hotfix path within 2 hours>"
+    observability:
+      metrics:
+        - "<Key metric 1>"
+        - "<Key metric 2>"
+      alerts: "<Alert thresholds and escalation policy>"
+      dashboards: "<Dashboard reference>"
+      slos:
+        - name: "API availability"
+          target: "99.9%"
+          measurement_window: "rolling 30 days"
+    migration:
+      approach: >
+        <e.g. Strangler fig — legacy system deprecated Q4 2026, dual-run period Q3–Q4>
+      phases:
+        - phase: "Phase 1 — dual run"
+          description: "<What happens in this phase>"
+          target_date: "2026-09-01"
+        - phase: "Phase 2 — cutover"
+          description: "<What happens in this phase>"
+          target_date: "2026-12-01"
+      rollback_plan: >
+        <How to revert if rollout fails. Required for SOL-03 score 4.>
+      cutover_criteria: "<Measurable conditions for promotion>"
+    dependencies:
+      - type: team
+        description: "<Dependency on another team>"
+        owner: "<Owner>"
+        status: available
+      - type: platform
+        description: "<Platform capability required>"
+        owner: "<Owner>"
+        status: in_progress
+
+  raid:
+    risks:
+      - id: RISK-01
+        description: "<Specific risk with consequence>"
+        likelihood: medium
+        impact: high
+        mitigation: "<Specific mitigation action>"
+        owner: "<Named owner>"
+        residual_risk: "<Remaining risk after mitigation>"
+    assumptions:
+      - assumption: "<Design assumption>"
+        consequence_if_violated: "<What breaks if it is not true>"
+    constraints:
+      - type: technical
+        description: "<Constraint>"
+        implication: "<What this means for the design>"
+    tradeoffs:
+      - description: "<Explicit trade-off>"
+        what_was_sacrificed: "<What was given up>"
+        what_was_gained: "<What was gained>"
+
+  governance:
+    applicable_standards:
+      - id: "<e.g. ESS-01>"
+        name: "<Standard or policy name>"
+        relevance: "<Why it applies to this solution>"
+    compliance_mapping:
+      - control: "<Specific control reference>"
+        design_element: "<Component, decision, or pattern that satisfies it>"
+        evidence: "<Where in this document the evidence lives>"
+        owner: "<Accountable owner>"
+
+  decisions_and_actions:
+    governance_outcome: pending_review
+    decision_statement: >
+      <Concise statement of what is proposed — e.g. 'Approve this solution
+      for delivery starting Q2 2026'.>
+    conditions:
+      - "<Condition for conditional approval>"
+    next_actions:
+      - id: ACT-01
+        description: "<Specific action>"
+        owner: "<Named owner>"
+        target_date: "2026-03-01"
+    review_triggers: >
+      <Conditions that trigger re-review.>
+
+  glossary:
+    - term: "<Term>"
+      definition: "<Definition>"
+      aliases:
+        - "<Alias>"

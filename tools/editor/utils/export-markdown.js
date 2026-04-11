@@ -33,6 +33,131 @@ function mdList(items) {
 function isPlainObject(v) {
     return !!v && typeof v === 'object' && !Array.isArray(v);
 }
+function isScalar(v) {
+    return typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean';
+}
+function scalarStr(v) {
+    if (typeof v === 'string')
+        return v.trim();
+    if (typeof v === 'number' || typeof v === 'boolean')
+        return String(v);
+    return '';
+}
+function hasNestedStructure(items) {
+    return items.some((item) => isPlainObject(item) &&
+        Object.values(item).some((v) => {
+            if (Array.isArray(v))
+                return v.length > 0;
+            return isPlainObject(v);
+        }));
+}
+function unionKeys(items) {
+    const seen = new Set();
+    const ordered = [];
+    for (const item of items) {
+        if (!isPlainObject(item))
+            continue;
+        for (const k of Object.keys(item)) {
+            if (!seen.has(k)) {
+                seen.add(k);
+                ordered.push(k);
+            }
+        }
+    }
+    return ordered;
+}
+function itemHeading(item, idx) {
+    // Prefer a human-readable label over an opaque id
+    const labelKeys = ['name', 'title', 'label', 'option_name', 'id', 'key', 'version'];
+    for (const k of labelKeys) {
+        const s = scalarStr(item[k]);
+        if (s)
+            return s;
+    }
+    // Fall back to the first scalar value so the heading still carries signal
+    for (const v of Object.values(item)) {
+        if (isScalar(v)) {
+            const s = scalarStr(v);
+            if (s)
+                return s;
+        }
+    }
+    return `Item ${idx + 1}`;
+}
+function renderObjectItemMd(item, level) {
+    const lines = [];
+    const hl = '#'.repeat(Math.min(level, 6));
+    for (const [key, child] of Object.entries(item)) {
+        if (child == null)
+            continue;
+        if (isScalar(child)) {
+            const s = scalarStr(child);
+            if (s)
+                lines.push(`- **${humanize(key)}:** ${s}`);
+        }
+        else if (Array.isArray(child)) {
+            if (child.length === 0)
+                continue;
+            if (child.every(isScalar)) {
+                lines.push(`- **${humanize(key)}:**`);
+                for (const v of child)
+                    lines.push(`  - ${scalarStr(v)}`);
+            }
+            else if (child.every(isPlainObject)) {
+                lines.push(`\n${hl} ${humanize(key)}\n`);
+                lines.push(renderObjectArrayMd(child, level + 1));
+            }
+            else {
+                lines.push(`- **${humanize(key)}:**`);
+                for (const v of child) {
+                    if (isScalar(v))
+                        lines.push(`  - ${scalarStr(v)}`);
+                    else if (isPlainObject(v))
+                        lines.push(renderObjectItemMd(v, level + 1));
+                }
+            }
+        }
+        else if (isPlainObject(child)) {
+            lines.push(`\n${hl} ${humanize(key)}\n`);
+            for (const [ck, cv] of Object.entries(child)) {
+                if (cv == null)
+                    continue;
+                if (isScalar(cv)) {
+                    const s = scalarStr(cv);
+                    if (s)
+                        lines.push(`- **${humanize(ck)}:** ${s}`);
+                }
+                else if (Array.isArray(cv) && cv.length > 0) {
+                    if (cv.every(isScalar)) {
+                        lines.push(`- **${humanize(ck)}:**`);
+                        for (const v of cv)
+                            lines.push(`  - ${scalarStr(v)}`);
+                    }
+                    else {
+                        lines.push(`\n${'#'.repeat(Math.min(level + 2, 6))} ${humanize(ck)}\n`);
+                        lines.push(renderValueMd(cv, level + 2));
+                    }
+                }
+                else if (isPlainObject(cv)) {
+                    lines.push(`\n${'#'.repeat(Math.min(level + 2, 6))} ${humanize(ck)}\n`);
+                    lines.push(renderObjectItemMd(cv, level + 2));
+                }
+            }
+        }
+    }
+    return lines.join('\n');
+}
+function renderObjectArrayMd(items, level) {
+    const hl = '#'.repeat(Math.min(level, 6));
+    const lines = [];
+    items.forEach((item, idx) => {
+        if (!isPlainObject(item))
+            return;
+        lines.push(`\n${hl} ${itemHeading(item, idx)}\n`);
+        lines.push(renderObjectItemMd(item, level + 1));
+    });
+    return lines.join('\n');
+}
 export function downloadAsFile(content, filename, mimeType) {
     if (typeof document === 'undefined')
         return; // Node.js — no browser download
@@ -45,27 +170,54 @@ export function downloadAsFile(content, filename, mimeType) {
     URL.revokeObjectURL(url);
 }
 // ─── Artifact Markdown ───────────────────────────────────────────────────────
-const SECTION_ORDER = [
-    'reading_guide',
-    'scope',
-    'drivers_and_principles',
-    'architecture_views',
-    'crosscutting_concerns',
-    'component_classification',
-    'components',
-    'decisions',
-    'architecture_decisions',
-    'quality_attributes',
-    'operational_model',
-    'implementation_guidance',
-    'implementation_artifacts',
-    'governance',
-    'raid',
-    'decisions_and_actions',
-    'getting_started',
-    'evolution',
-    'glossary',
-];
+// Per-artifact-type canonical section order. Keys not listed are appended
+// in their original object order.
+const SECTION_ORDER_BY_TYPE = {
+    reference_architecture: [
+        'reading_guide',
+        'scope',
+        'drivers_and_principles',
+        'architecture_views',
+        'crosscutting_concerns',
+        'component_classification',
+        'components',
+        'decisions',
+        'architecture_decisions',
+        'quality_attributes',
+        'operational_model',
+        'implementation_guidance',
+        'implementation_artifacts',
+        'governance',
+        'raid',
+        'decisions_and_actions',
+        'getting_started',
+        'evolution',
+        'glossary',
+    ],
+    solution_architecture: [
+        'reading_guide',
+        'scope',
+        'drivers_and_principles',
+        'solution_options',
+        'quality_attributes',
+        'operational_model',
+        'raid',
+        'governance',
+        'decisions_and_actions',
+        'glossary',
+    ],
+    architecture_decision_record: [
+        'decision',
+        'stakeholders',
+        'governance',
+        'glossary',
+    ],
+};
+function sectionOrderFor(artifactType) {
+    if (artifactType && SECTION_ORDER_BY_TYPE[artifactType])
+        return SECTION_ORDER_BY_TYPE[artifactType];
+    return SECTION_ORDER_BY_TYPE.reference_architecture;
+}
 function renderMetadataMd(meta) {
     const lines = [];
     const skip = new Set(['title', 'artifact_type']);
@@ -79,8 +231,13 @@ function renderMetadataMd(meta) {
                 continue;
             if (isPlainObject(value[0])) {
                 lines.push(`\n**${humanize(key)}:**\n`);
-                const keys = Object.keys(value[0]);
-                lines.push(mdTable(keys.map(humanize), value.map((item) => keys.map((k) => str(item[k])))));
+                if (hasNestedStructure(value)) {
+                    lines.push(renderObjectArrayMd(value, 4));
+                }
+                else {
+                    const keys = unionKeys(value);
+                    lines.push(mdTable(keys.map(humanize), value.map((item) => keys.map((k) => str(item[k])))));
+                }
             }
             else {
                 lines.push(`**${humanize(key)}:** ${value.map(str).join(', ')}`);
@@ -119,12 +276,29 @@ function renderValueMd(value, level) {
     else if (Array.isArray(value)) {
         if (value.length === 0)
             return '';
-        if (typeof value[0] === 'string') {
-            lines.push(mdList(value.map(str)));
+        if (value.every(isScalar)) {
+            lines.push(mdList(value.map((v) => scalarStr(v))));
         }
-        else if (isPlainObject(value[0])) {
-            const keys = Object.keys(value[0]);
-            lines.push(mdTable(keys.map(humanize), value.map((item) => keys.map((k) => str(item[k])))));
+        else if (value.every(isPlainObject)) {
+            if (hasNestedStructure(value)) {
+                lines.push(renderObjectArrayMd(value, level));
+            }
+            else {
+                const keys = unionKeys(value);
+                lines.push(mdTable(keys.map(humanize), value.map((item) => keys.map((k) => str(item[k])))));
+            }
+        }
+        else {
+            // Mixed array — render each item safely
+            value.forEach((item, idx) => {
+                if (isScalar(item)) {
+                    lines.push(`- ${scalarStr(item)}`);
+                }
+                else if (isPlainObject(item)) {
+                    lines.push(`\n${hl} ${itemHeading(item, idx)}\n`);
+                    lines.push(renderObjectItemMd(item, level + 1));
+                }
+            });
         }
     }
     else if (isPlainObject(value)) {
@@ -177,9 +351,10 @@ export function exportArtifactToMarkdown(data) {
         lines.push(metaMd);
         lines.push('\n---\n');
     }
-    // Sections in preferred order
+    // Sections in type-specific preferred order
+    const sectionOrder = sectionOrderFor(artifactType || undefined);
     const rendered = new Set();
-    for (const key of SECTION_ORDER) {
+    for (const key of sectionOrder) {
         if (key in sections) {
             lines.push(renderSectionMd(key, sections[key]));
             rendered.add(key);

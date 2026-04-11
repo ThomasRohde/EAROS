@@ -1,0 +1,94 @@
+# EaROS Architecture Decision Record — Artifact Template
+#
+# Schema: standard/schemas/adr.artifact.schema.json
+# Rubric: profiles/adr.yaml (EAROS-ADR-001)
+#
+# An ADR captures ONE bounded, testable decision. Compound ADRs mixing
+# multiple unrelated decisions are an anti-pattern — split them.
+
+kind: artifact
+artifact_type: architecture_decision_record
+
+metadata:
+  id: ADR-001
+  title: "<Decision title — start with a verb, e.g. 'Use PostgreSQL as the Order Service primary datastore'>"
+  status: proposed
+  date: "2026-01-01"
+  author: "<Drafting author>"
+  owner: "<Team or individual accountable for review>"
+  version: 1.0.0
+  tags:
+    - "<e.g. database>"
+    - "<e.g. order-service>"
+
+sections:
+  decision:
+    statement: >
+      <Single declarative sentence. Must be singular, bounded, and testable.
+      Example: 'We will use PostgreSQL as the primary datastore for the Order
+      Service, effective Q2 2026.'>
+    scope: >
+      <Specific service, domain, or timeframe this decision applies to.
+      Required for ADR-01 score ≥ 3.>
+    context: >
+      <Business or technical situation that made this decision necessary.
+      Example: 'Q1 2026 cost optimisation initiative required switching from
+      managed cloud database to self-managed.' Required for ADR-03.>
+    drivers:
+      - id: DR-01
+        description: "<Specific driver — e.g. 'Reduce infrastructure spend by 20% (OKR)'>"
+      - id: DR-02
+        description: "<Another driver>"
+    alternatives:
+      - id: A
+        name: "<Alternative name — e.g. MongoDB>"
+        description: "<What this alternative proposes>"
+        pros:
+          - "<Benefit>"
+        cons:
+          - "<Drawback>"
+        rejection_reason: "<Specific reason for rejection. Required for ADR-02 score ≥ 3.>"
+      - id: B
+        name: "<Alternative name — e.g. MySQL 8.0>"
+        description: "<What this alternative proposes>"
+        pros:
+          - "<Benefit>"
+        cons:
+          - "<Drawback>"
+        rejection_reason: "<Specific reason for rejection>"
+    consequences:
+      positive:
+        - "<Benefit gained>"
+      negative:
+        - "<Cost, complication, or limitation accepted. Required for ADR-02 score ≥ 3.>"
+      downstream_effects:
+        - "<Effect on other ADRs, teams, or systems. Required for ADR-02 score 4.>"
+    reversibility:
+      level: moderate
+      cost_to_reverse: "<Estimated effort — e.g. 4 person-weeks of data migration>"
+      reversal_trigger: >
+        <Specific condition for reversal — e.g. 'Managed cost > £5,000/month
+        for 2 consecutive quarters'. Required for ADR-02 score 4.>
+    review_triggers:
+      - "<Specific trigger 1 — e.g. team size drops below 3 DBAs>"
+      - "<Specific trigger 2 — e.g. managed pricing drops below self-managed TCO>"
+    related_decisions:
+      - id: "<e.g. ADR-007>"
+        relationship: supersedes
+        title: "<Title of the superseded ADR>"
+        link: "<Optional URL or repo path>"
+      - id: "<e.g. RFC-022>"
+        relationship: related
+        title: "<Related artifact title>"
+
+  stakeholders:
+    - role: Architecture Lead
+      name: "<Name>"
+      concurrence: agreed
+    - role: Engineering Lead
+      name: "<Name>"
+      concurrence: consulted
+
+  glossary:
+    - term: "<Term>"
+      definition: "<Definition>"

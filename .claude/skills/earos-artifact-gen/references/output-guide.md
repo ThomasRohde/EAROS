@@ -1,15 +1,20 @@
 # Output Guide — EAROS Artifact Generator
 
-How to transform interview answers into a structured artifact YAML that conforms to `standard/schemas/artifact.schema.json` and satisfies EAROS rubric evidence requirements.
+How to transform interview answers into a structured artifact YAML that conforms to the per-type artifact schema under `standard/schemas/` and satisfies EAROS rubric evidence requirements.
 
 ---
 
 ## Core Principle: Schema is the Contract
 
-The `artifact.schema.json` is derived from the `required_evidence` fields of the EAROS rubrics. Every required field in the schema maps directly to evidence that a rubric criterion needs. Filling the schema correctly means satisfying the evidence requirements. Do not add sections not in the schema; do not omit required sections.
+Each artifact type has its own schema under `standard/schemas/`:
+- `reference-architecture.artifact.schema.json` (EAROS-REFARCH-001)
+- `solution-architecture.artifact.schema.json` (EAROS-SOL-001)
+- `adr.artifact.schema.json` (EAROS-ADR-001)
+
+Each schema is derived from the `required_evidence` fields of the core meta-rubric plus the matching profile. Every required field maps directly to evidence that a rubric criterion needs. Filling the schema correctly means satisfying the evidence requirements. Do not add sections not in the schema; do not omit required sections.
 
 Before generating output:
-1. Read `standard/schemas/artifact.schema.json` to confirm the required fields for the artifact type.
+1. Read the schema matching the chosen `artifact_type` to confirm required fields.
 2. Verify your interview answers cover each required section.
 3. Flag any gaps as `[TBD: <description>]` rather than omitting them.
 
@@ -21,7 +26,9 @@ Every artifact YAML begins with a metadata block, then sections that map to the 
 
 ```yaml
 kind: artifact
-artifact_type: <type>          # solution_architecture | reference_architecture | adr | capability_map | roadmap
+# artifact_type must be one of the canonical values below. Do NOT write `adr`
+# here — the validator and editor reject it. Use `architecture_decision_record`.
+artifact_type: <type>          # reference_architecture | solution_architecture | architecture_decision_record | capability_map | roadmap
 schema_version: "1.0.0"
 rubric_id: <id>                # e.g., EAROS-CORE-002 + EAROS-SA-001
 
@@ -359,7 +366,7 @@ Never use `null` or omit a required field silently. TBD is preferable to omissio
 
 After generating the YAML:
 
-1. **Schema check** — confirm all required fields from `artifact.schema.json` are present.
+1. **Schema check** — run `earos validate <file.yaml>` (the CLI picks the correct per-type schema from `artifact_type`) and confirm it returns `valid`.
 2. **Evidence check** — for each rubric criterion's `required_evidence` list, confirm the YAML contains the evidence item.
 3. **Gate check** — identify any gate criteria whose required evidence is absent or TBD; these are likely to fail in review.
 4. **Offer earos-assess** — "Would you like me to run a preliminary `earos-assess` on this artifact before you finalize it?"

@@ -5,13 +5,13 @@ description: "Create architecture documents through guided interview. Triggers o
 
 # SKILL: earos-artifact-gen
 
-Interview an architect and generate a structured architecture artifact document that conforms to `standard/schemas/artifact.schema.json` and satisfies the evidence requirements of the relevant EAROS rubric.
+Interview an architect and generate a structured architecture artifact document that conforms to the per-type artifact schema (`standard/schemas/<artifact-type>.artifact.schema.json`) and satisfies the evidence requirements of the relevant EAROS rubric.
 
 ## References
 
 - Interview question templates: `references/interview-guide.md`
 - Output generation guide: `references/output-guide.md`
-- Artifact schema: `standard/schemas/artifact.schema.json`
+- Artifact schemas (one per artifact type): `standard/schemas/reference-architecture.artifact.schema.json`, `standard/schemas/solution-architecture.artifact.schema.json`, `standard/schemas/adr.artifact.schema.json`
 - Rubric files: discovered at runtime via `earos.manifest.yaml`
 
 ---
@@ -22,12 +22,12 @@ Interview an architect and generate a structured architecture artifact document 
 
 Ask the user: "What type of architecture artifact are you creating?"
 
-Common types: `solution_architecture`, `reference_architecture`, `adr`, `capability_map`, `roadmap`.
+Common types (canonical `artifact_type` values): `solution_architecture`, `reference_architecture`, `architecture_decision_record`, `capability_map`, `roadmap`. These are the exact strings that must appear in the YAML; do not serialize `adr` as the `artifact_type` — the validator and editor reject it.
 
 Once confirmed:
 1. Read `earos.manifest.yaml` to find the matching profile.
 2. Load `core/core-meta-rubric.yaml` and the matching profile YAML.
-3. Load `standard/schemas/artifact.schema.json` for the artifact structure.
+3. Load the matching artifact schema under `standard/schemas/`. The filename prefix is derived from `artifact_type`: `reference_architecture` → `reference-architecture.artifact.schema.json`, `solution_architecture` → `solution-architecture.artifact.schema.json`, `architecture_decision_record` → `adr.artifact.schema.json`.
 4. Ask: "Are any cross-cutting concerns in scope? (security, data governance, regulatory compliance)" — load applicable overlays if yes.
 
 Announce what you loaded: "I'll use the [profile name] profile plus [overlays if any]. This covers [N] criteria."
@@ -74,7 +74,7 @@ Fill gaps before proceeding to output generation.
 
 Read `references/output-guide.md` before this step.
 
-Transform the interview answers into a structured YAML document conforming to `standard/schemas/artifact.schema.json`.
+Transform the interview answers into a structured YAML document conforming to the artifact schema matching the chosen `artifact_type` (e.g. `standard/schemas/solution-architecture.artifact.schema.json`).
 
 Key principles:
 - Every section that maps to a rubric criterion must contain enough detail to evidence a score of 3 (the "clearly addressed" level).
@@ -87,7 +87,7 @@ Key principles:
 
 After generating the artifact YAML:
 
-1. Check it against `standard/schemas/artifact.schema.json` — verify all required fields are present.
+1. Run `earos validate <file.yaml>` — the CLI picks the correct per-type schema from `artifact_type` and reports any missing required fields.
 2. Cross-check each rubric criterion: does the artifact contain the `required_evidence` items listed in the rubric?
 3. Flag any remaining gaps: "Criterion [id] requires [evidence] which is not present."
 4. Ask: "Would you like me to run `earos-assess` on this artifact to get a preliminary score before you finalize it?"
@@ -98,7 +98,7 @@ If gaps remain and the architect cannot fill them, mark them as `[TBD: <what is 
 
 ## Operating Principles
 
-- **Schema-first.** The artifact YAML must conform to `artifact.schema.json`. Do not generate free-form documents — the schema is the contract between artifact authors and EAROS evaluators.
+- **Schema-first.** The artifact YAML must conform to the artifact schema matching its `artifact_type` (e.g. `reference-architecture.artifact.schema.json` / `solution-architecture.artifact.schema.json` / `adr.artifact.schema.json`). Do not generate free-form documents — the schema is the contract between artifact authors and EAROS evaluators.
 - **Rubric-aware.** Every field in the artifact schema maps to a rubric criterion's `required_evidence`. Filling the schema correctly means satisfying the evidence requirements.
 - **Interview before output.** Never generate a template with placeholder text and ask the architect to fill it in. Gather the information through conversation, then generate the artifact. Templates produce generic output; interviews produce specific, defensible artifacts.
 - **Decisions need rationale.** The most common reason artifacts score 1–2 is missing decision rationale. Probe every design choice: Why this? What else was considered? What was rejected and why?

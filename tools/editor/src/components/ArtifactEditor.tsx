@@ -34,7 +34,13 @@ import ExportMenu from './ExportMenu'
 import type { ExportOption } from './ExportMenu'
 import { exportArtifactToMarkdown, downloadAsFile } from '../utils/export-markdown'
 import { saveRepoFile } from '../manifest'
-import { loadSchema } from '../utils/schemaLoader'
+import {
+  ARTIFACT_TYPE_TO_SCHEMA,
+  loadArtifactSchema,
+  loadArtifactUiSchema,
+  SUPPORTED_ARTIFACT_TYPES,
+  type ArtifactType,
+} from '../utils/schemaLoader'
 import {
   extractMermaidDiagrams,
   inlineLocalMermaidImagesInSvg,
@@ -45,39 +51,55 @@ import type { RenderedDiagramPng } from '../utils/mermaid'
 
 const allRenderers = [...materialRenderers, ...customRenderers]
 
-const FALLBACK_UISCHEMA = {
-  type: 'Categorization',
-  elements: [
-    {
-      type: 'Category',
-      label: 'Metadata',
-      elements: [
-        { type: 'Control', scope: '#/properties/kind' },
-        { type: 'Control', scope: '#/properties/artifact_type' },
-        { type: 'Control', scope: '#/properties/metadata' },
-      ],
+function buildInitialArtifact(artifactType: ArtifactType): Record<string, any> {
+  const base: Record<string, any> = {
+    kind: 'artifact',
+    artifact_type: artifactType,
+    metadata: {
+      title: '',
+      version: '1.0.0',
+      status: 'draft',
+      owner: '',
+      purpose: '',
     },
-    {
-      type: 'Category',
-      label: 'Sections',
-      elements: [
-        { type: 'Control', scope: '#/properties/sections' },
-      ],
-    },
-  ],
-}
+    sections: {},
+  }
 
-const INITIAL_ARTIFACT = {
-  kind: 'artifact',
-  artifact_type: 'reference_architecture',
-  metadata: {
-    title: '',
-    version: '1.0.0',
-    status: 'draft',
-    owner: '',
-    purpose: '',
-  },
-  sections: {},
+  if (artifactType === 'architecture_decision_record') {
+    base.metadata = {
+      id: '',
+      title: '',
+      status: 'proposed',
+      date: new Date().toISOString().slice(0, 10),
+      owner: '',
+      version: '1.0.0',
+    }
+    base.sections = {
+      decision: {
+        statement: '',
+        scope: '',
+        context: '',
+        consequences: { positive: [], negative: [] },
+      },
+    }
+  } else if (artifactType === 'solution_architecture') {
+    base.sections = {
+      scope: { statement: '' },
+      drivers_and_principles: {},
+      solution_options: { chosen_option: '', rationale: '' },
+      // Seed with one empty-object placeholder so the form renders a row AND
+      // AJV reports "attribute/target/architectural_mechanism required" per
+      // field — actionable errors for the SOL-02 critical evidence slot.
+      // An empty array would satisfy the new minItems:1 at the UI layer but
+      // hide the per-field guidance from the author.
+      quality_attributes: [{}],
+      operational_model: {},
+    }
+  } else {
+    base.sections = { scope: { statement: '' } }
+  }
+
+  return base
 }
 
 async function renderWordExportDiagrams(artifactData: object): Promise<Record<string, RenderedDiagramPng>> {
@@ -178,9 +200,68 @@ function ImportDropZone({ onImport }: { onImport: (content: string) => void }) {
         Import YAML
       </Button>
       <Alert severity="info" sx={{ maxWidth: 480, mt: 1 }}>
-        Artifact files are YAML documents with <code>kind: artifact</code>. They follow the
-        artifact.schema.json structure derived from EaROS rubric required_evidence fields.
+        Artifact files are YAML documents with <code>kind: artifact</code>. Their <code>artifact_type</code>
+        selects one of the per-type schemas in <code>standard/schemas/</code> — reference architecture,
+        solution architecture, or ADR.
       </Alert>
+    </Box>
+  )
+}
+
+// ─── Artifact Type Picker ──────────────────────────────────────────────────────
+
+function ArtifactTypePicker({ onSelect }: { onSelect: (type: ArtifactType) => void }) {
+  return (
+    <Box
+      sx={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 3,
+        p: 6,
+        m: 1,
+      }}
+    >
+      <NoteAddIcon sx={{ fontSize: 56, color: 'hsl(32 47% 48%)', opacity: 0.7 }} />
+      <Typography variant="h5" sx={{ color: 'hsl(32 59% 28%)', fontWeight: 600 }}>
+        Create a new architecture document
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', maxWidth: 560 }}>
+        Pick the artifact type you want to author. Each type loads a dedicated schema and form layout
+        derived from its EaROS profile rubric.
+      </Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, width: '100%', maxWidth: 560 }}>
+        {SUPPORTED_ARTIFACT_TYPES.map((t) => (
+          <Button
+            key={t.type}
+            variant="outlined"
+            onClick={() => onSelect(t.type)}
+            sx={{
+              justifyContent: 'flex-start',
+              textAlign: 'left',
+              p: 2,
+              borderColor: 'hsl(45 57% 73%)',
+              color: 'text.primary',
+              textTransform: 'none',
+              '&:hover': {
+                borderColor: 'hsl(32 47% 48%)',
+                bgcolor: 'hsl(53 100% 92% / 0.5)',
+              },
+            }}
+          >
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'hsl(32 59% 28%)' }}>
+                {t.label}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {t.description}
+              </Typography>
+            </Box>
+          </Button>
+        ))}
+      </Box>
     </Box>
   )
 }
@@ -270,31 +351,82 @@ export type ArtifactInitialMode = 'new' | 'import'
 interface Props {
   initialMode: ArtifactInitialMode
   onBack: () => void
+  initialArtifactType?: ArtifactType
 }
 
-export default function ArtifactEditor({ initialMode, onBack }: Props) {
-  const [data, setData] = useState<object>(INITIAL_ARTIFACT)
-  const [hasContent, setHasContent] = useState(initialMode === 'new')
+function isSupportedArtifactType(value: unknown): value is ArtifactType {
+  return typeof value === 'string' && SUPPORTED_ARTIFACT_TYPES.some((t) => t.type === value)
+}
+
+export default function ArtifactEditor({ initialMode, onBack, initialArtifactType }: Props) {
+  // 'new' without a pre-chosen type → show picker first.
+  const [artifactType, setArtifactType] = useState<ArtifactType | null>(() => {
+    if (initialArtifactType) return initialArtifactType
+    return initialMode === 'import' ? null : null
+  })
+  const [data, setData] = useState<object>(() =>
+    artifactType ? buildInitialArtifact(artifactType) : { kind: 'artifact', metadata: {}, sections: {} },
+  )
+  const [hasContent, setHasContent] = useState(initialMode === 'new' && artifactType !== null)
   const [validation, setValidation] = useState<ValidationResult>({ valid: true, errors: [] })
   const [toast, setToast] = useState<string | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [currentFile, setCurrentFile] = useState<string | null>(null)
   const [artifactSchema, setArtifactSchema] = useState<Record<string, unknown> | null>(null)
   const [artifactUiSchema, setArtifactUiSchema] = useState<object | null>(null)
-  const [schemasLoading, setSchemasLoading] = useState(true)
+  const [schemasLoading, setSchemasLoading] = useState(false)
+  const [schemaLoadError, setSchemaLoadError] = useState<string | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    Promise.all([
-      loadSchema('artifact'),
-      fetch('/api/file/standard/schemas/artifact.uischema.json')
-        .then((r) => (r.ok ? r.json() : null))
-        .catch(() => null),
-    ]).then(([schema, uiSchema]) => {
-      if (schema) setArtifactSchema(schema)
-      if (uiSchema) setArtifactUiSchema(uiSchema)
+    // Always clear stale per-type schemas first so the editor never renders
+    // a form keyed to the previous artifact_type while the new one loads.
+    setArtifactSchema(null)
+    setArtifactUiSchema(null)
+    setSchemaLoadError(null)
+    if (!artifactType) {
       setSchemasLoading(false)
-    })
+      return
+    }
+    let cancelled = false
+    const requestedType = artifactType
+    setSchemasLoading(true)
+    Promise.all([loadArtifactSchema(requestedType), loadArtifactUiSchema(requestedType)])
+      .then(([schema, uiSchema]) => {
+        if (cancelled) return
+        // Fail closed: a null on either side means the per-type schema pair
+        // failed to resolve (missing file, 404, parse error). We must NOT
+        // silently render an unvalidated form — the editor blocks until the
+        // user retries or picks a different type.
+        if (!schema || !uiSchema) {
+          const missing = [!schema && 'data schema', !uiSchema && 'UI schema'].filter(Boolean).join(' and ')
+          setArtifactSchema(null)
+          setArtifactUiSchema(null)
+          setSchemaLoadError(`Could not load ${missing} for "${requestedType}". Check that standard/schemas/${ARTIFACT_TYPE_TO_SCHEMA[requestedType] ?? requestedType}.artifact.schema.json is reachable.`)
+          setSchemasLoading(false)
+          return
+        }
+        setArtifactSchema(schema)
+        setArtifactUiSchema(uiSchema as object)
+        setSchemasLoading(false)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        console.error('[ArtifactEditor] Schema load failed for', requestedType, err)
+        setArtifactSchema(null)
+        setArtifactUiSchema(null)
+        setSchemaLoadError(`Schema fetch failed for "${requestedType}": ${(err as Error).message ?? 'unknown error'}`)
+        setSchemasLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [artifactType])
+
+  const handleSelectType = useCallback((type: ArtifactType) => {
+    setArtifactType(type)
+    setData(buildInitialArtifact(type))
+    setHasContent(true)
   }, [])
 
   useEffect(() => {
@@ -309,6 +441,14 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
         setToast('Not an artifact file — expected kind: artifact')
         return
       }
+      const importedType = parsed?.artifact_type
+      if (!isSupportedArtifactType(importedType)) {
+        setToast(
+          `Unsupported artifact_type: ${importedType ?? '(missing)'}. Expected one of: ${SUPPORTED_ARTIFACT_TYPES.map((t) => t.type).join(', ')}`,
+        )
+        return
+      }
+      setArtifactType(importedType)
       setData(parsed ?? {})
       setCurrentFile(null)
       setHasContent(true)
@@ -320,11 +460,19 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
 
   const saveToRepo = useCallback(async () => {
     if (!currentFile) return
+    if (schemaLoadError || !artifactSchema) {
+      setToast('Cannot save: schema not loaded')
+      return
+    }
     const ok = await saveRepoFile(currentFile, data)
     setToast(ok ? `Saved → ${currentFile.split('/').pop()}` : 'Save failed')
-  }, [currentFile, data])
+  }, [currentFile, data, schemaLoadError, artifactSchema])
 
   const handleExport = useCallback(() => {
+    if (schemaLoadError || !artifactSchema) {
+      setToast('Cannot export: schema not loaded')
+      return
+    }
     const d = data as any
     const filename = d.metadata?.title?.replace(/\s+/g, '-').toLowerCase() ?? 'artifact'
     const content = toYaml(data)
@@ -336,9 +484,13 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
     a.click()
     URL.revokeObjectURL(url)
     setToast('Exported')
-  }, [data])
+  }, [data, schemaLoadError, artifactSchema])
 
   const handleExportWord = useCallback(async () => {
+    if (schemaLoadError || !artifactSchema) {
+      setToast('Cannot export: schema not loaded')
+      return
+    }
     try {
       const renderedDiagrams = await renderWordExportDiagrams(data)
       const resp = await fetch('/api/export/docx', {
@@ -364,15 +516,19 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
     } catch (e) {
       setToast(`Word export failed: ${(e as Error).message}`)
     }
-  }, [data])
+  }, [data, schemaLoadError, artifactSchema])
 
   const handleExportMarkdown = useCallback(() => {
+    if (schemaLoadError || !artifactSchema) {
+      setToast('Cannot export: schema not loaded')
+      return
+    }
     const d = data as any
     const filename = d.metadata?.title?.replace(/[^a-z0-9]/gi, '-').toLowerCase() ?? 'artifact'
     const md = exportArtifactToMarkdown(data)
     downloadAsFile(md, `${filename}.md`, 'text/markdown')
     setToast('Markdown exported')
-  }, [data])
+  }, [data, schemaLoadError, artifactSchema])
 
   const exportOptions: ExportOption[] = [
     { key: 'yaml', label: 'YAML', icon: <DownloadIcon fontSize="small" />, onClick: handleExport },
@@ -461,7 +617,7 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
       />
 
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', p: 1, gap: 1 }}>
-        {hasContent ? (
+        {hasContent && artifactType ? (
           <>
             {/* Form panel */}
             <Paper sx={{ flex: 1, overflow: 'auto', p: 2 }}>
@@ -470,10 +626,24 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
                   <CircularProgress size={24} sx={{ color: 'secondary.main' }} />
                   <Typography variant="body2" color="text.secondary">Loading schemas…</Typography>
                 </Box>
+              ) : schemaLoadError || !artifactSchema || !artifactUiSchema ? (
+                // Fail-closed: without a validated schema pair the editor will
+                // not render an unvalidated form. Export/save are also blocked.
+                <Alert severity="error" sx={{ m: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+                    Schema unavailable — editor is locked
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    {schemaLoadError ?? `No schema loaded for "${artifactType}".`}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Fix the schema source and reload the page, or pick a different artifact type.
+                  </Typography>
+                </Alert>
               ) : (
                 <JsonForms
-                  schema={(artifactSchema ?? {}) as any}
-                  uischema={(artifactUiSchema ?? FALLBACK_UISCHEMA) as any}
+                  schema={artifactSchema as any}
+                  uischema={artifactUiSchema as any}
                   data={data}
                   renderers={allRenderers}
                   cells={materialCells}
@@ -490,6 +660,8 @@ export default function ArtifactEditor({ initialMode, onBack }: Props) {
               storageKey="earos-artifact-preview-width"
             />
           </>
+        ) : initialMode === 'new' ? (
+          <ArtifactTypePicker onSelect={handleSelectType} />
         ) : (
           <ImportDropZone onImport={loadYaml} />
         )}

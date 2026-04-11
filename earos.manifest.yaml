@@ -1,6 +1,6 @@
 kind: manifest
 version: 2.0.0
-generated: '2026-03-19'
+generated: '2026-04-11'
 core:
   - path: core/core-meta-rubric.yaml
     rubric_id: EAROS-CORE-002
@@ -50,32 +50,47 @@ overlays:
     artifact_type: any
     status: approved
 schemas:
+  - path: standard/schemas/adr.artifact.schema.json
+    validates:
+      - artifact
+    artifact_type: architecture_decision_record
+  - path: standard/schemas/adr.artifact.uischema.json
+    purpose: JSON Forms UI schema for the ADR editor — 2-tab Categorization layout
+    artifact_type: architecture_decision_record
+  - path: standard/schemas/evaluation.schema.json
+    validates:
+      - evaluation
+  - path: standard/schemas/reference-architecture.artifact.schema.json
+    validates:
+      - artifact
+    artifact_type: reference_architecture
+  - path: standard/schemas/reference-architecture.artifact.uischema.json
+    purpose: JSON Forms UI schema for the reference architecture editor — 7-tab Categorization layout
+    artifact_type: reference_architecture
   - path: standard/schemas/rubric.schema.json
     validates:
       - core_rubric
       - profile
       - overlay
-  - path: standard/schemas/evaluation.schema.json
-    validates:
-      - evaluation
-  - path: standard/schemas/artifact.schema.json
+  - path: standard/schemas/solution-architecture.artifact.schema.json
     validates:
       - artifact
-  - path: standard/schemas/artifact.uischema.json
-    purpose: JSON Forms UI schema for the artifact editor — 7-tab Categorization layout
+    artifact_type: solution_architecture
+  - path: standard/schemas/solution-architecture.artifact.uischema.json
+    purpose: JSON Forms UI schema for the solution architecture editor — 5-tab Categorization layout
+    artifact_type: solution_architecture
 templates:
-  - path: templates/new-profile.template.yaml
-    purpose: scaffold for new profiles
+  - path: templates/adr/artifact.template.yaml
+    purpose: blank YAML template for architecture decision records (EAROS-ADR-001)
+    artifact_type: architecture_decision_record
   - path: templates/evaluation-record.template.yaml
     purpose: blank evaluation record
-  - path: templates/reference-architecture/Reference_Architecture_Template_v2.docx
-    purpose: author template for reference architectures
-examples:
-  - path: examples/example-solution-architecture.evaluation.yaml
-    kind: evaluation
+  - path: templates/new-profile.template.yaml
+    purpose: scaffold for new profiles
+  - path: templates/solution-architecture/artifact.template.yaml
+    purpose: blank YAML template for solution architectures (EAROS-SOL-001)
     artifact_type: solution_architecture
-    rubric_id: EAROS-SOL-001
-    description: Example evaluation record for a solution architecture (conditional pass)
+examples:
   - path: examples/aws-event-driven-order-processing/artifact.yaml
     kind: artifact
     artifact_type: reference_architecture
@@ -95,10 +110,26 @@ examples:
     kind: report
     artifact_type: reference_architecture
     description: Human-readable assessment report for the AWS Order Processing gold-standard example
+  - path: examples/example-adr/artifact.yaml
+    kind: artifact
+    artifact_type: architecture_decision_record
+    rubric_id: EAROS-ADR-001
+    description: Worked ADR — PostgreSQL as the Order Service primary datastore
+  - path: examples/example-solution-architecture.evaluation.yaml
+    kind: evaluation
+    artifact_type: solution_architecture
+    rubric_id: EAROS-SOL-001
+    description: Example evaluation record for a solution architecture (conditional pass)
+    overall_score: 3
+    overall_status: conditional_pass
+  - path: examples/example-solution-architecture/artifact.yaml
+    kind: artifact
+    artifact_type: solution_architecture
+    rubric_id: EAROS-SOL-001
+    description: Worked solution architecture — Customer Onboarding Platform target design
+  - path: examples/multi-cloud-data-analytics/artifact.yaml
+    kind: artifact
+    artifact_type: reference_architecture
 scoring_tools:
   - path: tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx
     purpose: general-purpose manual scoring (current)
-  - path: tools/scoring-sheets/EAROS_Scoring_Sheet.xlsx
-    purpose: general-purpose manual scoring (legacy)
-  - path: tools/scoring-sheets/EAROS_RefArch_Scoring_Sheet.xlsx
-    purpose: reference architecture scoring

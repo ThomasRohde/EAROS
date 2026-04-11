@@ -7,6 +7,39 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.6.0] — 2026-04-11
+
+### Added
+
+- **Per-type artifact schemas.** Split the unified `artifact.schema.json` into one data/UI schema pair per artifact type under `standard/schemas/`:
+  - `reference-architecture.artifact.schema.json` + `.uischema.json` (7 tabs, derived from EAROS-REFARCH-001)
+  - `solution-architecture.artifact.schema.json` + `.uischema.json` (5 tabs, derived from EAROS-SOL-001)
+  - `adr.artifact.schema.json` + `.uischema.json` (2 tabs, derived from EAROS-ADR-001)
+- Architects can now author Solution Architecture and ADR documents in the EaROS editor. A new-artifact picker prompts for the type, and the editor loads the matching schema pair.
+- New artifact templates: `templates/solution-architecture/artifact.template.yaml` and `templates/adr/artifact.template.yaml`.
+- New worked examples: `examples/example-solution-architecture/artifact.yaml` and `examples/example-adr/artifact.yaml`.
+- `earos validate` now resolves the correct schema automatically from the document's `kind` and `artifact_type` fields.
+- Markdown export now renders nested arrays/objects recursively instead of dumping `[object Object]` for decision evidence and similar structured sections.
+- Manifest generator (`tools/editor/manifest-cli.mjs`) now scans schemas, templates, and examples too, preserves curated metadata across regenerations, and detects filesystem drift in both directions.
+
+### Changed
+
+- The editor (`tools/editor/`) now uses a central `ARTIFACT_TYPE_TO_SCHEMA` resolver in `src/utils/schemaLoader.ts`, mirrored in `bin.js` and `src/export-docx.ts`. New profile types require updating the map plus authoring a matching schema pair.
+- The `artifact_type` field in each schema is now a `const` (not an enum) — one file governs one artifact type unambiguously.
+- ADR schema now requires `decision.scope` (`minLength: 1`) to match ADR-01's major gate — an ADR without explicit scope cannot pass above `conditional_pass`, so the schema enforces it structurally.
+- Solution-architecture schema now requires `sections.quality_attributes` to contain at least one entry (`minItems: 1`) so SOL-02's critical evidence slot can never be silently empty.
+- DOCX export and the `/api/export/docx` endpoint now fail closed on unknown `artifact_type` instead of emitting an unvalidated document.
+- Editor now fails closed when a per-type schema pair can't be loaded: the form is replaced with a blocking error panel and export/save are disabled until the schema resolves.
+- Editor schema loading is race-safe — rapid artifact-type switches no longer render a form keyed to the previous type's schema.
+- `earos validate` and the editor server now prefer the canonical `standard/schemas/` directory over the bundled npm-install copy during in-repo development, so live schema edits are picked up without re-running `postbuild`.
+- CLAUDE.md refactored from 688 → 162 lines, keeping only information that Claude would get wrong without it.
+
+### Removed
+
+- `standard/schemas/artifact.schema.json` and `artifact.uischema.json` (replaced by per-type files; greenfield, no back-compat shim).
+
+---
+
 ## [2.0.0] — 2026-03-19
 
 ### Summary

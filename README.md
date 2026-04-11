@@ -58,14 +58,14 @@ flowchart TD
 
 ---
 
-## Three Schema Types
+## Schemas
 
-EaROS uses three distinct JSON Schemas in `standard/schemas/`, forming a deliberate derivation chain:
+EaROS uses JSON Schemas in `standard/schemas/` to validate every file type. Rubric and evaluation schemas are shared; artifact schemas are **split per artifact type** — each profile has its own data schema and UI schema pair.
 
 ```mermaid
 flowchart LR
     R["<b>rubric.schema.json</b><br/>governs all rubric YAML files (core, profiles, overlays)"]
-    A["<b>artifact.schema.json</b><br/>governs architecture artifact documents"]
+    A["<b>&lt;type&gt;.artifact.schema.json</b><br/>one schema per artifact_type<br/>(reference-architecture, solution-architecture, adr)"]
     E["<b>evaluation.schema.json</b><br/>governs evaluation record output files"]
 
     R -->|required_evidence fields drive| A
@@ -76,13 +76,17 @@ flowchart LR
     style E fill:#fce4ec,stroke:#f06292,stroke-width:2px,color:#000
 ```
 
-| Schema | Validates | Kind discriminator |
+| Schema | Validates | Discriminator |
 |--------|-----------|--------------------|
-| `rubric.schema.json` | Core rubrics, profiles, overlays | `kind: core_rubric`, `profile`, `overlay` |
+| `rubric.schema.json` | Core rubrics, profiles, overlays | `kind: core_rubric` / `profile` / `overlay` |
 | `evaluation.schema.json` | Evaluation records | `kind: evaluation` |
-| `artifact.schema.json` | Architecture artifact documents | `kind: artifact` |
+| `reference-architecture.artifact.schema.json` | Reference architecture documents | `artifact_type: reference_architecture` |
+| `solution-architecture.artifact.schema.json` | Solution architecture documents | `artifact_type: solution_architecture` |
+| `adr.artifact.schema.json` | Architecture Decision Records | `artifact_type: architecture_decision_record` |
 
-A well-completed artifact document satisfies the evidence requirements that rubric criteria require. When a profile adds criteria with new `required_evidence` fields, the artifact schema should be extended to add the corresponding sections. This chain makes EaROS end-to-end: rubric defines what counts as evidence → artifact schema structures how evidence is captured → evaluation schema records how it is scored. The artifact schema is also used by the editor's JSON Forms to render a structured artifact creation form.
+Each artifact schema is paired with a matching `.uischema.json` that controls the editor's JSON Forms tab layout (RA: 7 tabs, SA: 5 tabs, ADR: 2 tabs).
+
+A well-completed artifact document satisfies the evidence requirements that rubric criteria require. When a profile adds criteria with new `required_evidence` fields, the corresponding artifact schema should be extended to add those sections. This chain makes EaROS end-to-end: rubric defines what counts as evidence → artifact schema structures how evidence is captured → evaluation schema records how it is scored. The `earos validate` CLI resolves the correct schema automatically from a document's `kind` and `artifact_type`.
 
 ---
 
@@ -96,10 +100,14 @@ EAROS/
 │   ├── EAROS.md                     The EaROS standard (canonical reference)
 │   ├── EAROS_Standard_v2.docx       Word version of the standard
 │   └── schemas/
-│       ├── rubric.schema.json       JSON Schema for core rubric / profile / overlay files
-│       ├── evaluation.schema.json   JSON Schema for evaluation record files
-│       └── artifact.schema.json     JSON Schema for architecture artifact documents
-│                                    (derived from rubric required_evidence fields)
+│       ├── rubric.schema.json                                  Rubric / profile / overlay files
+│       ├── evaluation.schema.json                              Evaluation record files
+│       ├── reference-architecture.artifact.schema.json         Reference architecture artifacts
+│       ├── reference-architecture.artifact.uischema.json       Editor form (7 tabs)
+│       ├── solution-architecture.artifact.schema.json          Solution architecture artifacts
+│       ├── solution-architecture.artifact.uischema.json        Editor form (5 tabs)
+│       ├── adr.artifact.schema.json                            Architecture Decision Records
+│       └── adr.artifact.uischema.json                          Editor form (2 tabs)
 │
 ├── core/
 │   └── core-meta-rubric.yaml        Universal rubric — applies to all artifacts
@@ -320,7 +328,7 @@ See [`docs/getting-started.md`](docs/getting-started.md) for a full walkthrough.
 1. Use the `earos-artifact-gen` skill — it interviews you and produces a schema-compliant artifact YAML
 2. Or use the `earos-template-fill` skill — it guides you through writing each section to satisfy rubric evidence requirements
 3. Or open the editor and select **Create Artifact** on the home screen
-4. Validate against `standard/schemas/artifact.schema.json`
+4. Validate with `earos validate <file.yaml>` — the CLI resolves the correct per-type schema from `artifact_type`
 
 ## AI-Agent Assessment
 
@@ -418,7 +426,7 @@ node bin.js manifest check              # check manifest matches filesystem; exi
 
 **Key features:**
 - **Assessment wizard** — guided criterion-by-criterion scoring with evidence capture, gate tracking, and automatic status determination
-- **Artifact editor** — structured document editor driven by `artifact.schema.json`; shows EaROS evidence requirements inline
+- **Artifact editor** — structured document editor with a new-artifact type picker (Reference Architecture / Solution Architecture / ADR). Each type loads its dedicated schema pair and renders a tailored JSON Forms layout with EaROS evidence requirements inline.
 - **Rubric editor** — tabbed JSON Forms view: Metadata / Dimensions & Criteria / Scoring & Outputs / Agent & Calibration
 - **Manifest-driven sidebar** — browse and load any rubric file via `earos.manifest.yaml`; no hardcoded paths
 - **Schemas loaded via API** — schemas are served from the canonical `standard/schemas/` paths at runtime

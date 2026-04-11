@@ -10,8 +10,8 @@
  * EAROS_REPO_ROOT env var is set by bin.js to the detected repo root.
  */
 
-import { readFileSync, writeFileSync, readdirSync, existsSync } from 'fs'
-import { resolve, dirname } from 'path'
+import { readFileSync, writeFileSync, readdirSync, existsSync, statSync } from 'fs'
+import { resolve, dirname, join, relative } from 'path'
 import { fileURLToPath } from 'url'
 import yaml from 'js-yaml'
 
@@ -23,6 +23,15 @@ const SCAN_DIRS = {
   core: 'core',
   profiles: 'profiles',
   overlays: 'overlays',
+}
+
+// Keep in sync with tools/editor/src/export-docx.ts and src/utils/schemaLoader.ts.
+// Maps canonical artifact_type → filename prefix used by
+// <prefix>.artifact.schema.json / <prefix>.artifact.uischema.json.
+const ARTIFACT_TYPE_TO_SCHEMA_PREFIX = {
+  reference_architecture: 'reference-architecture',
+  solution_architecture: 'solution-architecture',
+  architecture_decision_record: 'adr',
 }
 
 function readYaml(absPath) {
@@ -52,28 +61,221 @@ function scanDir(dir) {
     .filter(Boolean)
 }
 
+function readJson(absPath) {
+  try {
+    return JSON.parse(readFileSync(absPath, 'utf8'))
+  } catch {
+    return null
+  }
+}
+
+function relPath(absPath) {
+  return relative(REPO_ROOT, absPath).replace(/\\/g, '/')
+}
+
+function walkDir(absDir, predicate) {
+  const results = []
+  if (!existsSync(absDir)) return results
+  const stack = [absDir]
+  while (stack.length) {
+    const dir = stack.pop()
+    let entries
+    try {
+      entries = readdirSync(dir, { withFileTypes: true })
+    } catch {
+      continue
+    }
+    for (const entry of entries) {
+      if (entry.name.startsWith('.') || entry.name === 'node_modules') continue
+      const abs = join(dir, entry.name)
+      if (entry.isDirectory()) {
+        stack.push(abs)
+      } else if (entry.isFile() && predicate(entry.name, abs)) {
+        results.push(abs)
+      }
+    }
+  }
+  return results.sort()
+}
+
+function scanSchemas(previousByPath) {
+  const schemasDir = resolve(REPO_ROOT, 'standard/schemas')
+  if (!existsSync(schemasDir)) return []
+  const files = readdirSync(schemasDir)
+    .filter((f) => f.endsWith('.json'))
+    .sort()
+  const entries = []
+  for (const name of files) {
+    const path = `standard/schemas/${name}`
+    const prior = previousByPath.get(path) ?? {}
+    if (name === 'rubric.schema.json') {
+      entries.push({ path, validates: ['core_rubric', 'profile', 'overlay'] })
+      continue
+    }
+    if (name === 'evaluation.schema.json') {
+      entries.push({ path, validates: ['evaluation'] })
+      continue
+    }
+    // <prefix>.artifact.schema.json — data schema
+    const dataMatch = name.match(/^(.+)\.artifact\.schema\.json$/)
+    if (dataMatch) {
+      const schema = readJson(resolve(schemasDir, name))
+      const constType = schema?.properties?.artifact_type?.const
+      const enumType = Array.isArray(schema?.properties?.artifact_type?.enum)
+        ? schema.properties.artifact_type.enum[0]
+        : undefined
+      const artifact_type = typeof constType === 'string' ? constType : enumType
+      entries.push({
+        path,
+        validates: ['artifact'],
+        artifact_type: artifact_type ?? prior.artifact_type,
+      })
+      continue
+    }
+    // <prefix>.artifact.uischema.json — UI schema
+    const uiMatch = name.match(/^(.+)\.artifact\.uischema\.json$/)
+    if (uiMatch) {
+      const prefix = uiMatch[1]
+      const artifact_type =
+        Object.entries(ARTIFACT_TYPE_TO_SCHEMA_PREFIX).find(([, p]) => p === prefix)?.[0] ??
+        prior.artifact_type
+      const entry = {
+        path,
+        purpose: prior.purpose ?? `JSON Forms UI schema for the ${prefix.replace(/-/g, ' ')} editor`,
+      }
+      if (artifact_type) entry.artifact_type = artifact_type
+      entries.push(entry)
+      continue
+    }
+    // Unknown schema — keep a bare entry so it's discoverable
+    entries.push({ path, ...(prior.purpose ? { purpose: prior.purpose } : {}) })
+  }
+  return entries
+}
+
+function isCanonicalArtifactType(value) {
+  return typeof value === 'string' && value in ARTIFACT_TYPE_TO_SCHEMA_PREFIX
+}
+
+function scanTemplates(previousByPath) {
+  const templatesDir = resolve(REPO_ROOT, 'templates')
+  const absFiles = walkDir(templatesDir, (name) => {
+    return name.endsWith('.yaml') || name.endsWith('.yml') || name.endsWith('.docx')
+  })
+  return absFiles.map((abs) => {
+    const path = relPath(abs)
+    const prior = previousByPath.get(path) ?? {}
+    // Only emit artifact_type for concrete templates; scaffolds use placeholders
+    // like `[artifact_type]` that should not leak into the manifest.
+    let artifact_type = isCanonicalArtifactType(prior.artifact_type) ? prior.artifact_type : undefined
+    if (!artifact_type && (path.endsWith('.yaml') || path.endsWith('.yml'))) {
+      const data = readYaml(abs)
+      if (isCanonicalArtifactType(data?.artifact_type)) artifact_type = data.artifact_type
+    }
+    const entry = {
+      path,
+      purpose: prior.purpose ?? defaultTemplatePurpose(path),
+    }
+    if (artifact_type) entry.artifact_type = artifact_type
+    return entry
+  })
+}
+
+function defaultTemplatePurpose(path) {
+  if (path.endsWith('new-profile.template.yaml')) return 'scaffold for new profiles'
+  if (path.endsWith('evaluation-record.template.yaml')) return 'blank evaluation record'
+  if (path.endsWith('.docx')) return 'authoring template (Word)'
+  if (/\/artifact\.template\.yaml$/.test(path)) return 'blank YAML artifact template'
+  return 'template'
+}
+
+function scanExamples(previousByPath) {
+  const examplesDir = resolve(REPO_ROOT, 'examples')
+  const absFiles = walkDir(examplesDir, (name) => {
+    return name.endsWith('.yaml') || name.endsWith('.yml') || name.endsWith('.md')
+  })
+  const entries = []
+  for (const abs of absFiles) {
+    const path = relPath(abs)
+    const prior = previousByPath.get(path) ?? {}
+    if (path.endsWith('.md')) {
+      // Reports — preserve any existing metadata but always emit the entry
+      entries.push({
+        path,
+        kind: prior.kind ?? 'report',
+        ...(prior.artifact_type ? { artifact_type: prior.artifact_type } : {}),
+        ...(prior.description ? { description: prior.description } : {}),
+      })
+      continue
+    }
+    const data = readYaml(abs) ?? {}
+    const kind = data.kind ?? prior.kind ?? (path.endsWith('.evaluation.yaml') ? 'evaluation' : 'artifact')
+    const entry = {
+      path,
+      kind,
+    }
+    const artifact_type = data.artifact_type ?? prior.artifact_type
+    if (artifact_type) entry.artifact_type = artifact_type
+    // Prefer the manually-curated rubric_id from the existing manifest — eval
+    // files may cite a sub-rubric (e.g. the core meta-rubric) while the
+    // semantic owner is the profile the eval targets.
+    const rubric_id = prior.rubric_id ?? data.rubric_id ?? data.primary_rubric_id
+    if (rubric_id) entry.rubric_id = rubric_id
+    if (prior.description) entry.description = prior.description
+    const status = data.status ?? prior.status
+    if (status) entry.status = status
+    const overall_score = data.overall_score ?? prior.overall_score
+    if (overall_score !== undefined) entry.overall_score = overall_score
+    const overall_status = data.overall_status ?? prior.overall_status
+    if (overall_status) entry.overall_status = overall_status
+    entries.push(entry)
+  }
+  return entries
+}
+
+function scanScoringTools(previousByPath) {
+  const dir = resolve(REPO_ROOT, 'tools/scoring-sheets')
+  if (!existsSync(dir)) return []
+  return readdirSync(dir)
+    .filter((f) => /\.(xlsx|xlsm|ods)$/i.test(f))
+    .sort()
+    .map((f) => {
+      const path = `tools/scoring-sheets/${f}`
+      const prior = previousByPath.get(path) ?? {}
+      return { path, purpose: prior.purpose ?? 'manual scoring sheet' }
+    })
+}
+
+function indexByPath(...sections) {
+  const map = new Map()
+  for (const section of sections) {
+    if (!Array.isArray(section)) continue
+    for (const entry of section) {
+      if (entry?.path) map.set(entry.path, entry)
+    }
+  }
+  return map
+}
+
 function buildManifest() {
+  const existing = loadManifest() ?? {}
+  const previousByPath = indexByPath(
+    existing.schemas,
+    existing.templates,
+    existing.examples,
+    existing.scoring_tools,
+  )
   return {
     kind: 'manifest',
-    version: '2.0.0',
+    version: existing.version ?? '2.0.0',
     generated: new Date().toISOString().slice(0, 10),
     core: scanDir('core'),
     profiles: scanDir('profiles'),
     overlays: scanDir('overlays'),
-    schemas: [
-      { path: 'standard/schemas/rubric.schema.json', validates: ['core_rubric', 'profile', 'overlay'] },
-      { path: 'standard/schemas/evaluation.schema.json', validates: ['evaluation'] },
-    ],
-    templates: [
-      { path: 'templates/new-profile.template.yaml', purpose: 'scaffold for new profiles' },
-      { path: 'templates/evaluation-record.template.yaml', purpose: 'blank evaluation record' },
-      { path: 'templates/reference-architecture/Reference_Architecture_Template_v2.docx', purpose: 'author template for reference architectures' },
-    ],
-    scoring_tools: [
-      { path: 'tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx', purpose: 'general-purpose manual scoring (current)' },
-      { path: 'tools/scoring-sheets/EAROS_Scoring_Sheet.xlsx', purpose: 'general-purpose manual scoring (legacy)' },
-      { path: 'tools/scoring-sheets/EAROS_RefArch_Scoring_Sheet.xlsx', purpose: 'reference architecture scoring' },
-    ],
+    schemas: scanSchemas(previousByPath),
+    templates: scanTemplates(previousByPath),
+    examples: scanExamples(previousByPath),
+    scoring_tools: scanScoringTools(previousByPath),
   }
 }
 
@@ -94,7 +296,14 @@ const subCmd = subArgs[0]
 if (!subCmd || subCmd === 'generate') {
   const manifest = buildManifest()
   writeManifest(manifest)
-  const counts = `core:${manifest.core?.length ?? 0} profiles:${manifest.profiles?.length ?? 0} overlays:${manifest.overlays?.length ?? 0}`
+  const counts = [
+    `core:${manifest.core?.length ?? 0}`,
+    `profiles:${manifest.profiles?.length ?? 0}`,
+    `overlays:${manifest.overlays?.length ?? 0}`,
+    `schemas:${manifest.schemas?.length ?? 0}`,
+    `templates:${manifest.templates?.length ?? 0}`,
+    `examples:${manifest.examples?.length ?? 0}`,
+  ].join(' ')
   console.log(`✓ earos.manifest.yaml generated (${counts})`)
   process.exit(0)
 }
@@ -181,10 +390,31 @@ if (subCmd === 'check') {
     if (!existsSync(absDir)) continue
     const files = readdirSync(absDir).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'))
     for (const f of files) {
-      const relPath = `${dir}/${f}`
+      const relativePath = `${dir}/${f}`
       const sectionData = manifest[section]
-      if (!sectionData?.some((e) => e.path === relPath)) {
-        errors.push(`NOT IN MANIFEST: ${relPath}`)
+      if (!sectionData?.some((e) => e.path === relativePath)) {
+        errors.push(`NOT IN MANIFEST: ${relativePath}`)
+      }
+    }
+  }
+
+  // Schemas, templates, examples drift — both directions.
+  const driftSections = [
+    { name: 'schemas', entries: manifest.schemas ?? [], expected: scanSchemas(new Map()) },
+    { name: 'templates', entries: manifest.templates ?? [], expected: scanTemplates(new Map()) },
+    { name: 'examples', entries: manifest.examples ?? [], expected: scanExamples(new Map()) },
+  ]
+  for (const { name, entries, expected } of driftSections) {
+    const manifestPaths = new Set(entries.map((e) => e.path))
+    const expectedPaths = new Set(expected.map((e) => e.path))
+    for (const p of expectedPaths) {
+      if (!manifestPaths.has(p)) {
+        errors.push(`NOT IN MANIFEST (${name}): ${p}`)
+      }
+    }
+    for (const e of entries) {
+      if (!existsSync(resolve(REPO_ROOT, e.path))) {
+        errors.push(`MISSING on disk (${name}): ${e.path}`)
       }
     }
   }

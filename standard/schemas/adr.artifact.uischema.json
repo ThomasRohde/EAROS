@@ -1,0 +1,24 @@
+{
+  "type": "Categorization",
+  "elements": [
+    {
+      "type": "Category",
+      "label": "Overview & Metadata",
+      "elements": [
+        { "type": "Control", "scope": "#/properties/kind" },
+        { "type": "Control", "scope": "#/properties/artifact_type" },
+        { "type": "Control", "scope": "#/properties/metadata" },
+        { "type": "Control", "scope": "#/properties/sections/properties/stakeholders" }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Decision",
+      "elements": [
+        { "type": "Control", "scope": "#/properties/sections/properties/decision" },
+        { "type": "Control", "scope": "#/properties/sections/properties/governance" },
+        { "type": "Control", "scope": "#/properties/sections/properties/glossary" }
+      ]
+    }
+  ]
+}

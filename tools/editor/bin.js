@@ -28,11 +28,17 @@ function findRepoRoot() {
   return cwd
 }
 
-/** Find schemas dir: bundled with package first, then repo fallback. */
+/**
+ * Find schemas dir. In a checked-out EaROS repo, `standard/schemas/` sits
+ * two levels up from this file and is the canonical source — prefer it so
+ * local edits take effect immediately without re-running postbuild. When
+ * installed as an npm package that path doesn't exist, so fall back to the
+ * copy postbuild.mjs staged next to bin.js.
+ */
 function findSchemasDir() {
-  const bundled = resolve(__dirname, 'schemas')
-  if (existsSync(bundled)) return bundled
-  return resolve(__dirname, '../../standard/schemas')
+  const canonical = resolve(__dirname, '../../standard/schemas')
+  if (existsSync(canonical)) return canonical
+  return resolve(__dirname, 'schemas')
 }
 
 // ─── validate command ─────────────────────────────────────────────────────────
@@ -65,12 +71,33 @@ async function validateFile(filePath, jsonMode) {
 
   const kind = data?.kind
   const schemasDir = findSchemasDir()
-  const schemaFile =
-    kind === 'evaluation'
-      ? resolve(schemasDir, 'evaluation.schema.json')
-      : kind === 'artifact'
-        ? resolve(schemasDir, 'artifact.schema.json')
-        : resolve(schemasDir, 'rubric.schema.json')
+
+  // Artifact schemas are split per artifact_type — each type has its own
+  // <prefix>.artifact.schema.json file. Map artifact_type → prefix.
+  const ARTIFACT_TYPE_TO_SCHEMA = {
+    reference_architecture: 'reference-architecture',
+    solution_architecture: 'solution-architecture',
+    architecture_decision_record: 'adr',
+  }
+
+  let schemaFile
+  if (kind === 'evaluation') {
+    schemaFile = resolve(schemasDir, 'evaluation.schema.json')
+  } else if (kind === 'artifact') {
+    const prefix = ARTIFACT_TYPE_TO_SCHEMA[data?.artifact_type]
+    if (!prefix) {
+      const msg = `Unknown or missing artifact_type: ${data?.artifact_type ?? '(missing)'}. Expected one of: ${Object.keys(ARTIFACT_TYPE_TO_SCHEMA).join(', ')}`
+      if (jsonMode) {
+        process.stdout.write(JSON.stringify({ valid: false, file: filePath, kind, errors: [{ path: '/artifact_type', message: msg }] }) + '\n')
+      } else {
+        console.error(`✗ ${filePath} — ${msg}`)
+      }
+      process.exit(1)
+    }
+    schemaFile = resolve(schemasDir, `${prefix}.artifact.schema.json`)
+  } else {
+    schemaFile = resolve(schemasDir, 'rubric.schema.json')
+  }
 
   const rawSchema = JSON.parse(readFileSync(schemaFile, 'utf8'))
   // Strip $schema/$id so AJV v8 doesn't try to load the draft-2020 meta-schema
@@ -204,7 +231,12 @@ Usage:
     if (kind === 'artifact' || !kind) {
       outputPath = inputPath.replace(/\.(yaml|yml)$/i, '') + '.docx'
       console.log('Rendering diagrams and building Word document…')
-      buf = await exportToDocx(exportData)
+      try {
+        buf = await exportToDocx(exportData)
+      } catch (e) {
+        console.error(`Export failed: ${e.message}`)
+        process.exit(1)
+      }
     } else if (kind === 'evaluation') {
       outputPath = inputPath.replace(/\.(yaml|yml)$/i, '') + '-assessment.docx'
       console.log('Building evaluation Word document…')

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://earos.io/schemas/artifact.schema.json",
-  "title": "EAROS Architecture Artifact",
-  "description": "Schema for EAROS-governed architecture artifact documents. Derived from the required_evidence fields of the core meta-rubric (EAROS-CORE-002) and artifact-type profiles. Sections map directly to rubric criteria so that a well-completed document generates the evidence an assessor needs. Derivation chain: Rubric criteria (required_evidence) → this schema (sections) → artifact document → evaluation record.",
+  "$id": "https://earos.io/schemas/reference-architecture.artifact.schema.json",
+  "title": "EaROS Reference Architecture Artifact",
+  "description": "Schema for EaROS-governed Reference Architecture documents. Derived from the required_evidence fields of the core meta-rubric (EAROS-CORE-002) and the reference-architecture profile (EAROS-REFARCH-001). Sections map directly to rubric criteria so that a well-completed document generates the evidence an assessor needs. Derivation chain: Rubric criteria (required_evidence) → this schema (sections) → artifact document → evaluation record.",
   "type": "object",
   "required": ["kind", "artifact_type", "metadata", "sections"],
   "properties": {
@@ -14,9 +14,9 @@
     },
     "artifact_type": {
       "type": "string",
-      "enum": ["reference_architecture"],
+      "const": "reference_architecture",
       "title": "Artifact type",
-      "description": "The type of architecture artifact this document represents. Determines which EAROS profile applies alongside the core meta-rubric. 'reference_architecture' uses profile EAROS-REFARCH-001."
+      "description": "Locked to 'reference_architecture'. Binds this document to profile EAROS-REFARCH-001 alongside the core meta-rubric."
     },
     "metadata": {
       "type": "object",

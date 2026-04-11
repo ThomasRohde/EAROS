@@ -207,7 +207,10 @@ export async function startServer(fileArg?: string): Promise<void> {
       res.send(buf)
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
-      if (message.startsWith('Missing browser-rendered diagrams for export:')) {
+      if (
+        message.startsWith('Missing browser-rendered diagrams for export:') ||
+        message.startsWith('Unsupported artifact_type for DOCX export:')
+      ) {
         res.status(400).json({ error: message })
         return
       }

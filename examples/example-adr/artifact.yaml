@@ -1,0 +1,132 @@
+kind: artifact
+artifact_type: architecture_decision_record
+
+metadata:
+  id: ADR-042
+  title: "Use PostgreSQL as the Order Service primary datastore"
+  status: accepted
+  date: "2026-02-18"
+  author: "Jane Smith"
+  owner: "Order Service Squad"
+  version: 1.0.0
+  tags:
+    - database
+    - persistence
+    - order-service
+
+sections:
+  decision:
+    statement: >
+      We will use PostgreSQL 16 (AWS RDS managed) as the primary transactional
+      datastore for the Order Service, effective Q2 2026. This decision applies
+      only to the Order Service domain; other services may choose different
+      stores with separate justification.
+    scope: >
+      Order Service bounded context. Does not apply to analytics, reporting,
+      or other services in the Commerce domain.
+    context: >
+      The legacy Order Service runs on MySQL 5.7, which reaches end of life in
+      October 2026. A Q1 2026 cost and compliance review required choosing a
+      successor store before the LTS migration window closes. The service
+      handles ~3K TPS peak with strict ACID requirements (payment reconciliation).
+    drivers:
+      - id: DR-01
+        description: "MySQL 5.7 end-of-life on 2026-10-31 — forced migration window"
+      - id: DR-02
+        description: "Strong ACID guarantees required for financial data (compliance gate)"
+      - id: DR-03
+        description: "Team capacity limited — cannot take on operational overhead of self-managed"
+    alternatives:
+      - id: A
+        name: "MongoDB 7.0 (MongoDB Atlas)"
+        description: "Document store replacing the relational model"
+        pros:
+          - Flexible schema for evolving order payload shapes
+          - Strong operational tooling in Atlas
+        cons:
+          - Multi-document transactions still have performance caveats
+          - Schema-on-read adds query complexity for reporting
+        rejection_reason: >
+          Lacks the ACID guarantees we need for payment reconciliation. Team
+          judged the operational risk of inconsistent transactional state
+          against MongoDB's flexibility benefits and chose consistency.
+      - id: B
+        name: "MySQL 8.0 (AWS RDS managed)"
+        description: "Minor-version upgrade from the current MySQL 5.7 baseline"
+        pros:
+          - Zero migration friction — existing application code works unchanged
+          - Team already has MySQL operational experience
+        cons:
+          - Weaker JSON and schema migration ergonomics than PostgreSQL
+          - Licensing cost at our projected volume exceeds budget by ~£8K/year
+        rejection_reason: >
+          Licensing cost breaks the 2026 budget. Also, the team wants to
+          standardise new services on PostgreSQL for consistency with the
+          Payments and Catalog services, which both use it.
+      - id: C
+        name: "DynamoDB"
+        description: "AWS-native managed key-value store"
+        pros:
+          - Zero operational overhead
+          - Infinite horizontal scaling
+        cons:
+          - Query patterns required would need secondary indexes and careful
+            access-pattern modelling
+          - ACID transactions across items have strict size and latency limits
+        rejection_reason: >
+          Query flexibility required for the Order Service (ad-hoc support
+          queries from the ops team) is incompatible with DynamoDB's
+          access-pattern-first design. Same consistency concerns as MongoDB.
+    consequences:
+      positive:
+        - Strong ACID guarantees for payment reconciliation
+        - Alignment with Payments and Catalog services (shared runbook, shared skills)
+        - PostgreSQL JSONB gives us flexible schema evolution without giving up relational constraints
+      negative:
+        - AWS RDS PostgreSQL adds ~£1,200/month operational expenditure vs. the existing self-managed baseline
+        - Team must learn pgvector and partitioning patterns for the scaling roadmap
+        - Migration from MySQL 5.7 requires a 2-week parallel-write dual-run phase
+      downstream_effects:
+        - Enables ADR-045 (shared Postgres operational runbook)
+        - Influences ADR-047 (Payments service datastore standardisation)
+    reversibility:
+      level: moderate
+      cost_to_reverse: "~4 person-weeks of data migration plus rewrite of the persistence layer"
+      reversal_trigger: >
+        Revisit if managed PostgreSQL cost exceeds £5,000/month for two
+        consecutive quarters, or if Order Service TPS exceeds 10K peak (at
+        which point we would reassess whether the relational model still fits).
+    review_triggers:
+      - "Order Service peak TPS exceeds 10K (capacity trigger)"
+      - "Managed PostgreSQL cost exceeds £5,000/month for two consecutive quarters (budget trigger)"
+      - "Next major PostgreSQL version upgrade (compatibility trigger)"
+    related_decisions:
+      - id: "ADR-007"
+        relationship: supersedes
+        title: "Use MySQL 5.7 for the Order Service (2023)"
+      - id: "ADR-045"
+        relationship: enables
+        title: "Shared PostgreSQL operational runbook"
+      - id: "RFC-022"
+        relationship: related
+        title: "Infrastructure cost policy"
+
+  stakeholders:
+    - role: Architecture Lead
+      name: "Jane Smith"
+      concurrence: agreed
+    - role: Database Platform Lead
+      name: "Marcus Chen"
+      concurrence: agreed
+    - role: Engineering Lead — Order Service
+      name: "Priya Raman"
+      concurrence: consulted
+    - role: Security
+      name: "Security Architecture"
+      concurrence: consulted
+
+  glossary:
+    - term: "Order Service"
+      definition: "The bounded context responsible for order lifecycle: creation, payment, fulfilment, and audit."
+    - term: "Dual-run"
+      definition: "Migration phase where writes go to both the old and new datastore for a defined period, enabling a rapid rollback if correctness checks fail."

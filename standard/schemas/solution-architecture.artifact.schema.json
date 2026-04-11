@@ -1,0 +1,728 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://earos.io/schemas/solution-architecture.artifact.schema.json",
+  "title": "EaROS Solution Architecture Artifact",
+  "description": "Schema for EaROS-governed Solution Architecture documents. Derived from the required_evidence fields of the core meta-rubric (EAROS-CORE-002) and the solution-architecture profile (EAROS-SOL-001). Each section maps to a profile criterion: solution_options → SOL-01 (optioning and rationale, major gate), quality_attributes → SOL-02 (quality attribute treatment, critical gate), operational_model + raid → SOL-03 (delivery and operability readiness). A well-completed document produces the evidence an assessor needs for every SOL criterion and the full core rubric.",
+  "type": "object",
+  "required": ["kind", "artifact_type", "metadata", "sections"],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "const": "artifact",
+      "title": "Document kind",
+      "description": "Fixed discriminator. Always 'artifact' for architecture documents."
+    },
+    "artifact_type": {
+      "type": "string",
+      "const": "solution_architecture",
+      "title": "Artifact type",
+      "description": "Locked to 'solution_architecture'. Binds this document to profile EAROS-SOL-001 alongside the core meta-rubric."
+    },
+    "metadata": {
+      "type": "object",
+      "title": "Document metadata",
+      "description": "Administrative and identification fields. Maps to evidence required by core criteria STK-01 (purpose, stakeholders, decision_context) and MNT-01 (owner, version, last_updated, change_log). All required fields must be present for a score above 1 on MNT-01.",
+      "required": ["title", "version", "status", "owner", "purpose"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "Title",
+          "description": "Full title of the solution architecture. Should name the business capability, system, or programme. Example: 'Customer Onboarding Platform — Target Solution Architecture'."
+        },
+        "version": {
+          "type": "string",
+          "title": "Version",
+          "description": "Semantic version of this artifact (MAJOR.MINOR.PATCH).",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "examples": ["1.0.0", "2.1.0"]
+        },
+        "status": {
+          "type": "string",
+          "title": "Status",
+          "description": "Lifecycle status: 'draft' (in progress), 'candidate' (ready for Architecture Board review), 'approved' (formally accepted), 'deprecated' (superseded).",
+          "enum": ["draft", "candidate", "approved", "deprecated"]
+        },
+        "author": {
+          "type": "string",
+          "title": "Author",
+          "description": "Individual who authored or last significantly updated this document."
+        },
+        "owner": {
+          "type": "string",
+          "title": "Owner",
+          "description": "Named individual or team with ongoing stewardship responsibility. Evidence for core criterion MNT-01. Example: 'Solution Architecture, Customer Domain'."
+        },
+        "effective_date": {
+          "type": "string",
+          "format": "date",
+          "title": "Effective date",
+          "description": "Date from which this version is the active reference. Format: YYYY-MM-DD."
+        },
+        "next_review_date": {
+          "type": "string",
+          "format": "date",
+          "title": "Next review date",
+          "description": "Date by which this document must be reviewed and either reconfirmed or updated. Evidence for MNT-01 score ≥ 3. Format: YYYY-MM-DD."
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "date",
+          "title": "Last updated",
+          "description": "Date of the most recent substantive change. Format: YYYY-MM-DD."
+        },
+        "purpose": {
+          "type": "string",
+          "title": "Purpose statement",
+          "description": "One or two sentences stating what this solution is for and what decision it supports. Evidence for core criterion STK-01 (major gate). Example: 'Replace the legacy onboarding workflow with a cloud-native solution supporting same-day account opening for retail customers.'"
+        },
+        "decision_context": {
+          "type": "string",
+          "title": "Decision or usage context",
+          "description": "The governance or project context in which this solution is proposed — the Architecture Board review it supports, the programme it belongs to, the delivery milestone it targets. Evidence for STK-01."
+        },
+        "stakeholders": {
+          "type": "array",
+          "title": "Stakeholders",
+          "description": "Named individuals or roles with a significant concern in this solution. Evidence for core criterion STK-01 (named stakeholder list required for score ≥ 2).",
+          "items": {
+            "type": "object",
+            "title": "Stakeholder",
+            "required": ["role"],
+            "properties": {
+              "name": { "type": "string", "title": "Name or team" },
+              "role": { "type": "string", "title": "Role" },
+              "concerns": {
+                "type": "string",
+                "title": "Concerns addressed",
+                "description": "What this stakeholder needs from this document. Evidence for STK-02."
+              }
+            }
+          }
+        },
+        "change_log": {
+          "type": "array",
+          "title": "Change log",
+          "description": "History of substantive changes to this document, most recent first. Evidence for MNT-01 — at least one entry is required for score ≥ 3.",
+          "items": {
+            "type": "object",
+            "title": "Change log entry",
+            "required": ["version", "date", "changes"],
+            "properties": {
+              "version": { "type": "string", "title": "Version" },
+              "date": { "type": "string", "format": "date", "title": "Date" },
+              "author": { "type": "string", "title": "Author" },
+              "changes": {
+                "type": "array",
+                "title": "Changes",
+                "items": { "type": "string" },
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "sections": {
+      "type": "object",
+      "title": "Document sections",
+      "description": "Substantive content of the solution architecture. Every required section maps to one or more EaROS criteria; omitting a required section will lower the corresponding score.",
+      "required": [
+        "scope",
+        "drivers_and_principles",
+        "solution_options",
+        "quality_attributes",
+        "operational_model"
+      ],
+      "properties": {
+        "reading_guide": {
+          "type": "object",
+          "title": "Reading guide",
+          "description": "Maps document sections to stakeholder concerns. Evidence for core criterion STK-02. A complete mapping is required for STK-02 score ≥ 3.",
+          "properties": {
+            "how_to_use": {
+              "type": "string",
+              "title": "How to use this document"
+            },
+            "section_map": {
+              "type": "array",
+              "title": "Section-to-concern mapping",
+              "items": {
+                "type": "object",
+                "required": ["section", "audience", "concern"],
+                "properties": {
+                  "section": { "type": "string", "title": "Section" },
+                  "audience": { "type": "string", "title": "Audience" },
+                  "concern": { "type": "string", "title": "Concern addressed" }
+                }
+              }
+            }
+          }
+        },
+        "scope": {
+          "type": "object",
+          "title": "Scope and boundary",
+          "description": "Defines exactly what is and is not covered by this solution. Without clear scope, the artifact may be rated 'not_reviewable'. Evidence for core criterion SCP-01 (critical gate — score < 2 triggers not_reviewable status).",
+          "required": ["statement"],
+          "properties": {
+            "statement": {
+              "type": "string",
+              "title": "Scope statement",
+              "description": "Concise, unambiguous statement of what this solution architecture covers."
+            },
+            "in_scope": {
+              "type": "array",
+              "title": "In scope",
+              "items": { "type": "string" }
+            },
+            "out_of_scope": {
+              "type": "array",
+              "title": "Out of scope",
+              "description": "Items intentionally excluded, with rationale or reference. Required for SCP-01 score > 2.",
+              "items": { "type": "string" }
+            },
+            "boundary_definition": {
+              "type": "string",
+              "title": "Boundary definition",
+              "description": "Description of the system context boundary — what is inside the solution vs. what is external."
+            },
+            "assumptions": {
+              "type": "array",
+              "title": "Contextual assumptions",
+              "description": "Assumptions about the environment under which this scope is valid. Each assumption should state the consequence if violated. Evidence for SCP-01 score ≥ 3.",
+              "items": {
+                "type": "object",
+                "required": ["assumption"],
+                "properties": {
+                  "assumption": { "type": "string", "title": "Assumption" },
+                  "consequence_if_violated": {
+                    "type": "string",
+                    "title": "Consequence if violated"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "drivers_and_principles": {
+          "type": "object",
+          "title": "Drivers and principles",
+          "description": "Business drivers, requirements, and architecture principles that shape this solution. Evidence for core criterion TRC-01 (major gate). Drivers must be traceable to specific design responses — listing them in isolation scores only 1.",
+          "properties": {
+            "drivers": {
+              "type": "array",
+              "title": "Business drivers",
+              "description": "Business motivations this solution addresses. Each driver should link to an architecture_response. Evidence for TRC-01.",
+              "items": {
+                "type": "object",
+                "required": ["description"],
+                "properties": {
+                  "id": { "type": "string", "title": "Driver ID" },
+                  "description": { "type": "string", "title": "Description" },
+                  "architecture_response": {
+                    "type": "string",
+                    "title": "Architecture response",
+                    "description": "How this solution responds to the driver. Reference the chosen option or a named design mechanism. Linkage is evidence for TRC-01 score ≥ 2."
+                  }
+                }
+              }
+            },
+            "principles": {
+              "type": "array",
+              "title": "Architecture principles",
+              "description": "Enterprise or domain principles that constrain the design.",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "id": { "type": "string", "title": "Principle ID" },
+                  "name": { "type": "string", "title": "Name" },
+                  "how_applied": {
+                    "type": "string",
+                    "title": "How applied",
+                    "description": "Evidence for TRC-01 principle compliance."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "solution_options": {
+          "type": "object",
+          "title": "Solution options and decision",
+          "description": "The optioning work behind the chosen solution. Evidence for profile criterion SOL-01 (major gate — cannot pass above conditional_pass without explicit alternatives and rationale). Score 3 requires a meaningful comparison with explicit selection criteria; score 4 requires criteria-weighted, evidence-backed decisions tied to business and quality concerns.",
+          "required": ["chosen_option", "rationale"],
+          "properties": {
+            "decision_criteria": {
+              "type": "array",
+              "title": "Decision criteria",
+              "description": "The named criteria used to evaluate options. Each criterion should have a weight (or clear priority) so the decision is reproducible. Required for SOL-01 score ≥ 3.",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "title": "Criterion name",
+                    "description": "Example: 'Delivery speed', 'Strategic fit', 'Total cost of ownership', 'Vendor risk'."
+                  },
+                  "weight": {
+                    "type": "string",
+                    "title": "Weight or priority",
+                    "description": "Relative importance. Example: '30%', 'high', '1 (must)'."
+                  },
+                  "description": {
+                    "type": "string",
+                    "title": "Description",
+                    "description": "What this criterion measures and how it is applied."
+                  }
+                }
+              }
+            },
+            "options": {
+              "type": "array",
+              "title": "Options considered",
+              "description": "All alternatives evaluated, including the selected one. Documenting only the chosen option is an anti-pattern — score 1 at most. Required for SOL-01 score ≥ 3.",
+              "items": {
+                "type": "object",
+                "required": ["id", "name", "description"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "title": "Option ID",
+                    "description": "Short identifier. Example: 'A', 'B', 'Option 1'."
+                  },
+                  "name": {
+                    "type": "string",
+                    "title": "Option name",
+                    "description": "Example: 'Buy — vendor SaaS', 'Build — custom API', 'Extend — middleware layer'."
+                  },
+                  "description": {
+                    "type": "string",
+                    "title": "Description",
+                    "description": "What this option proposes in concrete terms."
+                  },
+                  "pros": {
+                    "type": "array",
+                    "title": "Pros",
+                    "items": { "type": "string" }
+                  },
+                  "cons": {
+                    "type": "array",
+                    "title": "Cons",
+                    "items": { "type": "string" }
+                  },
+                  "cost": {
+                    "type": "string",
+                    "title": "Cost estimate",
+                    "description": "Indicative capex/opex. Example: '£450K build + £40K/yr run'."
+                  },
+                  "criterion_scores": {
+                    "type": "array",
+                    "title": "Criterion scores",
+                    "description": "Scores against the named decision criteria.",
+                    "items": {
+                      "type": "object",
+                      "required": ["criterion"],
+                      "properties": {
+                        "criterion": { "type": "string", "title": "Criterion" },
+                        "score": { "type": "string", "title": "Score" },
+                        "notes": { "type": "string", "title": "Notes" }
+                      }
+                    }
+                  },
+                  "selected": {
+                    "type": "boolean",
+                    "title": "Selected",
+                    "description": "Exactly one option should be marked true."
+                  },
+                  "rejection_reason": {
+                    "type": "string",
+                    "title": "Rejection reason",
+                    "description": "Why this option was rejected, with reference to the decision criteria. Required for every non-selected option at SOL-01 score ≥ 3."
+                  }
+                }
+              }
+            },
+            "chosen_option": {
+              "type": "string",
+              "title": "Chosen option",
+              "description": "ID or name of the selected option. Must match one of the entries in 'options'."
+            },
+            "rationale": {
+              "type": "string",
+              "title": "Selection rationale",
+              "description": "Why the chosen option won against the criteria. Reference business drivers, quality attributes, and principles. Required evidence for SOL-01."
+            },
+            "tradeoffs_accepted": {
+              "type": "array",
+              "title": "Trade-offs accepted",
+              "description": "Known sacrifices made by choosing this option. Required for SOL-01 score 4.",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "quality_attributes": {
+          "type": "array",
+          "title": "Quality attributes and NFRs",
+          "description": "Measurable targets for each material quality attribute, each with a named architectural mechanism. Evidence for profile criterion SOL-02 (CRITICAL gate — missing or untraceable material NFRs trigger Reject). Score 3 requires most material NFRs to have named architectural mechanisms; score 4 requires every material NFR to be traceable to a specific design decision with measurable targets. At least one quality attribute must be present structurally — an empty array means the SOL-02 evidence slot is unpopulated and cannot be reviewed.",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["attribute", "target", "architectural_mechanism"],
+            "properties": {
+              "attribute": {
+                "type": "string",
+                "title": "Quality attribute",
+                "description": "Concrete, assessable name — not an adjective.",
+                "examples": ["Availability", "Latency P99", "Throughput", "Data residency", "Recovery Time Objective (RTO)", "Security posture"]
+              },
+              "target": {
+                "type": "string",
+                "title": "Measurable target",
+                "description": "Specific number or threshold — not an adjective. Example: '99.9% monthly availability', 'P99 < 200ms under 5K concurrent users', 'EU-only storage'."
+              },
+              "quality_scenario": {
+                "type": "string",
+                "title": "Quality scenario",
+                "description": "SEI/TOGAF-style scenario: stimulus, source, environment, response, response measure."
+              },
+              "architectural_mechanism": {
+                "type": "string",
+                "title": "Architectural mechanism",
+                "description": "The specific design response that satisfies this NFR. Must be identifiable in the design — named component, pattern, or control. Required evidence for SOL-02. Example: 'Active-passive failover with 30s health check + automated switchover'."
+              },
+              "mechanism_location": {
+                "type": "string",
+                "title": "Where in the design",
+                "description": "Cross-reference to the section, option, or diagram where the mechanism appears."
+              },
+              "validation_strategy": {
+                "type": "string",
+                "title": "Validation strategy",
+                "description": "How compliance with this target is validated before and after release. Required for SOL-02 score ≥ 3."
+              },
+              "fitness_function": {
+                "type": "string",
+                "title": "Fitness function",
+                "description": "Automated check that continuously validates this attribute. Required for SOL-02 score 4."
+              }
+            }
+          }
+        },
+        "operational_model": {
+          "type": "object",
+          "title": "Operational model and delivery readiness",
+          "description": "How the solution is delivered, operated, and migrated to. Evidence for profile criterion SOL-03. Score 3 requires deployment model, operational ownership, and migration approach to be clear; score 4 requires a complete delivery plan with operating model, observability design, migration steps, and rollback approach.",
+          "properties": {
+            "operating_model": {
+              "type": "string",
+              "title": "Operating model",
+              "description": "Who runs this solution in production and how. Example: 'Jointly operated by Platform Engineering (infra) and Customer Domain squad (application); Platform is on-call for infra incidents, Customer Domain for business logic.'"
+            },
+            "operational_owner": {
+              "type": "string",
+              "title": "Named operational owner",
+              "description": "Named team and lead — no unowned solutions. Example: 'Customer Platform Squad — Jane Smith, delivery lead'. Required for SOL-03 score ≥ 3."
+            },
+            "deployment": {
+              "type": "object",
+              "title": "Deployment approach",
+              "properties": {
+                "strategy": {
+                  "type": "string",
+                  "title": "Strategy",
+                  "description": "Example: 'Blue-green via GitHub Actions with manual approval gate on production'."
+                },
+                "environments": {
+                  "type": "array",
+                  "title": "Environments",
+                  "items": { "type": "string" }
+                },
+                "release_cadence": {
+                  "type": "string",
+                  "title": "Release cadence",
+                  "description": "Example: 'Weekly release train, emergency hotfix path within 2 hours'."
+                }
+              }
+            },
+            "observability": {
+              "type": "object",
+              "title": "Observability design",
+              "description": "How the solution is monitored in production. Required for SOL-03 score 4.",
+              "properties": {
+                "metrics": {
+                  "type": "array",
+                  "title": "Key metrics",
+                  "items": { "type": "string" }
+                },
+                "alerts": {
+                  "type": "string",
+                  "title": "Alerting approach",
+                  "description": "Alert thresholds and escalation policy."
+                },
+                "dashboards": {
+                  "type": "string",
+                  "title": "Dashboard reference"
+                },
+                "slos": {
+                  "type": "array",
+                  "title": "Service Level Objectives",
+                  "items": {
+                    "type": "object",
+                    "required": ["name", "target"],
+                    "properties": {
+                      "name": { "type": "string", "title": "SLO name" },
+                      "target": { "type": "string", "title": "Target" },
+                      "measurement_window": { "type": "string", "title": "Measurement window" }
+                    }
+                  }
+                }
+              }
+            },
+            "migration": {
+              "type": "object",
+              "title": "Migration / rollout approach",
+              "description": "How the organisation transitions from the current state to the target solution. Required evidence for SOL-03.",
+              "properties": {
+                "approach": {
+                  "type": "string",
+                  "title": "Approach",
+                  "description": "Example: 'Strangler fig — legacy Payments API deprecated Q4 2026, dual-run period Q3–Q4'."
+                },
+                "phases": {
+                  "type": "array",
+                  "title": "Phases",
+                  "items": {
+                    "type": "object",
+                    "required": ["phase", "description"],
+                    "properties": {
+                      "phase": { "type": "string", "title": "Phase" },
+                      "description": { "type": "string", "title": "Description" },
+                      "target_date": { "type": "string", "format": "date", "title": "Target date" }
+                    }
+                  }
+                },
+                "rollback_plan": {
+                  "type": "string",
+                  "title": "Rollback plan",
+                  "description": "How to revert if the rollout fails. Example: 'Feature flag disables new service within 30 seconds; legacy path remains warm for 30 days post-cutover.' Required for SOL-03 score 4."
+                },
+                "cutover_criteria": {
+                  "type": "string",
+                  "title": "Cutover criteria",
+                  "description": "Measurable conditions that must be met before promotion to the next phase."
+                }
+              }
+            },
+            "dependencies": {
+              "type": "array",
+              "title": "Implementation dependencies",
+              "description": "Team, platform, or technical dependencies that must be in place for delivery. Required evidence for SOL-03.",
+              "items": {
+                "type": "object",
+                "required": ["description"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "title": "Type",
+                    "enum": ["team", "platform", "technical", "vendor", "regulatory"]
+                  },
+                  "description": { "type": "string", "title": "Description" },
+                  "owner": { "type": "string", "title": "Owner" },
+                  "status": {
+                    "type": "string",
+                    "title": "Status",
+                    "enum": ["available", "in_progress", "blocked", "not_started"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "raid": {
+          "type": "object",
+          "title": "RAID log (Risks, Assumptions, Issues, Dependencies)",
+          "description": "Risks, design assumptions, constraints, and trade-offs. Evidence for core criterion RAT-01. Score 3 requires risks with mitigations and owners, constraints documented, and trade-offs explicit.",
+          "properties": {
+            "risks": {
+              "type": "array",
+              "title": "Risks",
+              "description": "Specific risks with mitigations and named owners. Generic statements score 1.",
+              "items": {
+                "type": "object",
+                "required": ["description"],
+                "properties": {
+                  "id": { "type": "string", "title": "Risk ID" },
+                  "description": { "type": "string", "title": "Description" },
+                  "likelihood": { "type": "string", "enum": ["high", "medium", "low"] },
+                  "impact": { "type": "string", "enum": ["high", "medium", "low"] },
+                  "mitigation": {
+                    "type": "string",
+                    "title": "Mitigation",
+                    "description": "Required for RAT-01 score ≥ 3."
+                  },
+                  "owner": {
+                    "type": "string",
+                    "title": "Owner",
+                    "description": "Required for RAT-01 score ≥ 3."
+                  },
+                  "residual_risk": { "type": "string", "title": "Residual risk" }
+                }
+              }
+            },
+            "assumptions": {
+              "type": "array",
+              "title": "Design assumptions",
+              "items": {
+                "type": "object",
+                "required": ["assumption"],
+                "properties": {
+                  "assumption": { "type": "string", "title": "Assumption" },
+                  "consequence_if_violated": { "type": "string", "title": "Consequence if violated" }
+                }
+              }
+            },
+            "constraints": {
+              "type": "array",
+              "title": "Constraints",
+              "items": {
+                "type": "object",
+                "required": ["description"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["technical", "legal", "organisational", "financial", "regulatory"]
+                  },
+                  "description": { "type": "string", "title": "Description" },
+                  "implication": { "type": "string", "title": "Implication" }
+                }
+              }
+            },
+            "tradeoffs": {
+              "type": "array",
+              "title": "Trade-offs",
+              "description": "Each entry must state what was sacrificed and what was gained. Required for RAT-01 score ≥ 3.",
+              "items": {
+                "type": "object",
+                "required": ["description"],
+                "properties": {
+                  "description": { "type": "string", "title": "Description" },
+                  "what_was_sacrificed": { "type": "string", "title": "What was sacrificed" },
+                  "what_was_gained": { "type": "string", "title": "What was gained" }
+                }
+              }
+            }
+          }
+        },
+        "governance": {
+          "type": "object",
+          "title": "Governance and compliance",
+          "description": "Alignment with applicable standards, policies, and mandatory controls. Evidence for core criterion CMP-01 (critical gate — compliance by assertion scores 1 at most).",
+          "properties": {
+            "applicable_standards": {
+              "type": "array",
+              "title": "Applicable standards",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "id": { "type": "string", "title": "ID" },
+                  "name": { "type": "string", "title": "Name" },
+                  "relevance": { "type": "string", "title": "Relevance" }
+                }
+              }
+            },
+            "compliance_mapping": {
+              "type": "array",
+              "title": "Compliance mapping",
+              "description": "Explicit mapping from each applicable control to the design element that satisfies it. Required for CMP-01 score ≥ 3.",
+              "items": {
+                "type": "object",
+                "required": ["control", "design_element"],
+                "properties": {
+                  "control": { "type": "string", "title": "Control" },
+                  "design_element": { "type": "string", "title": "Design element" },
+                  "evidence": { "type": "string", "title": "Evidence location" },
+                  "owner": { "type": "string", "title": "Owner" }
+                }
+              }
+            },
+            "exceptions": {
+              "type": "array",
+              "title": "Compliance exceptions",
+              "items": {
+                "type": "object",
+                "required": ["standard", "control", "justification"],
+                "properties": {
+                  "standard": { "type": "string", "title": "Standard" },
+                  "control": { "type": "string", "title": "Control" },
+                  "justification": { "type": "string", "title": "Justification" },
+                  "approver": { "type": "string", "title": "Approver" },
+                  "approval_date": { "type": "string", "format": "date", "title": "Approval date" },
+                  "expiry_date": { "type": "string", "format": "date", "title": "Expiry date" },
+                  "remediation_plan": { "type": "string", "title": "Remediation plan" }
+                }
+              }
+            }
+          }
+        },
+        "decisions_and_actions": {
+          "type": "object",
+          "title": "Decisions and next actions",
+          "description": "The governance outcome and follow-on actions. Evidence for core criterion ACT-01. Every action must have a named owner.",
+          "properties": {
+            "governance_outcome": {
+              "type": "string",
+              "title": "Governance outcome",
+              "enum": ["approved", "conditionally_approved", "pending_review", "rework_required", "rejected"]
+            },
+            "decision_statement": { "type": "string", "title": "Decision statement" },
+            "conditions": {
+              "type": "array",
+              "title": "Conditions (for conditional approval)",
+              "items": { "type": "string" }
+            },
+            "next_actions": {
+              "type": "array",
+              "title": "Next actions",
+              "description": "Required for ACT-01 score ≥ 3. Every action must have an owner.",
+              "items": {
+                "type": "object",
+                "required": ["description"],
+                "properties": {
+                  "id": { "type": "string", "title": "Action ID" },
+                  "description": { "type": "string", "title": "Action" },
+                  "owner": { "type": "string", "title": "Owner" },
+                  "target_date": { "type": "string", "format": "date", "title": "Target date" }
+                }
+              }
+            },
+            "review_triggers": {
+              "type": "string",
+              "title": "Review triggers",
+              "description": "Conditions that trigger a mandatory re-review of this solution."
+            }
+          }
+        },
+        "glossary": {
+          "type": "array",
+          "title": "Glossary",
+          "description": "Canonical definitions for key terms and component names used in this document. Evidence for core criterion CON-01.",
+          "items": {
+            "type": "object",
+            "required": ["term", "definition"],
+            "properties": {
+              "term": { "type": "string", "title": "Term" },
+              "definition": { "type": "string", "title": "Definition" },
+              "aliases": {
+                "type": "array",
+                "title": "Aliases",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

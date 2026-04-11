@@ -11,29 +11,55 @@ import { dirname, extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getCriterionQuestion } from './utils/criterion-questions.js';
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
-function loadArtifactSchema() {
+const ARTIFACT_TYPE_TO_SCHEMA = {
+    reference_architecture: 'reference-architecture',
+    solution_architecture: 'solution-architecture',
+    architecture_decision_record: 'adr',
+};
+// Cache schemas by artifact type — loaded from disk on first use, stable after.
+// This cache is safe for concurrent access: values are immutable once loaded.
+const _artifactSchemaCache = new Map();
+function isSupportedArtifactType(artifactType) {
+    return typeof artifactType === 'string' && artifactType in ARTIFACT_TYPE_TO_SCHEMA;
+}
+function unsupportedArtifactTypeError(artifactType) {
+    const supported = Object.keys(ARTIFACT_TYPE_TO_SCHEMA).join(', ');
+    const shown = typeof artifactType === 'string' && artifactType ? artifactType : '(missing)';
+    return new Error(`Unsupported artifact_type for DOCX export: ${shown}. Expected one of: ${supported}`);
+}
+function loadArtifactSchema(artifactType) {
+    if (_artifactSchemaCache.has(artifactType))
+        return _artifactSchemaCache.get(artifactType) ?? null;
+    const prefix = ARTIFACT_TYPE_TO_SCHEMA[artifactType];
+    if (!prefix) {
+        // Caller must validate before reaching here — fail closed rather than
+        // silently masquerading as reference-architecture.
+        throw unsupportedArtifactTypeError(artifactType);
+    }
+    const filename = `${prefix}.artifact.schema.json`;
+    // Prefer the canonical `standard/schemas/` source when this file is running
+    // inside a checked-out EaROS repo, so edits to the canonical schemas take
+    // effect in DOCX export without re-running `npm run postbuild`. Fall back
+    // to the package-local copies when installed as an npm dependency and the
+    // canonical path no longer resolves.
     const candidates = [
-        resolve(MODULE_DIR, 'schemas', 'artifact.schema.json'),
-        resolve(MODULE_DIR, '../schemas', 'artifact.schema.json'),
-        resolve(MODULE_DIR, '../../standard/schemas', 'artifact.schema.json'),
+        resolve(MODULE_DIR, '../../standard/schemas', filename),
+        resolve(MODULE_DIR, 'schemas', filename),
+        resolve(MODULE_DIR, '../schemas', filename),
     ];
     for (const candidate of candidates) {
         try {
-            return JSON.parse(readFileSync(candidate, 'utf8'));
+            const schema = JSON.parse(readFileSync(candidate, 'utf8'));
+            _artifactSchemaCache.set(artifactType, schema);
+            return schema;
         }
         catch {
             // Try next candidate path.
         }
     }
-    console.warn('[export-docx] Artifact schema not found; falling back to shape-driven rendering');
+    console.warn(`[export-docx] Artifact schema file missing for type "${artifactType}"; falling back to shape-driven rendering`);
+    _artifactSchemaCache.set(artifactType, null);
     return null;
-}
-let _artifactSchema;
-function getArtifactSchema() {
-    if (_artifactSchema === undefined) {
-        _artifactSchema = loadArtifactSchema();
-    }
-    return _artifactSchema;
 }
 // ─── Kroki Mermaid rendering ──────────────────────────────────────────────────
 const KROKI_URL = 'https://kroki.io/mermaid/png';
@@ -379,12 +405,12 @@ function propertySchema(schema, key) {
 function itemSchema(schema) {
     return isPlainObject(schema?.items) ? schema.items : undefined;
 }
-function sectionSchema(key) {
-    const sections = propertySchema(getArtifactSchema(), 'sections');
+function sectionSchema(root, key) {
+    const sections = propertySchema(root, 'sections');
     return propertySchema(sections, key);
 }
-function topLevelSchema(key) {
-    return propertySchema(getArtifactSchema(), key);
+function topLevelSchema(root, key) {
+    return propertySchema(root, key);
 }
 function orderedObjectKeys(items, schema) {
     const objects = Array.isArray(items) ? items.filter(isPlainObject) : [items].filter(isPlainObject);
@@ -735,18 +761,18 @@ function renderArchitectureDecisions(data, children) {
         }
     }
 }
-function renderQualityAttributes(data, children) {
+function renderQualityAttributes(data, children, root) {
     children.push(h1('Quality Attributes'));
     const items = Array.isArray(data) ? data : Object.values(data);
     if (!items.length)
         return;
-    const table = objectTable(items.filter((item) => item && typeof item === 'object' && !Array.isArray(item)), itemSchema(sectionSchema('quality_attributes')));
+    const table = objectTable(items.filter((item) => item && typeof item === 'object' && !Array.isArray(item)), itemSchema(sectionSchema(root, 'quality_attributes')));
     if (table)
         children.push(table);
 }
-function renderOperationalModel(data, children) {
+function renderOperationalModel(data, children, root) {
     children.push(h1('Operational Model'));
-    renderStructuredObject(data, children, sectionSchema('operational_model'), 2);
+    renderStructuredObject(data, children, sectionSchema(root, 'operational_model'), 2);
 }
 function renderImplementationGuidance(data, children) {
     children.push(h1('Implementation'));
@@ -788,9 +814,9 @@ function renderImplementationGuidance(data, children) {
         }
     }
 }
-function renderGovernance(data, children) {
+function renderGovernance(data, children, root) {
     children.push(h1('Governance and Compliance'));
-    const schema = sectionSchema('governance');
+    const schema = sectionSchema(root, 'governance');
     const compliance = data.compliance_mapping;
     if (Array.isArray(compliance) && compliance.length) {
         children.push(h2('Compliance Mapping'));
@@ -1018,7 +1044,6 @@ function renderComponentSection(title, data, children) {
         renderStringList(data.optional_components, children);
     }
 }
-// ─── Document assembly ────────────────────────────────────────────────────────
 const KNOWN_SECTIONS = {
     reading_guide: (d, c) => renderReadingGuide(d, c),
     scope: (d, c) => renderScope(d, c),
@@ -1027,11 +1052,11 @@ const KNOWN_SECTIONS = {
     crosscutting_concerns: (d, c) => renderCrosscuttingConcerns(d, c),
     decisions: (d, c) => renderArchitectureDecisions(d, c),
     architecture_decisions: (d, c) => renderArchitectureDecisions(d, c),
-    quality_attributes: (d, c) => renderQualityAttributes(d, c),
-    operational_model: (d, c) => renderOperationalModel(d, c),
+    quality_attributes: (d, c, _imgs, root) => renderQualityAttributes(d, c, root),
+    operational_model: (d, c, _imgs, root) => renderOperationalModel(d, c, root),
     implementation_guidance: (d, c) => renderImplementationGuidance(d, c),
     implementation_artifacts: (d, c) => renderImplementationGuidance(d, c),
-    governance: (d, c) => renderGovernance(d, c),
+    governance: (d, c, _imgs, root) => renderGovernance(d, c, root),
     raid: (d, c) => renderRaid(d, c),
     decisions_and_actions: (d, c) => renderDecisionsAndActions(d, c),
     getting_started: (d, c) => renderGettingStarted(d, c),
@@ -1040,28 +1065,55 @@ const KNOWN_SECTIONS = {
     component_classification: (d, c) => renderComponentSection('Component Classification', d, c),
     components: (d, c) => renderComponentSection('Components', d, c),
 };
-// Logical reading order — decisions before quality/operational, RAID after governance
-const SECTION_ORDER = [
-    'reading_guide',
-    'scope',
-    'drivers_and_principles',
-    'architecture_views',
-    'crosscutting_concerns',
-    'component_classification',
-    'components',
-    'decisions',
-    'architecture_decisions',
-    'quality_attributes',
-    'operational_model',
-    'implementation_guidance',
-    'implementation_artifacts',
-    'governance',
-    'raid',
-    'decisions_and_actions',
-    'getting_started',
-    'evolution',
-    'glossary',
-];
+// Per-artifact-type reading order. Each list determines the canonical section
+// ordering for that type; unknown sections are appended at the end in their
+// original object order.
+const SECTION_ORDER_BY_TYPE = {
+    reference_architecture: [
+        'reading_guide',
+        'scope',
+        'drivers_and_principles',
+        'architecture_views',
+        'crosscutting_concerns',
+        'component_classification',
+        'components',
+        'decisions',
+        'architecture_decisions',
+        'quality_attributes',
+        'operational_model',
+        'implementation_guidance',
+        'implementation_artifacts',
+        'governance',
+        'raid',
+        'decisions_and_actions',
+        'getting_started',
+        'evolution',
+        'glossary',
+    ],
+    solution_architecture: [
+        'reading_guide',
+        'scope',
+        'drivers_and_principles',
+        'solution_options',
+        'quality_attributes',
+        'operational_model',
+        'raid',
+        'governance',
+        'decisions_and_actions',
+        'glossary',
+    ],
+    architecture_decision_record: [
+        'decision',
+        'stakeholders',
+        'governance',
+        'glossary',
+    ],
+};
+function sectionOrderFor(artifactType) {
+    if (artifactType && SECTION_ORDER_BY_TYPE[artifactType])
+        return SECTION_ORDER_BY_TYPE[artifactType];
+    return SECTION_ORDER_BY_TYPE.reference_architecture;
+}
 function titlePage(meta) {
     const title = str(meta.title) || 'Architecture Artifact';
     const subtitle = str(meta.artifact_type ?? '')
@@ -1118,6 +1170,16 @@ function titlePage(meta) {
 }
 // ─── Main export function ─────────────────────────────────────────────────────
 export async function exportToDocx(artifactData, browserRenderedDiagrams) {
+    // Per-export local schema and section order — keyed off the artifact_type of
+    // THIS request. No module globals: concurrent exports for different types
+    // can't interleave schema state. Fail closed on unknown/missing types so we
+    // never silently render against the wrong schema.
+    const artifactType = artifactData.artifact_type;
+    if (!isSupportedArtifactType(artifactType)) {
+        throw unsupportedArtifactTypeError(artifactType);
+    }
+    const artifactSchema = loadArtifactSchema(artifactType);
+    const sectionOrder = sectionOrderFor(artifactType);
     const meta = artifactData.metadata ?? {};
     const sections = artifactData.sections ?? {};
     const isBrowserExport = browserRenderedDiagrams !== undefined;
@@ -1160,33 +1222,33 @@ export async function exportToDocx(artifactData, browserRenderedDiagrams) {
         headingStyleRange: '1-3',
     }));
     children.push(pageBreak());
-    // Sections — known first (in preferred order), then unknowns
+    // Sections — render in the type-specific canonical order. Keys that have a
+    // dedicated renderer use it; keys in the order that have no renderer fall
+    // through to the generic section renderer so they still land in the right
+    // slot (e.g. ADR's `decision`, SA's `solution_options`).
     const rendered = new Set();
-    for (const key of SECTION_ORDER) {
-        if (key in sections) {
-            const renderer = KNOWN_SECTIONS[key];
-            if (renderer) {
-                children.push(pageBreak());
-                renderer(sections[key], children, diagramImages);
-                rendered.add(key);
-            }
+    const renderSectionByKey = (key, value) => {
+        const renderer = KNOWN_SECTIONS[key];
+        children.push(pageBreak());
+        if (renderer) {
+            renderer(value, children, diagramImages, artifactSchema);
         }
+        else {
+            const schema = sectionSchema(artifactSchema, key);
+            const title = displayLabel(key, schema);
+            renderGenericSection(title, value, children, schema);
+        }
+        rendered.add(key);
+    };
+    for (const key of sectionOrder) {
+        if (key in sections)
+            renderSectionByKey(key, sections[key]);
     }
-    // Unknown sections (anything not in SECTION_ORDER or KNOWN_SECTIONS)
+    // Unknown sections — anything present in the document that isn't in the
+    // canonical order. Preserves author-defined ordering for extra keys.
     for (const [key, value] of Object.entries(sections)) {
-        if (!rendered.has(key)) {
-            children.push(pageBreak());
-            const renderer = KNOWN_SECTIONS[key];
-            if (renderer) {
-                renderer(value, children, diagramImages);
-            }
-            else {
-                const schema = sectionSchema(key);
-                const title = displayLabel(key, schema);
-                renderGenericSection(title, value, children, schema);
-            }
-            rendered.add(key);
-        }
+        if (!rendered.has(key))
+            renderSectionByKey(key, value);
     }
     // Top-level keys outside of sections (e.g. glossary in some artifact formats)
     const TOP_LEVEL_SKIP = new Set(['kind', 'artifact_type', 'metadata', 'sections']);
@@ -1196,10 +1258,10 @@ export async function exportToDocx(artifactData, browserRenderedDiagrams) {
         children.push(pageBreak());
         const renderer = KNOWN_SECTIONS[key];
         if (renderer) {
-            renderer(value, children, diagramImages);
+            renderer(value, children, diagramImages, artifactSchema);
         }
         else {
-            const schema = topLevelSchema(key);
+            const schema = topLevelSchema(artifactSchema, key);
             const title = displayLabel(key, schema);
             renderGenericSection(title, value, children, schema);
         }
