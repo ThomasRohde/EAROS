@@ -147,10 +147,72 @@ const sapphireComponents = (mode: 'light' | 'dark') => ({
       },
     },
   },
+  MuiTextField: {
+    defaultProps: {
+      variant: 'outlined' as const,
+      fullWidth: true,
+      size: 'medium' as const,
+    },
+  },
+  MuiFormControl: {
+    defaultProps: {
+      margin: 'dense' as const,
+      fullWidth: true,
+    },
+    styleOverrides: {
+      marginDense: {
+        marginTop: 6,
+        marginBottom: 6,
+      },
+    },
+  },
   MuiOutlinedInput: {
     styleOverrides: {
       root: {
         borderRadius: 6,
+        backgroundColor: mode === 'dark' ? sapphire.gray[900] : sapphire.gray[50],
+        transition: 'box-shadow 0.15s ease, border-color 0.15s ease, background-color 0.15s ease',
+        '&.Mui-focused': {
+          backgroundColor: mode === 'dark' ? sapphire.gray[800] : '#ffffff',
+          boxShadow: `0 0 0 3px ${mode === 'dark' ? sapphire.blue[800] : sapphire.blue[100]}`,
+        },
+        '&.Mui-error': {
+          boxShadow: `0 0 0 3px ${mode === 'dark' ? 'hsl(359 57% 36% / 0.35)' : sapphire.red[50]}`,
+        },
+      },
+      input: {
+        padding: '14px 16px',
+        lineHeight: 1.6,
+      },
+      multiline: {
+        padding: '14px 16px',
+      },
+    },
+  },
+  MuiFormLabel: {
+    styleOverrides: {
+      root: {
+        fontWeight: 600,
+        color: mode === 'dark' ? '#ffffff' : sapphire.blue[900],
+        '&.Mui-focused': {
+          color: mode === 'dark' ? sapphire.blue[400] : sapphire.blue[500],
+        },
+      },
+    },
+  },
+  MuiInputLabel: {
+    styleOverrides: {
+      root: {
+        fontWeight: 600,
+      },
+    },
+  },
+  MuiFormHelperText: {
+    styleOverrides: {
+      root: {
+        fontSize: '0.78rem',
+        lineHeight: 1.45,
+        marginTop: 6,
       },
     },
   },

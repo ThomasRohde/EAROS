@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { JsonForms } from '@jsonforms/react'
 import { materialRenderers, materialCells } from '@jsonforms/material-renderers'
 import {
@@ -30,6 +30,7 @@ import CodeIcon from '@mui/icons-material/Code'
 import SaveIcon from '@mui/icons-material/Save'
 import AddIcon from '@mui/icons-material/Add'
 import { customRenderers } from '../renderers'
+import { compactFormPaperSx } from './ArtifactEditor'
 import QuickTipBanner from './QuickTipBanner'
 import type { Kind } from './KindSelector'
 import DownloadIcon from '@mui/icons-material/Download'
@@ -57,20 +58,64 @@ const RUBRIC_UISCHEMA = {
       type: 'Category',
       label: 'Metadata',
       elements: [
-        { type: 'Control', scope: '#/properties/rubric_id' },
-        { type: 'Control', scope: '#/properties/version' },
-        { type: 'Control', scope: '#/properties/kind' },
-        { type: 'Control', scope: '#/properties/title' },
-        { type: 'Control', scope: '#/properties/status' },
-        { type: 'Control', scope: '#/properties/effective_date' },
-        { type: 'Control', scope: '#/properties/next_review_date' },
-        { type: 'Control', scope: '#/properties/owner' },
-        { type: 'Control', scope: '#/properties/artifact_type' },
-        { type: 'Control', scope: '#/properties/design_method' },
-        { type: 'Control', scope: '#/properties/inherits' },
-        { type: 'Control', scope: '#/properties/purpose' },
-        { type: 'Control', scope: '#/properties/stakeholders' },
-        { type: 'Control', scope: '#/properties/viewpoints' },
+        {
+          type: 'Group',
+          label: 'Identity',
+          elements: [
+            {
+              type: 'HorizontalLayout',
+              elements: [
+                { type: 'Control', scope: '#/properties/rubric_id', options: { focus: true } },
+                { type: 'Control', scope: '#/properties/version' },
+              ],
+            },
+            {
+              type: 'HorizontalLayout',
+              elements: [
+                { type: 'Control', scope: '#/properties/kind' },
+                { type: 'Control', scope: '#/properties/status' },
+              ],
+            },
+            { type: 'Control', scope: '#/properties/title' },
+            { type: 'Control', scope: '#/properties/purpose' },
+          ],
+        },
+        {
+          type: 'Group',
+          label: 'Applicability',
+          elements: [
+            {
+              type: 'HorizontalLayout',
+              elements: [
+                { type: 'Control', scope: '#/properties/artifact_type' },
+                { type: 'Control', scope: '#/properties/design_method' },
+              ],
+            },
+            { type: 'Control', scope: '#/properties/inherits' },
+          ],
+        },
+        {
+          type: 'Group',
+          label: 'Ownership & review',
+          elements: [
+            { type: 'Control', scope: '#/properties/owner' },
+            {
+              type: 'HorizontalLayout',
+              elements: [
+                { type: 'Control', scope: '#/properties/effective_date' },
+                { type: 'Control', scope: '#/properties/next_review_date' },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'Group',
+          label: 'Stakeholders & viewpoints',
+          elements: [
+            { type: 'Control', scope: '#/properties/stakeholders' },
+            { type: 'Control', scope: '#/properties/viewpoints' },
+          ],
+        },
       ],
     },
     {
@@ -404,6 +449,23 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
   const [dialogKind, setDialogKind] = useState<Kind>('profile')
   const [rubricSchema, setRubricSchema] = useState<Record<string, unknown> | null>(null)
   const [evalSchema, setEvalSchema] = useState<Record<string, unknown> | null>(null)
+  // Fresh templates start with ValidateAndHide; loaded/imported content flips
+  // to ValidateAndShow immediately so real errors surface on open.
+  const [hasInteracted, setHasInteracted] = useState(false)
+  // JsonForms emits a synthetic onChange on mount / data reassignment that
+  // must not count as user interaction. Compare against the last payload we
+  // pushed in to decide whether a real edit happened.
+  const lastPushedDataJsonRef = useRef<string>(JSON.stringify(INITIAL.profile))
+  const jsonFormsConfig = useMemo(
+    () => ({
+      manifest,
+      showUnfocusedDescription: true,
+      hideRequiredAsterisk: false,
+      restrict: false,
+      earosShowErrors: hasInteracted,
+    }),
+    [manifest, hasInteracted],
+  )
 
   useEffect(() => {
     loadSchema('rubric').then((s) => { if (s) setRubricSchema(s) })
@@ -421,10 +483,13 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
   }, [])
 
   const handleNewConfirm = useCallback(() => {
+    const seed = INITIAL[dialogKind]
     setKind(dialogKind)
-    setData(INITIAL[dialogKind])
+    setData(seed)
+    lastPushedDataJsonRef.current = JSON.stringify(seed)
     setCurrentFile(null)
     setCurrentEntry(null)
+    setHasInteracted(false)
     setNewDialogOpen(false)
     setToast(`New ${dialogKind}`)
   }, [dialogKind])
@@ -438,8 +503,10 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
           setKind(k)
         }
         setData(parsed ?? {})
+        lastPushedDataJsonRef.current = JSON.stringify(parsed ?? {})
         setCurrentFile(null)
         setCurrentEntry(null)
+        setHasInteracted(true)
         setToast('File imported')
       } catch (e) {
         setToast(`Import failed: ${(e as Error).message}`)
@@ -459,8 +526,10 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
       setKind(k)
     }
     setData(fileData ?? {})
+    lastPushedDataJsonRef.current = JSON.stringify(fileData ?? {})
     setCurrentFile(entry.path)
     setCurrentEntry(entry)
+    setHasInteracted(true)
     setToast(`Loaded ${entry.path.split('/').pop()}`)
   }, [kind])
 
@@ -612,15 +681,27 @@ export default function RubricEditor({ manifest, onBack, autoNew = false }: Prop
         </Paper>
 
         {/* Form panel */}
-        <Paper sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+        <Paper sx={compactFormPaperSx}>
           <JsonForms
             schema={((kind === 'evaluation' ? evalSchema : rubricSchema) ?? {}) as any}
             uischema={uischemaFor(kind) as any}
             data={data}
             renderers={allRenderers}
             cells={materialCells}
-            config={{ manifest }}
-            onChange={({ data: d }) => { if (d !== undefined) setData(d) }}
+            config={jsonFormsConfig}
+            validationMode={hasInteracted ? 'ValidateAndShow' : 'ValidateAndHide'}
+            additionalErrors={[]}
+            onChange={({ data: d }) => {
+              if (d === undefined) return
+              setData(d)
+              if (!hasInteracted) {
+                const incoming = JSON.stringify(d)
+                if (incoming !== lastPushedDataJsonRef.current) {
+                  lastPushedDataJsonRef.current = incoming
+                  setHasInteracted(true)
+                }
+              }
+            }}
           />
         </Paper>
 

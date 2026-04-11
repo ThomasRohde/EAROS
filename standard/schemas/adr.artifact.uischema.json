@@ -5,19 +5,94 @@
       "type": "Category",
       "label": "Overview & Metadata",
       "elements": [
-        { "type": "Control", "scope": "#/properties/kind" },
-        { "type": "Control", "scope": "#/properties/artifact_type" },
-        { "type": "Control", "scope": "#/properties/metadata" },
-        { "type": "Control", "scope": "#/properties/sections/properties/stakeholders" }
+        {
+          "type": "Group",
+          "label": "Document identity",
+          "elements": [
+            {
+              "type": "HorizontalLayout",
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/metadata/properties/id",
+                  "options": { "focus": true }
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/metadata/properties/status"
+                }
+              ]
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/metadata/properties/title"
+            }
+          ]
+        },
+        {
+          "type": "Group",
+          "label": "Ownership & timing",
+          "elements": [
+            {
+              "type": "HorizontalLayout",
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/metadata/properties/owner"
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/metadata/properties/author"
+                }
+              ]
+            },
+            {
+              "type": "HorizontalLayout",
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/metadata/properties/date"
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/metadata/properties/version"
+                }
+              ]
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/metadata/properties/tags"
+            }
+          ]
+        },
+        {
+          "type": "Group",
+          "label": "Stakeholders",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/sections/properties/stakeholders"
+            }
+          ]
+        }
       ]
     },
     {
       "type": "Category",
       "label": "Decision",
       "elements": [
-        { "type": "Control", "scope": "#/properties/sections/properties/decision" },
-        { "type": "Control", "scope": "#/properties/sections/properties/governance" },
-        { "type": "Control", "scope": "#/properties/sections/properties/glossary" }
+        {
+          "type": "Control",
+          "scope": "#/properties/sections/properties/decision"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/sections/properties/governance"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/sections/properties/glossary"
+        }
       ]
     }
   ]

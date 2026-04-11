@@ -31,11 +31,11 @@ function ScoringGuideRendererComponent({ data, handleChange, path }: ControlProp
       >
         Scoring Guide — describe what each level looks like for this criterion
       </Typography>
-      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap', overflowX: 'auto' }}>
+      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
         {LEVELS.map(({ key, label, headerColor, bgColor }) => (
           <Box
             key={key}
-            sx={{ flex: '1 1 0', minWidth: 140, border: '1px solid', borderColor: 'divider', borderRadius: 1, overflow: 'hidden' }}
+            sx={{ flex: '1 1 160px', minWidth: 140, maxWidth: 260, border: '1px solid', borderColor: 'divider', borderRadius: 1, overflow: 'hidden' }}
           >
             <Box sx={{ bgcolor: headerColor, px: 1, py: 0.5 }}>
               <Typography variant="caption" sx={{ color: 'white', fontWeight: 700, fontSize: '0.7rem' }}>

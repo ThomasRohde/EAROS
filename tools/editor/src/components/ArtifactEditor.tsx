@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { JsonForms } from '@jsonforms/react'
 import { materialRenderers, materialCells } from '@jsonforms/material-renderers'
 import {
@@ -50,6 +50,27 @@ import {
 import type { RenderedDiagramPng } from '../utils/mermaid'
 
 const allRenderers = [...materialRenderers, ...customRenderers]
+
+// Paper wrapping <JsonForms> — the selector rewrites the Typography h6 that
+// material-renderers uses for every auto-generated object label (nested
+// objects, Labels, array toolbars) into a compact uppercase overline, so
+// nested sections stop shouting while the user is editing.
+export const compactFormPaperSx = {
+  flex: 1,
+  overflow: 'auto' as const,
+  p: 2,
+  '& .MuiTypography-h6': {
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase' as const,
+    color: 'text.secondary',
+    lineHeight: 1.4,
+    mb: 0.75,
+    pb: 0.5,
+    borderBottom: (theme: any) => `1px solid ${theme.palette.divider}`,
+  },
+}
 
 function buildInitialArtifact(artifactType: ArtifactType): Record<string, any> {
   const base: Record<string, any> = {
@@ -364,6 +385,25 @@ export default function ArtifactEditor({ initialMode, onBack, initialArtifactTyp
     if (initialArtifactType) return initialArtifactType
     return initialMode === 'import' ? null : null
   })
+  // Imports start in ValidateAndShow — the document already has real content
+  // so any errors should be surfaced immediately. New artifacts start with
+  // ValidateAndHide so authors aren't flooded with red on an empty seed.
+  const [hasInteracted, setHasInteracted] = useState(initialMode === 'import')
+  // JsonForms fires a synthetic onChange on mount / when the data prop is
+  // reassigned (e.g. type picker → buildInitialArtifact). That first call
+  // must NOT flip hasInteracted, otherwise fresh artifacts immediately jump
+  // into ValidateAndShow. Track the JSON string of the data we last pushed
+  // *into* JsonForms — only flip when the new payload differs.
+  const lastPushedDataJsonRef = useRef<string>('')
+  const jsonFormsConfig = useMemo(
+    () => ({
+      showUnfocusedDescription: true,
+      hideRequiredAsterisk: false,
+      restrict: false,
+      earosShowErrors: hasInteracted,
+    }),
+    [hasInteracted],
+  )
   const [data, setData] = useState<object>(() =>
     artifactType ? buildInitialArtifact(artifactType) : { kind: 'artifact', metadata: {}, sections: {} },
   )
@@ -424,9 +464,12 @@ export default function ArtifactEditor({ initialMode, onBack, initialArtifactTyp
   }, [artifactType])
 
   const handleSelectType = useCallback((type: ArtifactType) => {
+    const seed = buildInitialArtifact(type)
     setArtifactType(type)
-    setData(buildInitialArtifact(type))
+    setData(seed)
+    lastPushedDataJsonRef.current = JSON.stringify(seed)
     setHasContent(true)
+    setHasInteracted(false)
   }, [])
 
   useEffect(() => {
@@ -450,8 +493,10 @@ export default function ArtifactEditor({ initialMode, onBack, initialArtifactTyp
       }
       setArtifactType(importedType)
       setData(parsed ?? {})
+      lastPushedDataJsonRef.current = JSON.stringify(parsed ?? {})
       setCurrentFile(null)
       setHasContent(true)
+      setHasInteracted(true)
       setToast('Artifact imported')
     } catch (e) {
       setToast(`Import failed: ${(e as Error).message}`)
@@ -620,7 +665,7 @@ export default function ArtifactEditor({ initialMode, onBack, initialArtifactTyp
         {hasContent && artifactType ? (
           <>
             {/* Form panel */}
-            <Paper sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+            <Paper sx={compactFormPaperSx}>
               {schemasLoading ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, gap: 2 }}>
                   <CircularProgress size={24} sx={{ color: 'secondary.main' }} />
@@ -647,7 +692,20 @@ export default function ArtifactEditor({ initialMode, onBack, initialArtifactTyp
                   data={data}
                   renderers={allRenderers}
                   cells={materialCells}
-                  onChange={({ data: d }) => { if (d !== undefined) setData(d) }}
+                  config={jsonFormsConfig}
+                  validationMode={hasInteracted ? 'ValidateAndShow' : 'ValidateAndHide'}
+                  additionalErrors={[]}
+                  onChange={({ data: d }) => {
+                    if (d === undefined) return
+                    setData(d)
+                    if (!hasInteracted) {
+                      const incoming = JSON.stringify(d)
+                      if (incoming !== lastPushedDataJsonRef.current) {
+                        lastPushedDataJsonRef.current = incoming
+                        setHasInteracted(true)
+                      }
+                    }
+                  }}
                 />
               )}
             </Paper>

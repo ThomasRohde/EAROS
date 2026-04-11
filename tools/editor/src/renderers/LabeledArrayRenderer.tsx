@@ -39,7 +39,7 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material'
-import { ExpandMore, Delete } from '@mui/icons-material'
+import { ExpandMore, Delete, ErrorOutline } from '@mui/icons-material'
 import range from 'lodash/range'
 import map from 'lodash/map'
 import merge from 'lodash/merge'
@@ -95,6 +95,24 @@ function LabeledExpandPanel(props: {
   const { removeItems } = ctxDispatchToExpandPanelProps(ctx.dispatch)
   const childPath = composePaths(path, `${index}`)
   const childLabel = computeCompositeLabel(ctx.core?.data, childPath)
+  // Detect validation errors whose instancePath falls within this accordion's
+  // subtree so we can surface a badge on the collapsed summary row.
+  const childErrorCount = useMemo(() => {
+    if ((config as any)?.earosShowErrors !== true) return 0
+    const errors: any[] = ctx.core?.errors ?? []
+    if (!errors.length) return 0
+    const needle = '/' + childPath.replace(/\./g, '/')
+    return errors.filter((e: any) => {
+      const ip = e?.instancePath
+      if (typeof ip !== 'string') return false
+      if (ip === needle || ip.startsWith(needle + '/')) return true
+      // required errors report on the parent; fold missingProperty into the path.
+      const miss = e?.params?.missingProperty
+      if (typeof miss !== 'string' || !miss) return false
+      const eff = ip === '' ? `/${miss}` : `${ip}/${miss}`
+      return eff === needle || eff.startsWith(needle + '/')
+    }).length
+  }, [ctx.core?.errors, childPath])
 
   const foundUISchema = useMemo(
     () => findUISchema(uischemas, schema, uischema.scope, path, undefined, uischema, rootSchema),
@@ -114,8 +132,13 @@ function LabeledExpandPanel(props: {
               <Grid size={{ xs: 2, md: 1 }}>
                 <Avatar aria-label="Index">{index + 1}</Avatar>
               </Grid>
-              <Grid size={{ xs: 10, md: 11 }}>
+              <Grid size={{ xs: 10, md: 11 }} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <span>{childLabel}</span>
+                {childErrorCount > 0 && !expanded && (
+                  <Tooltip title={`${childErrorCount} validation issue${childErrorCount === 1 ? '' : 's'} in this item`}>
+                    <ErrorOutline sx={{ fontSize: 18, color: 'error.main' }} />
+                  </Tooltip>
+                )}
               </Grid>
             </Grid>
           </Grid>
