@@ -7,6 +7,20 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.7.0] — 2026-04-11
+
+### Added
+
+- **`earos update` command** — smart in-place update of a scaffolded EaROS workspace. Reconciles governed assets (core, profiles, overlays, schemas, templates, skills, root docs, shipped examples) against the installed `@trohde/earos` version without touching user artifacts (evaluations, calibration, custom docs).
+  - Classifies each governed file as identical, added, conflict, or user-deleted via CRLF-safe SHA-256 hashes.
+  - Interactive per-file resolution by default: `[k]eep mine / [o]verwrite / [d]iff / [s]kip`.
+  - Batch flags for CI: `--dry-run`, `--yes-keep-mine`, `--yes-overwrite` (alias `--force`).
+  - `--only <path>` restricts the scan to a single governed sub-path.
+  - Non-TTY invocations without a batch flag fail fast (no silent hangs).
+  - Auto-regenerates `earos.manifest.yaml` after applying changes.
+- `.earos-version` workspace marker — records which `@trohde/earos` version last wrote the governed files. Written by `earos init` on scaffold and refreshed by `earos update` on every run. Future updates can diff against it to show "Updating from vA → vB".
+- `tools/editor/scripts/test-update.mjs` — integration test for the update flow covering dry-run, batch modes, non-TTY refusal, flag exclusivity, and manifest consistency.
+
 ## [1.6.0] — 2026-04-11
 
 ### Added

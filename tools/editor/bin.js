@@ -166,6 +166,8 @@ Usage:
   earos                             Open the editor in your browser
   earos <file.yaml>                 Open the editor with a file pre-loaded
   earos init [dir] [--icons]        Scaffold a new EaROS workspace (default: current dir)
+  earos update [dir] [flags]        Sync governed assets with the installed @trohde/earos
+                                    Flags: --dry-run, --yes-keep-mine, --yes-overwrite (or --force), --only <path>
   earos validate <file.yaml> [--json]  Validate any EaROS YAML (exit 0/1)
   earos export <file.yaml> [--format docx|md]  Export YAML as Word or Markdown (default: docx)
   earos list evaluations [--json]   List evaluation files with summary metadata
@@ -318,6 +320,46 @@ Usage:
 
   const { initWorkspace } = await import('./init.js')
   await initWorkspace(targetDir, { downloadIcons })
+} else if (args[0] === 'update') {
+  const updateArgs = args.slice(1)
+  const flags = {
+    dryRun: updateArgs.includes('--dry-run'),
+    keepMine: updateArgs.includes('--yes-keep-mine'),
+    overwrite: updateArgs.includes('--yes-overwrite') || updateArgs.includes('--force'),
+    only: undefined,
+  }
+  const onlyIdx = updateArgs.indexOf('--only')
+  if (onlyIdx >= 0) {
+    flags.only = updateArgs[onlyIdx + 1]
+    if (!flags.only || flags.only.startsWith('--')) {
+      console.error('--only requires a path argument (e.g. --only standard/schemas)')
+      process.exit(1)
+    }
+  }
+  const modes = [flags.dryRun, flags.keepMine, flags.overwrite].filter(Boolean).length
+  if (modes > 1) {
+    console.error('Pass at most one of --dry-run, --yes-keep-mine, --yes-overwrite/--force.')
+    process.exit(1)
+  }
+  const known = new Set(['--dry-run', '--yes-keep-mine', '--yes-overwrite', '--force', '--only'])
+  let targetDir = '.'
+  for (let i = 0; i < updateArgs.length; i++) {
+    const arg = updateArgs[i]
+    if (arg === '--only') { i++; continue }
+    if (known.has(arg)) continue
+    if (arg.startsWith('--')) {
+      console.error(`Unknown update option: ${arg}`)
+      process.exit(1)
+    }
+    if (targetDir === '.') {
+      targetDir = arg
+      continue
+    }
+    console.error('Usage: earos update [dir] [flags]')
+    process.exit(1)
+  }
+  const { updateWorkspace } = await import('./init.js')
+  await updateWorkspace(targetDir, flags)
 } else if (args[0] === 'validate') {
   const valFile = args.find((a, i) => i > 0 && a !== '--json')
   if (!valFile) {
