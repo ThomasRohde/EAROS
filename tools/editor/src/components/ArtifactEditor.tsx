@@ -43,6 +43,7 @@ import {
 } from '../utils/schemaLoader'
 import {
   extractMermaidDiagrams,
+  inlineLocalMermaidImagesInSource,
   inlineLocalMermaidImagesInSvg,
   rasterizeSvgToPng,
   renderMermaidSvg,
@@ -126,24 +127,19 @@ function buildInitialArtifact(artifactType: ArtifactType): Record<string, any> {
 async function renderWordExportDiagrams(artifactData: object): Promise<Record<string, RenderedDiagramPng>> {
   const renderedDiagrams: Record<string, RenderedDiagramPng> = {}
   const diagramRefs = extractMermaidDiagrams(artifactData)
-  const failedLabels: string[] = []
 
   for (const diagramRef of diagramRefs) {
     try {
       const prefix = `word-export-${diagramRef.key.replace(/[^a-z0-9]+/gi, '-')}`
       const exportSource = `%%{init: {"htmlLabels": false}}%%\n${diagramRef.source}`
-      const svg = await renderMermaidSvg(exportSource, prefix)
+      const inlinedSource = await inlineLocalMermaidImagesInSource(exportSource)
+      const svg = await renderMermaidSvg(inlinedSource, prefix)
       const inlinedSvg = await inlineLocalMermaidImagesInSvg(svg, { rasterizeSvgAssets: true })
       const pngRender = await rasterizeSvgToPng(inlinedSvg)
       renderedDiagrams[diagramRef.key] = pngRender
     } catch (error) {
       console.warn(`[ArtifactEditor] Browser render failed for "${diagramRef.label}"`, error)
-      failedLabels.push(diagramRef.label)
     }
-  }
-
-  if (failedLabels.length) {
-    throw new Error(`Browser Mermaid render failed for: ${failedLabels.join(', ')}`)
   }
 
   return renderedDiagrams

@@ -178,10 +178,15 @@ export async function inlineLocalMermaidImagesInSource(diagramSource: string): P
   for (const match of diagramSource.matchAll(imagePattern)) {
     const [fullMatch, quote, assetPath] = match
     const matchIndex = match.index ?? 0
-    const dataUrl = await getLocalAssetDataUrl(assetPath)
-
-    rebuiltSource += diagramSource.slice(lastIndex, matchIndex)
-    rebuiltSource += `img: ${quote}${dataUrl}${quote}`
+    try {
+      const dataUrl = await getLocalAssetDataUrl(assetPath)
+      rebuiltSource += diagramSource.slice(lastIndex, matchIndex)
+      rebuiltSource += `img: ${quote}${dataUrl}${quote}`
+    } catch {
+      // Icon not available (e.g. production repo without icons/ — run earos init).
+      // Leave the original path in place so the diagram still renders.
+      rebuiltSource += diagramSource.slice(lastIndex, matchIndex + fullMatch.length)
+    }
     lastIndex = matchIndex + fullMatch.length
   }
 
@@ -205,9 +210,13 @@ export async function inlineLocalMermaidImagesInSvg(
     if (href.startsWith('./')) href = href.slice(1)
     if (!LOCAL_MERMAID_IMAGE_PREFIXES.some((prefix) => href.startsWith(prefix))) return
 
-    const dataUrl = await getLocalAssetDataUrl(href, { rasterizeSvg: options?.rasterizeSvgAssets === true })
-    image.setAttribute('href', dataUrl)
-    image.setAttributeNS(XLINK_NS, 'xlink:href', dataUrl)
+    try {
+      const dataUrl = await getLocalAssetDataUrl(href, { rasterizeSvg: options?.rasterizeSvgAssets === true })
+      image.setAttribute('href', dataUrl)
+      image.setAttributeNS(XLINK_NS, 'xlink:href', dataUrl)
+    } catch {
+      // Icon not available — leave as-is; diagram still renders without it
+    }
   }))
 
   return new XMLSerializer().serializeToString(svg)
@@ -236,6 +245,12 @@ export async function rasterizeSvgToPng(svgMarkup: string): Promise<RenderedDiag
 
     const pngBase64 = canvas.toDataURL('image/png').replace(/^data:image\/png;base64,/, '')
     return { pngBase64, width, height }
+  } catch {
+    // Canvas rasterization can fail when the SVG contains elements the
+    // browser's image decoder rejects (external refs from blob: context,
+    // complex filters, etc.). Fall back to embedding the raw SVG text so
+    // the Word export still includes the diagram, just not as a PNG.
+    return { svgText: svgMarkup, width, height }
   } finally {
     URL.revokeObjectURL(blobUrl)
   }
