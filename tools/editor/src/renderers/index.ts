@@ -11,12 +11,14 @@ import {
 import { LabeledArrayRenderer, labeledArrayTester } from './LabeledArrayRenderer'
 import { InheritsRenderer, inheritsTester } from './InheritsRenderer'
 import { GroupLayoutRenderer, groupLayoutTester } from './GroupRenderer'
+import { StringListRenderer, stringListTester } from './StringListRenderer'
 
 export const customRenderers = [
   { tester: inheritsTester, renderer: InheritsRenderer },
   { tester: labeledArrayTester, renderer: LabeledArrayRenderer },
   { tester: deferredCategorizationTester, renderer: DeferredCategorizationRenderer },
   { tester: groupLayoutTester, renderer: GroupLayoutRenderer },
+  { tester: stringListTester, renderer: StringListRenderer },
   { tester: mermaidTester, renderer: MermaidRenderer },
   { tester: proseTester, renderer: ProseRenderer },
   { tester: scoringGuideTester, renderer: ScoringGuideRenderer },
