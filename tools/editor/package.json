@@ -1,6 +1,6 @@
 {
   "name": "@trohde/earos",
-  "version": "1.8.4",
+  "version": "1.8.5",
   "description": "Schema-driven editor and CLI for EaROS architecture assessment rubrics and evaluations",
   "type": "module",
   "bin": {

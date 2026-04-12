@@ -28,7 +28,7 @@ export interface RenderedDiagramPng {
 
 export function ensureMermaidInit() {
   if (!mermaidInitialized) {
-    mermaid.initialize({ startOnLoad: false, theme: 'default' })
+    mermaid.initialize({ startOnLoad: false, theme: 'default', maxTextSize: 500000 })
     mermaidInitialized = true
   }
 }
