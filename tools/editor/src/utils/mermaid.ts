@@ -170,8 +170,11 @@ function getLocalAssetDataUrl(assetPath: string, options?: LocalAssetDataUrlOpti
 }
 
 export async function inlineLocalMermaidImagesInSource(diagramSource: string): Promise<string> {
-  // Match both absolute (/icons/...) and relative (./icons/...) image paths
-  const imagePattern = /img:\s*(['"])(\.?\/(?:icons|mermaid-icons)\/[^'"]+)\1/g
+  // Match both absolute (/icons/...) and relative (./icons/...) image paths.
+  // The full `img: "path", ` clause is captured so we can strip it cleanly
+  // when the icon is unavailable (rather than leaving a broken path that
+  // causes "The source image cannot be decoded" in the browser).
+  const imagePattern = /img:\s*(['"])(\.?\/(?:icons|mermaid-icons)\/[^'"]+)\1,?\s*/g
   let rebuiltSource = ''
   let lastIndex = 0
 
@@ -181,11 +184,12 @@ export async function inlineLocalMermaidImagesInSource(diagramSource: string): P
     try {
       const dataUrl = await getLocalAssetDataUrl(assetPath)
       rebuiltSource += diagramSource.slice(lastIndex, matchIndex)
-      rebuiltSource += `img: ${quote}${dataUrl}${quote}`
+      rebuiltSource += `img: ${quote}${dataUrl}${quote}, `
     } catch {
-      // Icon not available (e.g. production repo without icons/ — run earos init).
-      // Leave the original path in place so the diagram still renders.
-      rebuiltSource += diagramSource.slice(lastIndex, matchIndex + fullMatch.length)
+      // Icon not available — strip the img: attribute entirely so Mermaid
+      // renders a plain node shape instead of a broken image. This makes
+      // diagrams work in repos without icons/ (run earos init to get them).
+      rebuiltSource += diagramSource.slice(lastIndex, matchIndex)
     }
     lastIndex = matchIndex + fullMatch.length
   }
