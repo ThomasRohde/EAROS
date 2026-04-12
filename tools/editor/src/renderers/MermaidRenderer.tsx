@@ -8,7 +8,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import ZoomInIcon from '@mui/icons-material/ZoomIn'
 import ZoomOutIcon from '@mui/icons-material/ZoomOut'
 import FitScreenIcon from '@mui/icons-material/FitScreen'
-import { ensureMermaidInit, renderMermaidSvg } from '../utils/mermaid'
+import { ensureMermaidInit, inlineLocalMermaidImagesInSource, renderMermaidSvg } from '../utils/mermaid'
 
 export const mermaidTester = rankWith(10, scopeEndIs('diagram_source'))
 
@@ -37,7 +37,11 @@ function MermaidRendererComponent({ data, handleChange, path, label, schema }: C
       return
     }
     try {
-      const rendered = await renderMermaidSvg(code, idRef.current)
+      // Inline local icon images as data URLs before Mermaid renders, so
+      // the output SVG is fully self-contained — no broken relative paths
+      // in blob: contexts (Word export) or strict browser environments.
+      const inlinedCode = await inlineLocalMermaidImagesInSource(code)
+      const rendered = await renderMermaidSvg(inlinedCode, idRef.current)
       setSvg(rendered)
       setRenderError('')
     } catch (err) {

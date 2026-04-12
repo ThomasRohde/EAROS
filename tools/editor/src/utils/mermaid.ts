@@ -2,7 +2,7 @@ import mermaid from 'mermaid'
 
 let mermaidInitialized = false
 let mermaidRenderSerial = 0
-const LOCAL_MERMAID_IMAGE_PREFIXES = ['/icons/', '/mermaid-icons/']
+const LOCAL_MERMAID_IMAGE_PREFIXES = ['/icons/', '/mermaid-icons/', './icons/', './mermaid-icons/']
 const LOCAL_ASSET_DATA_URL_CACHE = new Map<string, Promise<string>>()
 const MERMAID_IMAGE_MIME_TYPES: Record<string, string> = {
   '.gif': 'image/gif',
@@ -170,7 +170,8 @@ function getLocalAssetDataUrl(assetPath: string, options?: LocalAssetDataUrlOpti
 }
 
 export async function inlineLocalMermaidImagesInSource(diagramSource: string): Promise<string> {
-  const imagePattern = /img:\s*(['"])(\/(?:icons|mermaid-icons)\/[^'"]+)\1/g
+  // Match both absolute (/icons/...) and relative (./icons/...) image paths
+  const imagePattern = /img:\s*(['"])(\.?\/(?:icons|mermaid-icons)\/[^'"]+)\1/g
   let rebuiltSource = ''
   let lastIndex = 0
 
@@ -199,7 +200,9 @@ export async function inlineLocalMermaidImagesInSvg(
   const images = Array.from(svg.querySelectorAll('image'))
 
   await Promise.all(images.map(async (image) => {
-    const href = image.getAttribute('href') ?? image.getAttributeNS(XLINK_NS, 'href') ?? ''
+    let href = image.getAttribute('href') ?? image.getAttributeNS(XLINK_NS, 'href') ?? ''
+    // Normalize ./icons/ → /icons/ so the prefix check matches both forms
+    if (href.startsWith('./')) href = href.slice(1)
     if (!LOCAL_MERMAID_IMAGE_PREFIXES.some((prefix) => href.startsWith(prefix))) return
 
     const dataUrl = await getLocalAssetDataUrl(href, { rasterizeSvg: options?.rasterizeSvgAssets === true })
