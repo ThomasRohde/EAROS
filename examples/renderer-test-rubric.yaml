@@ -1,0 +1,506 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Renderer Test Rubric
+# ──────────────────────────────────────────────────────────────────────────────
+# This rubric exercises every custom JSON Forms renderer in the EaROS editor
+# and covers edge cases.  Open it in the editor to verify visual correctness.
+#
+# Renderers exercised:
+#   InheritsRenderer      — inherits (autocomplete / chip fallback)
+#   ChipListRenderer      — purpose, stakeholders, viewpoints, required_evidence,
+#                           anti_patterns, remediation_hints, tags
+#   LabeledArrayRenderer  — dimensions, criteria (accordion lists)
+#   ProseRenderer         — description fields (multiline textarea)
+#   ScoringGuideRenderer  — scoring_guide (5-column colour cards)
+#   ScaleRenderer         — scale (chip list / JSON fallback)
+#   GateRenderer          — gate (toggle + severity + failure_effect)
+#   ExamplesRenderer      — examples.good / examples.bad (side-by-side panels)
+#   DecisionTreeRenderer  — decision_tree (monospace textarea)
+#   DeferredCategorizationRenderer — top-level tabs (Metadata, Dim & Criteria…)
+#   GroupRenderer          — form section groups
+# ──────────────────────────────────────────────────────────────────────────────
+
+rubric_id: EAROS-TEST-RENDERERS
+version: 1.0.0
+kind: profile
+title: Renderer Test Profile — exercises every editor widget
+status: draft
+effective_date: "2026-04-13"
+next_review_date: "2026-10-13"
+owner: test-team
+artifact_type: solution_architecture
+design_method: viewpoint_centred
+
+# ── InheritsRenderer ──────────────────────────────────────────────────────────
+# Edge: multiple inherits (autocomplete should show both as chips)
+inherits:
+  - EAROS-CORE-002
+
+# ── ChipListRenderer — purpose / stakeholders / viewpoints ────────────────────
+# Edge: single-item, many items, special characters, empty would skip rendering
+purpose:
+  - regression_test
+  - edge_case_validation
+  - "unicode: 日本語テスト"
+stakeholders:
+  - qa_engineer
+  - "role with spaces and (parens)"
+  - "🔧 emoji-role"
+viewpoints:
+  - context
+  - functional
+  - deployment
+  - data_flow
+  - security
+  - operational
+
+# ── Applicability (default object renderer) ───────────────────────────────────
+applicability:
+  scope: all
+  notes: >
+    This rubric exists solely for editor renderer testing.
+    It should never be used for real evaluations.
+
+dimensions:
+  # ════════════════════════════════════════════════════════════════════════════
+  # DIMENSION 1 — Happy-path: all renderers with typical data
+  # ════════════════════════════════════════════════════════════════════════════
+  - id: RT-D1
+    name: Happy-path renderers
+    # ProseRenderer — description in PROSE_FIELDS
+    description: >
+      This dimension contains criteria designed to exercise every criterion-level
+      renderer with well-formed, representative data. Each field should render
+      with its custom widget, not fall back to the default Material renderer.
+    weight: 1.0
+    criteria:
+      # ── Criterion 1: Standard ordinal, object gate, full scoring guide ──────
+      - id: RT-01
+        question: >
+          Does the editor correctly render the standard ordinal scale as
+          deletable chips and the object-form gate as a toggle with severity
+          dropdown and failure-effect text field?
+        description: >
+          Validates ScaleRenderer (array → chips), GateRenderer (object form
+          with enabled + severity + failure_effect), and ScoringGuideRenderer
+          (five colour-coded cards).
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        weight: 1.0
+        gate:
+          enabled: true
+          severity: critical
+          failure_effect: >
+            Blocks pass. A multi-line failure effect that wraps in the text
+            field to verify the renderer handles longer text without clipping.
+        # ChipListRenderer — required_evidence (blue theme)
+        # Edge: mixed string + object items
+        required_evidence:
+          - "Plain string evidence item"
+          - "Second string item with special chars: <script>alert('xss')</script>"
+          - type: section_reference
+            path: "§3.2 — Architecture Overview"
+            description: Must include a structured diagram
+          - type: metric
+            name: coverage_percentage
+            threshold: ">= 80%"
+        # ScoringGuideRenderer — all five levels filled
+        scoring_guide:
+          "0": "No evidence of the capability whatsoever."
+          "1": "Minimal or token effort — present but unusable."
+          "2": "Partial coverage with significant gaps."
+          "3": "Good coverage; minor gaps remain but do not block."
+          "4": "Comprehensive, clear, and exceeds expectations."
+        # ChipListRenderer — anti_patterns (red theme)
+        anti_patterns:
+          - "Copy-pasted boilerplate from another project"
+          - "Diagram labels say 'TBD' or 'TODO'"
+          - "Security section is entirely absent"
+        # ChipListRenderer — remediation_hints (green theme)
+        remediation_hints:
+          - "Add a context diagram showing external system boundaries"
+          - "Replace placeholder text with actual architecture decisions"
+          - "Include at least one quality-attribute scenario per NFR"
+        # ExamplesRenderer — multiple good and bad, including long text
+        examples:
+          good:
+            - >
+              Front page declares solution type, review scope (Part 2, Sections
+              00–09), and governance state. Table of contents matches declared
+              scope. No template callouts visible.
+            - >
+              Section 00 governance table shows version 2.3, last endorsed
+              2026-03-14. Section 00 governance table matches. Table of contents
+              contains only Sections 00-07 and 09 — consistent with a Part 2
+              Platform TA.
+          bad:
+            - >
+              Section 00 governance fields contain example placeholder text.
+              Table of contents lists all 16 sections but most child pages are
+              blank or contain template boilerplate.
+            - "Single-line bad example."
+        # DecisionTreeRenderer — IF/THEN logic
+        decision_tree: |
+          IF artifact declares review_scope AND governance_state visible
+            IF section_00 governance table current within 6 months
+              THEN score >= 3
+            ELSE
+              THEN score = 2 (stale governance)
+          ELSE IF only partial front-page metadata
+            THEN score = 1
+          ELSE
+            THEN score = 0
+        # ChipListRenderer — tags (default theme)
+        tags:
+          - governance
+          - front-page
+          - reviewability
+
+      # ── Criterion 2: Binary metric, advisory gate, sparse fields ────────────
+      - id: RT-02
+        question: >
+          Does the editor render a binary metric type with a non-standard scale
+          and an advisory-severity gate correctly?
+        description: >
+          Tests ScaleRenderer with a two-element array, GateRenderer with
+          advisory severity, and ExamplesRenderer with only good examples (no
+          bad). Also tests scoring_guide with only two keys.
+        metric_type: binary
+        scale: ["pass", "fail"]
+        weight: 0.5
+        gate:
+          enabled: true
+          severity: advisory
+          failure_effect: "Advisory only — flags for human review but does not block."
+        required_evidence:
+          - "Evidence of binary check"
+        scoring_guide:
+          "0": "Fails the binary check entirely."
+          "4": "Passes the binary check."
+        anti_patterns:
+          - "Claiming pass without supporting evidence"
+        remediation_hints: []
+        examples:
+          good:
+            - "The artifact includes a signed-off compliance attestation."
+          bad: []
+        decision_tree: |
+          IF attestation_present AND signature_valid
+            THEN pass
+          ELSE
+            THEN fail
+        tags:
+          - binary
+          - compliance
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # DIMENSION 2 — Edge cases: empty, missing, unusual shapes
+  # ════════════════════════════════════════════════════════════════════════════
+  - id: RT-D2
+    name: Edge cases and stress tests
+    description: >
+      Contains criteria with empty arrays, boolean gates, missing optional
+      fields, unicode content, and other edge cases that might break renderers.
+    weight: 0.8
+    criteria:
+      # ── Criterion 3: Boolean gate (false), empty chips ──────────────────────
+      - id: RT-03
+        question: >
+          Does the editor handle gate:false (plain boolean, not object) and
+          render it as a disabled toggle?
+        description: >
+          GateRenderer edge case — when gate is the simple boolean `false`,
+          the toggle should be off with no severity/failure_effect fields.
+          ChipListRenderer edge case — empty arrays for anti_patterns,
+          remediation_hints, and tags.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        weight: 1.0
+        gate: false
+        required_evidence:
+          - "At least one piece of evidence"
+        scoring_guide:
+          "0": "Absent."
+          "1": "Weak."
+          "2": "Partial."
+          "3": "Good."
+          "4": "Strong."
+        anti_patterns: []
+        remediation_hints: []
+        examples:
+          good: []
+          bad: []
+        decision_tree: ""
+        tags: []
+
+      # ── Criterion 4: Gate object without failure_effect ─────────────────────
+      - id: RT-04
+        question: >
+          Does the gate renderer handle an object gate where failure_effect is
+          omitted (optional field)?
+        description: >
+          Tests GateRenderer with {enabled: true, severity: major} but no
+          failure_effect key. The failure_effect text field should be empty.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        weight: 1.0
+        gate:
+          enabled: true
+          severity: major
+        required_evidence:
+          - "Minimal evidence"
+        scoring_guide:
+          "0": "Missing."
+          "1": "Attempted."
+          "2": "Partial."
+          "3": "Satisfactory."
+          "4": "Excellent."
+        examples:
+          good:
+            - "A single good example to verify non-empty rendering."
+          bad:
+            - "A single bad example."
+
+      # ── Criterion 5: Count metric, numeric-only scale ───────────────────────
+      - id: RT-05
+        question: >
+          Does the scale renderer handle a purely numeric scale without the N/A
+          string value?
+        description: >
+          ScaleRenderer edge case — scale is [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+          (many values). Count metric type. Tests chip overflow/wrapping.
+        metric_type: count
+        scale: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        weight: 0.3
+        gate: false
+        required_evidence:
+          - "Count of items meeting the threshold"
+        scoring_guide:
+          "0": "Count is 0."
+          "1": "Count is 1–2."
+          "2": "Count is 3–5."
+          "3": "Count is 6–8."
+          "4": "Count is 9+."
+        tags:
+          - counting
+          - overflow-test
+
+      # ── Criterion 6: Unicode and special characters everywhere ──────────────
+      - id: RT-06
+        question: >
+          Does the editor correctly render unicode characters (日本語, émojis 🏗️,
+          accented letters àéîõü, math symbols ∀∃∈≤≥) across all renderer
+          types?
+        description: >
+          Stress-tests text handling in every renderer. All fields contain
+          non-ASCII content to verify no encoding or display issues.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "該当なし"]
+        weight: 1.0
+        gate:
+          enabled: true
+          severity: critical
+          failure_effect: "Échec critique — nécessite révision immédiate 🚨"
+        required_evidence:
+          - "アーキテクチャの概要図"
+          - "Diagramme de contexte système"
+          - "Übersichtsdiagramm der Lösung"
+        scoring_guide:
+          "0": "まったく証拠なし (no evidence at all)"
+          "1": "最小限の努力 — 存在するが使用不可"
+          "2": "部分的なカバレッジ、重大なギャップあり"
+          "3": "良好なカバレッジ; 軽微なギャップは残るがブロックしない"
+          "4": "包括的、明確、期待を超える ✅"
+        anti_patterns:
+          - "テンプレートのプレースホルダーテキスト 📋"
+          - "Diagrammes avec des étiquettes «À FAIRE»"
+        remediation_hints:
+          - "Fügen Sie ein Kontextdiagramm hinzu"
+          - "Remplacez le texte d'espace réservé par des décisions réelles"
+        examples:
+          good:
+            - "フロントページにソリューションの種類とレビュー範囲が宣言されている。目次が宣言された範囲と一致。テンプレートの注釈は表示されていない。"
+          bad:
+            - "セクション00のガバナンスフィールドにプレースホルダーテキストが含まれている。 目次には16セクションすべてがリストされているが、ほとんどの子ページは空白。"
+        decision_tree: |
+          IF アーティファクトがreview_scopeを宣言 AND governance_stateが表示
+            THEN スコア >= 3
+          ELSE
+            THEN スコア = 0
+        tags:
+          - "unicode-テスト"
+          - "i18n"
+          - "émojis-🏗️"
+
+      # ── Criterion 7: Very long content in all text fields ───────────────────
+      - id: RT-07
+        question: >
+          Does the editor handle very long text content gracefully across all
+          renderer types without layout breakage, overflow, or truncation that
+          hides content from the user?
+        description: >
+          Stress-tests text overflow handling. The question, description,
+          failure_effect, scoring guide entries, anti-patterns, remediation
+          hints, examples, and decision tree all contain intentionally long
+          content. The editor should wrap text, expand text areas, or provide
+          scroll affordances — never silently clip content.
+        metric_type: ordinal
+        scale: [0, 1, 2, 3, 4, "N/A"]
+        weight: 1.0
+        gate:
+          enabled: true
+          severity: major
+          failure_effect: >
+            This is an intentionally long failure effect description that spans
+            multiple lines to test whether the GateRenderer's failure_effect
+            TextField properly expands or scrolls. It includes details about
+            why the gate matters, what happens when it fails, who should be
+            notified, what the remediation path looks like, and what the
+            timeline expectations are for resolving the issue. The text
+            continues further to push the boundaries of the text field layout
+            and ensure no content is lost to truncation or overflow.
+        required_evidence:
+          - >
+            A very long required evidence string that describes in exhaustive
+            detail exactly what the reviewer should look for in the artifact,
+            including specific section references, expected content patterns,
+            quality thresholds, and examples of what constitutes sufficient
+            versus insufficient evidence for this particular criterion.
+          - "Short item for contrast"
+        scoring_guide:
+          "0": >
+            Completely absent. There is no trace of this capability in the
+            artifact. The section is either missing entirely or contains only
+            the original template text without any modifications. The reviewer
+            cannot identify any attempt to address this criterion.
+          "1": "Weak but present."
+          "2": "Partial — gaps remain."
+          "3": "Good — minor issues only."
+          "4": >
+            Exceptional and comprehensive. Every aspect of this criterion is
+            addressed with clear, specific, and actionable content. The artifact
+            not only meets the requirement but provides additional context,
+            rationale, and cross-references that exceed baseline expectations.
+            Diagrams are machine-readable, text is precise, and evidence is
+            directly traceable to architectural decisions.
+        anti_patterns:
+          - >
+            An anti-pattern description that is deliberately very long to test
+            chip wrapping behaviour. When the content of a chip exceeds the
+            available width, the ChipListRenderer should handle it gracefully
+            by wrapping text within the chip or truncating with an ellipsis
+            and providing a tooltip with the full text on hover.
+        remediation_hints:
+          - >
+            A long remediation hint that provides step-by-step guidance for
+            fixing the issue, including references to external documentation,
+            template sections to fill in, stakeholders to consult, and a
+            suggested timeline for completing the remediation work.
+        examples:
+          good:
+            - >
+              An exceptionally detailed good example that runs for several
+              sentences. The front page declares the solution type as a
+              Platform Target Architecture targeting the payments domain. The
+              review scope explicitly lists Sections 00 through 09 and 12.
+              The governance table in Section 00 shows version 3.1, last
+              endorsed on 2026-02-28, with the next review scheduled for
+              2026-08-28. The table of contents exactly matches the declared
+              scope with no extra placeholder sections. All cross-references
+              in Section 05 link to existing ADRs in the decision log.
+          bad:
+            - >
+              A correspondingly detailed bad example. The front page contains
+              only the original Confluence template text. The review scope
+              field says "TBD". Section 00 has no governance table — instead
+              there is a comment saying "will add later". The table of
+              contents lists all 16 possible sections but sections 06 through
+              11 are completely empty. Several cross-references point to
+              non-existent pages that return 404 errors.
+        decision_tree: |
+          IF artifact.front_page.solution_type IS declared
+            AND artifact.front_page.review_scope IS NOT "TBD"
+            AND artifact.section_00.governance_table EXISTS
+            AND artifact.section_00.governance_table.last_endorsed > (today - 180 days)
+            AND artifact.table_of_contents MATCHES artifact.front_page.review_scope
+            AND artifact.cross_references ALL resolve to existing pages
+              THEN score = 4
+          ELSE IF artifact.front_page.solution_type IS declared
+            AND artifact.front_page.review_scope IS NOT "TBD"
+            AND artifact.section_00.governance_table EXISTS
+              IF artifact.section_00.governance_table.last_endorsed > (today - 365 days)
+                THEN score = 3
+              ELSE
+                THEN score = 2
+          ELSE IF artifact.front_page EXISTS AND has some metadata
+            THEN score = 1
+          ELSE
+            THEN score = 0
+        tags:
+          - overflow-test
+          - long-content
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # DIMENSION 3 — Minimal dimension (single criterion, minimal fields)
+  # ════════════════════════════════════════════════════════════════════════════
+  - id: RT-D3
+    name: Minimal dimension
+    # ProseRenderer — short description
+    description: "Shortest possible dimension: one criterion, only required fields."
+    weight: 0.5
+    criteria:
+      - id: RT-08
+        question: "Is this the minimal valid criterion with only required fields?"
+        metric_type: presence
+        scale: ["present", "absent"]
+        required_evidence:
+          - "Presence check"
+        scoring_guide:
+          "0": "Absent."
+          "4": "Present."
+
+# ── Scoring & Outputs (default renderers) ─────────────────────────────────────
+scoring:
+  scale: "0–4 ordinal"
+  agent_scale: "0–4 ordinal (collapsed)"
+  method: weighted_average
+  thresholds:
+    pass: 3.2
+    conditional_pass: 2.5
+    fail: 0.0
+    dimension_floor: 2.0
+  na_policy: >
+    N/A requires written justification. N/A criteria are excluded from the
+    weighted average denominator.
+  confidence_policy: >
+    Confidence is separate from score. Low confidence flags human review
+    priority but does not lower the score.
+  reliability_targets:
+    binary_agreement: ">= 0.85"
+    ordinal_kappa: ">= 0.70"
+    overall_correlation: ">= 0.80"
+
+outputs:
+  require_evidence_refs: true
+  require_confidence: true
+  require_actions: true
+  require_evidence_class: true
+  require_evidence_anchors: true
+  formats:
+    - yaml
+    - json
+    - docx
+    - pdf
+
+# ── Agent Evaluation (default renderers) ──────────────────────────────────────
+agent_evaluation:
+  dag_steps:
+    - parse_artifact
+    - resolve_rubric
+    - evaluate_criteria
+    - check_gates
+    - compute_scores
+    - generate_narrative
+    - format_output
+    - validate_record
+  rubric_locked: false
+  calibration_method: rulers_wasserstein

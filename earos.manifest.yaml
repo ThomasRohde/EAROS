@@ -1,6 +1,6 @@
 kind: manifest
 version: 2.0.0
-generated: '2026-04-11'
+generated: '2026-04-13'
 core:
   - path: core/core-meta-rubric.yaml
     rubric_id: EAROS-CORE-002
@@ -130,6 +130,11 @@ examples:
   - path: examples/multi-cloud-data-analytics/artifact.yaml
     kind: artifact
     artifact_type: reference_architecture
+  - path: examples/renderer-test-rubric.yaml
+    kind: profile
+    artifact_type: solution_architecture
+    rubric_id: EAROS-TEST-RENDERERS
+    status: draft
 scoring_tools:
   - path: tools/scoring-sheets/EAROS_Scoring_Sheet_v2.xlsx
     purpose: general-purpose manual scoring (current)

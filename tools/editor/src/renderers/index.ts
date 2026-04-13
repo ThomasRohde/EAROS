@@ -12,6 +12,8 @@ import { LabeledArrayRenderer, labeledArrayTester } from './LabeledArrayRenderer
 import { InheritsRenderer, inheritsTester } from './InheritsRenderer'
 import { GroupLayoutRenderer, groupLayoutTester } from './GroupRenderer'
 import { StringListRenderer, stringListTester } from './StringListRenderer'
+import { ScaleRenderer, scaleTester } from './ScaleRenderer'
+import { GateRenderer, gateTester } from './GateRenderer'
 
 export const customRenderers = [
   { tester: inheritsTester, renderer: InheritsRenderer },
@@ -25,4 +27,6 @@ export const customRenderers = [
   { tester: chipListTester, renderer: ChipListRenderer },
   { tester: decisionTreeTester, renderer: DecisionTreeRenderer },
   { tester: examplesTester, renderer: ExamplesRenderer },
+  { tester: scaleTester, renderer: ScaleRenderer },
+  { tester: gateTester, renderer: GateRenderer },
 ]

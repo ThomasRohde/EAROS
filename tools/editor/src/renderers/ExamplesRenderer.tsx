@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { rankWith, scopeEndIs, and, schemaTypeIs } from '@jsonforms/core'
 import { withJsonFormsControlProps } from '@jsonforms/react'
 import type { ControlProps } from '@jsonforms/core'
-import { Box, Chip, TextField, Typography } from '@mui/material'
+import { Box, IconButton, TextField, Tooltip, Typography } from '@mui/material'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import AddIcon from '@mui/icons-material/Add'
 
 export const examplesTester = rankWith(
   10,
@@ -16,29 +18,29 @@ interface ExamplesPanelProps {
   items: string[]
   onAdd: (value: string) => void
   onRemove: (index: number) => void
+  onUpdate: (index: number, value: string) => void
   type: 'good' | 'bad'
 }
 
-function ExamplesPanel({ title, items, onAdd, onRemove, type }: ExamplesPanelProps) {
-  const [inputValue, setInputValue] = useState('')
+function ExamplesPanel({ title, items, onAdd, onRemove, onUpdate, type }: ExamplesPanelProps) {
+  const [draft, setDraft] = useState('')
   const isGood = type === 'good'
   const headerBg = isGood ? 'hsl(127 47% 30%)' : 'hsl(0 65% 51%)'
   const bodyBg = isGood ? 'hsl(129 33% 92%)' : 'hsl(0 82% 96%)'
   const borderColor = isGood ? 'hsl(125 46% 84%)' : 'hsl(4 100% 92%)'
-  const chipColor = isGood ? ('success' as const) : ('error' as const)
   const placeholder = isGood
     ? 'Example of strong evidence for this criterion'
     : 'Example of weak or missing evidence'
 
-  const handleAdd = () => {
-    const trimmed = inputValue.trim()
+  const handleAdd = useCallback(() => {
+    const trimmed = draft.trim()
     if (!trimmed) return
     onAdd(trimmed)
-    setInputValue('')
-  }
+    setDraft('')
+  }, [draft, onAdd])
 
   return (
-    <Box sx={{ flex: 1, minWidth: 200, border: `1px solid ${borderColor}`, borderRadius: 1, overflow: 'hidden' }}>
+    <Box sx={{ flex: 1, minWidth: 240, border: `1px solid ${borderColor}`, borderRadius: 1, overflow: 'hidden' }}>
       <Box sx={{ bgcolor: headerBg, px: 1.5, py: 0.75, display: 'flex', alignItems: 'center', gap: 0.75 }}>
         {isGood ? (
           <CheckCircleOutlineIcon sx={{ color: 'white', fontSize: 15 }} />
@@ -49,41 +51,75 @@ function ExamplesPanel({ title, items, onAdd, onRemove, type }: ExamplesPanelPro
           {title}
         </Typography>
       </Box>
-      <Box sx={{ bgcolor: bodyBg, p: 1 }}>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: 1, minHeight: 44 }}>
-          {items.length === 0 && (
-            <Typography variant="caption" color="text.disabled" sx={{ alignSelf: 'center', fontSize: '0.72rem' }}>
-              No examples yet
-            </Typography>
-          )}
-          {items.map((item, index) => (
-            <Chip
-              key={index}
-              label={item}
+      <Box sx={{ bgcolor: bodyBg, p: 1, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+        {items.length === 0 && (
+          <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.72rem' }}>
+            No examples yet
+          </Typography>
+        )}
+        {items.map((item, index) => (
+          <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+            <TextField
+              fullWidth
               size="small"
-              color={chipColor}
+              multiline
+              minRows={1}
+              maxRows={6}
+              value={item}
+              onChange={(e) => onUpdate(index, e.target.value)}
               variant="outlined"
-              onDelete={() => onRemove(index)}
-              sx={{ fontSize: '0.72rem', maxWidth: 320, '.MuiChip-label': { whiteSpace: 'normal', lineHeight: 1.3 } }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  py: 0.75,
+                  px: 1.5,
+                  fontSize: '0.8rem',
+                  bgcolor: 'rgba(255,255,255,0.6)',
+                },
+              }}
             />
-          ))}
+            <Tooltip title="Remove">
+              <IconButton
+                size="small"
+                onClick={() => onRemove(index)}
+                sx={{ mt: 0.5, color: 'text.disabled', '&:hover': { color: 'error.main' } }}
+                aria-label="Remove example"
+              >
+                <DeleteOutlineIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ))}
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+          <TextField
+            size="small"
+            fullWidth
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleAdd()
+              }
+            }}
+            onBlur={handleAdd}
+            placeholder={placeholder}
+            variant="outlined"
+            sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.8rem', bgcolor: 'rgba(255,255,255,0.6)' } }}
+          />
+          <Tooltip title="Add">
+            <span>
+              <IconButton
+                size="small"
+                onClick={handleAdd}
+                disabled={!draft.trim()}
+                sx={{ mt: 0.5 }}
+                aria-label="Add example"
+              >
+                <AddIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
         </Box>
-        <TextField
-          size="small"
-          fullWidth
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              handleAdd()
-            }
-          }}
-          onBlur={handleAdd}
-          placeholder={placeholder}
-          variant="outlined"
-          sx={{ '& .MuiInputBase-input': { fontSize: '0.78rem' } }}
-        />
       </Box>
     </Box>
   )
@@ -108,6 +144,7 @@ function ExamplesRendererComponent({ data, handleChange, path }: ControlProps) {
           items={good}
           onAdd={(v) => handleChange(path, { ...examples, good: [...good, v] })}
           onRemove={(i) => handleChange(path, { ...examples, good: good.filter((_, idx) => idx !== i) })}
+          onUpdate={(i, v) => handleChange(path, { ...examples, good: good.map((item, idx) => idx === i ? v : item) })}
           type="good"
         />
         <ExamplesPanel
@@ -115,6 +152,7 @@ function ExamplesRendererComponent({ data, handleChange, path }: ControlProps) {
           items={bad}
           onAdd={(v) => handleChange(path, { ...examples, bad: [...bad, v] })}
           onRemove={(i) => handleChange(path, { ...examples, bad: bad.filter((_, idx) => idx !== i) })}
+          onUpdate={(i, v) => handleChange(path, { ...examples, bad: bad.map((item, idx) => idx === i ? v : item) })}
           type="bad"
         />
       </Box>
