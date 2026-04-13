@@ -13,7 +13,7 @@ const MERMAID_IMAGE_MIME_TYPES: Record<string, string> = {
   '.webp': 'image/webp',
 }
 
-export interface MermaidDiagramRef {
+interface MermaidDiagramRef {
   key: string
   source: string
   label: string
@@ -40,7 +40,7 @@ export async function renderMermaidSvg(code: string, prefix = 'mermaid'): Promis
   return svg
 }
 
-export function getSvgIntrinsicSize(svgMarkup: string): { width: number; height: number } {
+function getSvgIntrinsicSize(svgMarkup: string): { width: number; height: number } {
   const svgDoc = new DOMParser().parseFromString(svgMarkup, 'image/svg+xml')
   const svg = svgDoc.documentElement
 

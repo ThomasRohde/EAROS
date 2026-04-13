@@ -40,9 +40,6 @@ import {
   Tooltip,
 } from '@mui/material'
 import { ExpandMore, Delete, ErrorOutline } from '@mui/icons-material'
-import range from 'lodash/range'
-import map from 'lodash/map'
-import merge from 'lodash/merge'
 
 function truncate(text: string, maxLen: number): string {
   if (text.length <= maxLen) return text
@@ -204,7 +201,7 @@ const LabeledArrayLayoutComponent = ({
     uischemas, description, disableAdd, disableRemove,
   } = props
 
-  const appliedUiSchemaOptions = merge({}, config, uischema.options)
+  const appliedUiSchemaOptions = { ...config, ...uischema.options }
   const doDisableAdd = disableAdd || appliedUiSchemaOptions.disableAdd
   const doDisableRemove = disableRemove || appliedUiSchemaOptions.disableRemove
 
@@ -225,7 +222,7 @@ const LabeledArrayLayoutComponent = ({
       />
       <div>
         {data > 0 ? (
-          map(range(data), (index) => (
+          Array.from({ length: data }, (_, index) => (
             <LabeledExpandPanel
               key={index}
               enabled={enabled}

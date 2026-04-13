@@ -11,7 +11,7 @@
  * correct filename prefix.
  */
 
-export type SchemaName = 'rubric' | 'evaluation'
+type SchemaName = 'rubric' | 'evaluation'
 
 export type ArtifactType =
   | 'reference_architecture'

@@ -14,7 +14,7 @@ const OPTIONS: { value: Kind; label: string }[] = [
   { value: 'evaluation', label: 'Evaluation Record' },
 ]
 
-export default function KindSelector({ kind, onChange }: Props) {
+function KindSelector({ kind, onChange }: Props) {
   return (
     <FormControl size="small" sx={{ minWidth: 180 }}>
       <InputLabel>Document Kind</InputLabel>

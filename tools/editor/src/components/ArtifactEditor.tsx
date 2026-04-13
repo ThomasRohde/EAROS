@@ -363,7 +363,7 @@ function ArtifactInfoBar({
 
 // ─── ArtifactEditor ────────────────────────────────────────────────────────────
 
-export type ArtifactInitialMode = 'new' | 'import'
+type ArtifactInitialMode = 'new' | 'import'
 
 interface Props {
   initialMode: ArtifactInitialMode

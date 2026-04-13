@@ -1,6 +1,5 @@
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
-import { loadSchema, type SchemaName } from './schemaLoader'
 
 export interface ValidationError {
   path: string
@@ -35,16 +34,6 @@ function getValidator(schema: Record<string, unknown>) {
     }
   }
   return cache.get(key)!
-}
-
-/** Async convenience: fetch schema by name then validate. */
-export async function validateWithSchema(
-  data: unknown,
-  name: SchemaName,
-): Promise<ValidationResult> {
-  const schema = await loadSchema(name)
-  if (!schema) return { valid: true, errors: [] }
-  return validateData(data, schema)
 }
 
 export function validateData(
